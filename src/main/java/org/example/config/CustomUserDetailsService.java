@@ -39,6 +39,9 @@ public class CustomUserDetailsService implements UserDetailsService {
             case "COCINA" -> "COCINA";
             case "SALON", "BARRA" -> "MOZO";
             case "CAJA" -> "CAJA";
+            case "REPARTIDOR" -> "REPARTIDOR";
+            case "RECEPCION" -> "RECEPCION";
+            case "RECURSOSHUMANOS" -> "RRHH";
             default -> "EMPLEADO";
         };
     }

@@ -1,16 +1,17 @@
 package org.example.Modelo.facturacion;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import org.example.Modelo.enums.MetodoPago;
+import org.example.Modelo.enums.EstadoPago;
+import java.time.LocalDateTime;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
 @Entity
 @Getter @Setter @NoArgsConstructor
 public class Facturacion {
-    @ManyToOne
+    @OneToOne
     @JoinColumn(name = "nroTicket")
     @JsonBackReference
     private Ticket ticket;
@@ -19,6 +20,29 @@ public class Facturacion {
     private MetodoPago metodoPago;
     private double montoTotal;
     private LocalDateTime fecha;
+    private double propina = 0;
+    private Integer porcentajePropina;
+
+    @Enumerated(EnumType.STRING)
+    private EstadoPago estadoPago = EstadoPago.PENDIENTE;
+    private LocalDateTime fechaPago;
+
+    public double getMontoAPagar() {
+        return this.montoTotal;
+    }
+
+    public void aplicarPropina(int porcentaje) {
+        if (porcentaje != 5 && porcentaje != 10 && porcentaje != 15) {
+            throw new IllegalArgumentException("La propina solo puede ser 5%, 10% o 15%");
+        }
+        this.porcentajePropina = porcentaje;
+        this.propina = this.montoTotal * porcentaje / 100.0;
+    }
+
+    public void confirmarPago() {
+        this.estadoPago = EstadoPago.PAGADO;
+        this.fechaPago = LocalDateTime.now();
+    }
 
     public void imprimirTicket(){
         System.out.println("Ticket N°: " + ticket.getNroTicket());
@@ -38,4 +62,5 @@ public class Facturacion {
         montoTotal= ticket.calcularTotal();
         return montoTotal;
     }
+
 }

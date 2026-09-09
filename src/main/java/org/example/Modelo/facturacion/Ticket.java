@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import org.example.Modelo.Restaurante;
 import org.example.Modelo.menu.Pedido;
 import org.example.Modelo.reserva.Reserva;
+import org.example.Modelo.enums.OrigenTicket;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -31,6 +32,8 @@ public class Ticket {
     @OneToMany(mappedBy = "ticket", cascade = CascadeType.ALL)
     @JsonManagedReference
     private List<Pedido> pedidos;
+    @Enumerated(EnumType.STRING)
+    private OrigenTicket origen = OrigenTicket.SALON;
 
     public void agregarPedido(Pedido pedido){
         pedidos.add(pedido);

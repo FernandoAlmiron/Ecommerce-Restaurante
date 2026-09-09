@@ -1,6 +1,7 @@
 package org.example.Modelo.persona;
 
 import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -12,6 +13,7 @@ public class Empleado extends Persona{
     @Id @GeneratedValue(strategy= GenerationType.IDENTITY)
     private int legajo;
     private String username;
+    @JsonIgnore
     private String password;
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "idSector")

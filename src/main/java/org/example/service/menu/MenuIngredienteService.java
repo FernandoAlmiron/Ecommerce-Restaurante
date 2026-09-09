@@ -52,6 +52,9 @@ public class MenuIngredienteService {
         for (MenuIngrediente mi : ingredientes) {
             Stock stock = mi.getStock();
             double aDescontar = mi.calcularCantidadADescontar(cantidadPedida);
+            if (stock.getCantidadActual() < aDescontar) {
+                throw new IllegalStateException("Stock insuficiente de " + stock.getNombre());
+            }
             stock.setCantidadActual(stock.getCantidadActual() - aDescontar);
             stockRepository.save(stock);
         }

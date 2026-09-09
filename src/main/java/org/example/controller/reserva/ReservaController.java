@@ -1,6 +1,7 @@
 package org.example.controller.reserva;
 
 import org.example.Modelo.reserva.Reserva;
+import org.example.dto.ReservaWalkInDTO;
 import org.example.service.reserva.ReservaService;
 import org.springframework.web.bind.annotation.*;
 
@@ -44,5 +45,10 @@ public class ReservaController {
     @PutMapping("/{id}/asistencia")
     public Reserva marcarAsistencia(@PathVariable int id, @RequestParam boolean asistio) {
         return reservaService.marcarAsistencia(id, asistio);
+    }
+
+    @PostMapping("/walkin")
+    public Reserva reservarWalkIn(@RequestBody ReservaWalkInDTO dto) {
+        return reservaService.reservarWalkIn(dto);
     }
 }
