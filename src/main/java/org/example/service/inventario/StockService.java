@@ -61,4 +61,19 @@ public class StockService {
         stock.setCantidadActual(nuevaCantidad);
         return stockRepository.save(stock);
     }
+    public Stock actualizar(int idStock, Stock datos) {
+        Stock actual = buscarPorId(idStock);
+        actual.setNombre(datos.getNombre());
+        actual.setUnidadMedida(datos.getUnidadMedida());
+        actual.setCantidadActual(datos.getCantidadActual());
+        actual.setStockMinimo(datos.getStockMinimo());
+        actual.setStockMinimoActivo(datos.isStockMinimoActivo());
+        actual.setCategoria(datos.getCategoria());
+        return stockRepository.save(actual);
+    }
+
+    public void eliminar(int idStock) {
+        buscarPorId(idStock);   // 404 si no existe
+        stockRepository.deleteById(idStock);   // si tiene datos asociados la base lo rechaza (409)
+    }
 }

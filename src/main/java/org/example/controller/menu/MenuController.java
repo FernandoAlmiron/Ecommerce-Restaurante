@@ -2,6 +2,7 @@ package org.example.controller.menu;
 
 import org.example.Modelo.menu.Menu;
 import org.example.service.menu.MenuService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -30,5 +31,15 @@ public class MenuController {
     public Menu crear(@RequestBody Menu menu) {
         menu.setIdMenu(0);
         return menuService.guardar(menu);
+    }
+    @PutMapping("/{id}")
+    public Menu actualizar(@PathVariable int id, @RequestBody Menu menu) {
+        return menuService.actualizar(id, menu);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> eliminar(@PathVariable int id) {
+        menuService.eliminar(id);
+        return ResponseEntity.noContent().build();
     }
 }

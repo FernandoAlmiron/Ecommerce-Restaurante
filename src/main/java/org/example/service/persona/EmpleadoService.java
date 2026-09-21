@@ -63,6 +63,26 @@ public class EmpleadoService {
         empleado.cambiarSector(sector);
         return empleadoRepository.save(empleado);
     }
+    // PUT de los datos personales. La clave y el sector tienen sus propios pedidos
+    public Empleado actualizar(int legajo, Empleado datos, boolean quienActualizaEsAdmin) {
+        Empleado actual = buscarPorId(legajo);   // 404 si no existe
+        exigirAdminSiEsAdministracion(actual.getSector(), quienActualizaEsAdmin);
+        if (datos.getUsername() == null || datos.getUsername().isBlank()) {
+            throw new IllegalArgumentException("El username es obligatorio");
+        }
+        actual.setNombre(datos.getNombre());
+        actual.setApellido(datos.getApellido());
+        actual.setCelular(datos.getCelular());
+        actual.setDni(datos.getDni());
+        actual.setUsername(datos.getUsername());
+        return empleadoRepository.save(actual);
+    }
+
+    public void eliminar(int legajo, boolean quienEliminaEsAdmin) {
+        Empleado actual = buscarPorId(legajo);   // 404 si no existe
+        exigirAdminSiEsAdministracion(actual.getSector(), quienEliminaEsAdmin);
+        empleadoRepository.deleteById(legajo);   // si tiene cierres de caja o envios la base lo rechaza (409)
+    }
 
     // Sin esto, RRHH podria crearse (o ascender a alguien) al sector ADMINISTRACION y quedar como admin
     private void exigirAdminSiEsAdministracion(Sector sector, boolean esAdmin) {

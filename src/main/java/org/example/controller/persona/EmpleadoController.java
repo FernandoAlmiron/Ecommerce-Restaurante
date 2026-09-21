@@ -3,6 +3,7 @@ package org.example.controller.persona;
 import org.example.Modelo.persona.Empleado;
 import org.example.Modelo.persona.Sector;
 import org.example.service.persona.EmpleadoService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -39,6 +40,18 @@ public class EmpleadoController {
     public Empleado cambiarSector(@PathVariable int id, @RequestBody Sector nuevoSector,
                                   Authentication authentication) {
         return empleadoService.cambiarSector(id, nuevoSector, esAdmin(authentication));
+    }
+
+    @PutMapping("/{id}")
+    public Empleado actualizar(@PathVariable int id, @RequestBody Empleado empleado,
+                               Authentication authentication) {
+        return empleadoService.actualizar(id, empleado, esAdmin(authentication));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> eliminar(@PathVariable int id, Authentication authentication) {
+        empleadoService.eliminar(id, esAdmin(authentication));
+        return ResponseEntity.noContent().build();
     }
 
     private boolean esAdmin(Authentication authentication) {

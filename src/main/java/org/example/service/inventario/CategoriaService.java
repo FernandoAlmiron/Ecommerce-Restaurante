@@ -28,4 +28,16 @@ public class CategoriaService {
         return categoriaRepository.findAll();
     }
 
+    public Categoria actualizar(int nroCategoria, Categoria datos) {
+        Categoria actual = buscarPorId(nroCategoria);
+        actual.setNombre(datos.getNombre());
+        actual.setDescripcion(datos.getDescripcion());
+        actual.setActivo(datos.isActivo());
+        return categoriaRepository.save(actual);
+    }
+
+    public void eliminar(int nroCategoria) {
+        buscarPorId(nroCategoria);   // 404 si no existe
+        categoriaRepository.deleteById(nroCategoria);   // si tiene datos asociados la base lo rechaza (409)
+    }
 }

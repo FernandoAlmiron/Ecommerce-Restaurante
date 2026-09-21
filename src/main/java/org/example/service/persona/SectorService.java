@@ -39,4 +39,16 @@ public class SectorService {
         sector.desactivar();
         return sectorRepository.save(sector);
     }
+    public Sector actualizar(int idSector, Sector datos) {
+        Sector actual = buscarPorId(idSector);
+        actual.setNombre(datos.getNombre());
+        actual.setActiva(datos.isActiva());
+        return sectorRepository.save(actual);
+    }
+
+    public void eliminar(int idSector) {
+        buscarPorId(idSector);   // 404 si no existe
+        sectorRepository.deleteById(idSector);   // si tiene datos asociados la base lo rechaza (409)
+    }
+
 }

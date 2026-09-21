@@ -27,4 +27,17 @@ public class ZonaService {
     public List<Zona> listarTodos() {
         return zonaRepository.findAll();
     }
+
+    public Zona actualizar(int idZona, Zona datos) {
+        Zona actual = buscarPorId(idZona);
+        actual.setNombre(datos.getNombre());
+        actual.setCapacidadMaxima(datos.getCapacidadMaxima());
+        actual.setActiva(datos.isActiva());
+        return zonaRepository.save(actual);
+    }
+
+    public void eliminar(int idZona) {
+        buscarPorId(idZona);   // 404 si no existe
+        zonaRepository.deleteById(idZona);   // si tiene datos asociados la base lo rechaza (409)
+    }
 }

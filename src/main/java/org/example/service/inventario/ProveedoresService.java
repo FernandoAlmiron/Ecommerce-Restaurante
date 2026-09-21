@@ -31,4 +31,21 @@ public class ProveedoresService {
         return proveedoresRepository.findAll();
     }
 
+    public Proveedores actualizar(int nroProveedor, Proveedores datos) {
+        if (datos.getCuit() == null || !datos.getCuit().matches("\\d{11}")) {
+            throw new IllegalArgumentException("El CUIT debe tener 11 digitos, sin guiones");
+        }
+        Proveedores actual = buscarPorId(nroProveedor);
+        actual.setCuit(datos.getCuit());
+        actual.setRazonSocial(datos.getRazonSocial());
+        actual.setTelefono(datos.getTelefono());
+        actual.setEmail(datos.getEmail());
+        actual.setCategoria(datos.getCategoria());
+        return proveedoresRepository.save(actual);
+    }
+
+    public void eliminar(int nroProveedor) {
+        buscarPorId(nroProveedor);   // 404 si no existe
+        proveedoresRepository.deleteById(nroProveedor);   // si tiene datos asociados la base lo rechaza (409)
+    }
 }

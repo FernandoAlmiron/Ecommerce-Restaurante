@@ -2,6 +2,7 @@ package org.example.controller.inventario;
 
 import org.example.Modelo.inventario.Stock;
 import org.example.service.inventario.StockService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -45,5 +46,15 @@ public class StockController {
     @PutMapping("/{id}/ajustar")
     public Stock ajustarStock(@PathVariable int id, @RequestParam double nuevaCantidad) {
         return stockService.ajustarStock(id, nuevaCantidad);
+    }
+    @PutMapping("/{id}")
+    public Stock actualizar(@PathVariable int id, @RequestBody Stock stock) {
+        return stockService.actualizar(id, stock);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> eliminar(@PathVariable int id) {
+        stockService.eliminar(id);
+        return ResponseEntity.noContent().build();
     }
 }

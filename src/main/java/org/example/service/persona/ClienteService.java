@@ -27,4 +27,19 @@ public class ClienteService {
     public List<Cliente> listarTodos() {
         return clienteRepository.findAll();
     }
+
+    public Cliente actualizar(int idCliente, Cliente datos) {
+        Cliente actual = buscarPorId(idCliente);
+        actual.setNombre(datos.getNombre());
+        actual.setApellido(datos.getApellido());
+        actual.setCelular(datos.getCelular());
+        actual.setDni(datos.getDni());
+        actual.setEmail(datos.getEmail());
+        return clienteRepository.save(actual);
+    }
+
+    public void eliminar(int idCliente) {
+        buscarPorId(idCliente);   // 404 si no existe
+        clienteRepository.deleteById(idCliente);   // si tiene datos asociados la base lo rechaza (409)
+    }
 }

@@ -52,4 +52,21 @@ public class RestauranteService {
     public List<Restaurante> listarTodos() {
         return restauranteRepository.findAll();
     }
+
+    public Restaurante actualizar(int nroRestaurante, Restaurante datos) {
+        if (datos.getNombre() == null || datos.getNombre().isBlank()) {
+            throw new IllegalArgumentException("El restaurante necesita un nombre");
+        }
+        if (datos.getHorarioApertura() == null || datos.getHorarioCierre() == null) {
+            throw new IllegalArgumentException("El restaurante necesita horario de apertura y de cierre");
+        }
+        Restaurante actual = buscarPorId(nroRestaurante);   // 404 si no existe
+        actual.setNombre(datos.getNombre());
+        actual.setDireccion(datos.getDireccion());
+        actual.setTelefono(datos.getTelefono());
+        actual.setEmail(datos.getEmail());
+        actual.setHorarioApertura(datos.getHorarioApertura());
+        actual.setHorarioCierre(datos.getHorarioCierre());
+        return restauranteRepository.save(actual);
+    }
 }

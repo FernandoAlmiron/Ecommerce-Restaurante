@@ -5,7 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
@@ -35,10 +35,15 @@ public class ManejadorErrores {
         return respuesta(HttpStatus.NOT_FOUND, mensaje);
     }
 
-    // la base rechazo el dato (usuario repetido, campo obligatorio vacio...) -> 409
+    // la base rechazo el dato (usuario repetido, campo obligatorio vacio, registro en uso...) -> 409
     // el mensaje real de MySQL no se devuelve: muestra nombres de tablas y columnas
     @ExceptionHandler(DataIntegrityViolationException.class)
-    public ResponseEntity<Map<String, String>> integridad(DataIntegrityViolationException e) {
+    public ResponseEntity<Map<String, String>> integridad(DataIntegrityViolationException e,
+                                                          HttpServletRequest request) {
+        // en un DELETE el problema es otro: el registro lo usan otras tablas
+        if ("DELETE".equals(request.getMethod())) {
+            return respuesta(HttpStatus.CONFLICT, "No se puede eliminar: el registro tiene datos asociados");
+        }
         return respuesta(HttpStatus.CONFLICT, "Ya existe un registro con esos datos, o falta un dato obligatorio");
     }
 

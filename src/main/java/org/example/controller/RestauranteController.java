@@ -34,6 +34,11 @@ public class RestauranteController {
         return restauranteService.guardar(restaurante);
     }
 
+    @PutMapping("/{id}")
+    public Restaurante actualizar(@PathVariable int id, @RequestBody Restaurante restaurante) {
+        return restauranteService.actualizar(id, restaurante);
+    }
+
     @GetMapping("/{id}/abierto")
     public boolean estaAbierto(@PathVariable int id, @RequestParam LocalTime hora) {
         return restauranteService.estaAbierto(id, hora);
