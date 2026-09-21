@@ -28,6 +28,7 @@ public class CategoriaController {
 
     @PostMapping
     public Categoria crear(@RequestBody Categoria categoria) {
+        categoria.setNroCategoria(0);
         return categoriaService.guardar(categoria);
     }
 }

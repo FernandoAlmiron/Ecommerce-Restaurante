@@ -28,6 +28,7 @@ public class MenuIngredienteController {
 
     @PostMapping
     public MenuIngrediente crear(@RequestBody MenuIngrediente menuIngrediente) {
+        menuIngrediente.setIdMenuIngrediente(0);
         return menuIngredienteService.guardar(menuIngrediente);
     }
 

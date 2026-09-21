@@ -10,10 +10,10 @@ import lombok.Setter;
 public abstract class Persona {
     protected String nombre;
     protected String apellido;
-    protected int celular;
+    protected String celular;
     protected int dni;
 
-    public Persona(String nombre, String apellido, int celular, int dni){
+    public Persona(String nombre, String apellido, String celular, int dni){
         this.nombre= nombre;
         this.apellido=apellido;
         this.celular=celular;

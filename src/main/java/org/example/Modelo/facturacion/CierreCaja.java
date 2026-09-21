@@ -2,11 +2,11 @@ package org.example.Modelo.facturacion;
 
 import org.example.Modelo.persona.Empleado;
 import org.example.Modelo.Restaurante;
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.NoArgsConstructor;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Entity
@@ -17,9 +17,12 @@ public class CierreCaja {
     private int idCierre;
 
     private LocalDate fecha;
-    private double montoEsperado;
-    private double montoContado;
-    private double diferencia;
+    @Column(precision = 12, scale = 2)
+    private BigDecimal montoEsperado = BigDecimal.ZERO;
+    @Column(precision = 12, scale = 2)
+    private BigDecimal montoContado = BigDecimal.ZERO;
+    @Column(precision = 12, scale = 2)
+    private BigDecimal diferencia = BigDecimal.ZERO;
     private String observaciones;
 
     @ManyToOne
@@ -28,13 +31,12 @@ public class CierreCaja {
 
     @ManyToOne
     @JoinColumn(name = "nroRestaurante")
-    @JsonBackReference
     private Restaurante restaurante;
 
     public void calcularDiferencia() {
-        this.diferencia = this.montoContado - this.montoEsperado;
+        this.diferencia = this.montoContado.subtract(this.montoEsperado);
     }
 
-    public boolean faltoPlata() { return this.diferencia < 0; }
-    public boolean sobroPlata() { return this.diferencia > 0; }
+    public boolean faltoPlata() { return this.diferencia.signum() < 0; }
+    public boolean sobroPlata() { return this.diferencia.signum() > 0; }
 }

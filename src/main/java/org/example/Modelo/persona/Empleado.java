@@ -1,5 +1,6 @@
 package org.example.Modelo.persona;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
@@ -12,13 +13,14 @@ import lombok.Setter;
 public class Empleado extends Persona{
     @Id @GeneratedValue(strategy= GenerationType.IDENTITY)
     private int legajo;
+    @Column(unique=true, nullable=false)
     private String username;
-    @JsonIgnore
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     @JoinColumn(name = "idSector")
     private Sector sector;
-    public Empleado(String nombre,String apellido,int celular,int dni,int legajo){
+    public Empleado(String nombre,String apellido,String celular,int dni,int legajo){
         super(nombre,apellido,celular,dni);
         this.legajo=legajo;
     }

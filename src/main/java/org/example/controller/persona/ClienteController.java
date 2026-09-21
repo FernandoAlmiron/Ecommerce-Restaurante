@@ -28,6 +28,7 @@ public class ClienteController {
 
     @PostMapping
     public Cliente crear(@RequestBody Cliente cliente) {
+        cliente.setIdCliente(0);
         return clienteService.guardar(cliente);
     }
 }

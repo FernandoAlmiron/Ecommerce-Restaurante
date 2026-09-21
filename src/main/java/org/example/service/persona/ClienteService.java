@@ -21,7 +21,7 @@ public class ClienteService {
 
     public Cliente buscarPorId(int idCliente) {
         return clienteRepository.findById(idCliente)
-                .orElseThrow(() -> new RuntimeException("Cliente no encontrado"));
+                .orElseThrow(() -> new java.util.NoSuchElementException("Cliente no encontrado"));
     }
 
     public List<Cliente> listarTodos() {

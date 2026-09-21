@@ -21,7 +21,7 @@ public class ZonaService {
 
     public Zona buscarPorId(int id) {
         return zonaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Zona no encontrada"));
+                .orElseThrow(() -> new java.util.NoSuchElementException("Zona no encontrada"));
     }
 
     public List<Zona> listarTodos() {

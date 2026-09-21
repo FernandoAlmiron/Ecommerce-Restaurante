@@ -19,25 +19,25 @@ public class RestauranteService {
         this.restauranteRepository = restauranteRepository;
     }
     public Restaurante agregarReserva(int nroRestaurante, Reserva reserva){
-        Restaurante restaurante = restauranteRepository.findById(nroRestaurante).orElseThrow(()-> new RuntimeException("Restaurante no encontrado"));
+        Restaurante restaurante = restauranteRepository.findById(nroRestaurante).orElseThrow(()-> new java.util.NoSuchElementException("Restaurante no encontrado"));
         restaurante.agregarReserva(reserva);
         return restauranteRepository.save(restaurante);
     }
     public List<Ticket> listarTicketsPorFecha(int nroRestaurante, LocalDate fecha) {
         Restaurante restaurante = restauranteRepository.findById(nroRestaurante)
-                .orElseThrow(() -> new RuntimeException("Restaurante no encontrado"));
+                .orElseThrow(() -> new java.util.NoSuchElementException("Restaurante no encontrado"));
         return restaurante.listarTicketsPorFecha(fecha);
     }
 
     public boolean estaAbierto(int nroRestaurante, LocalTime hora) {
         Restaurante restaurante = restauranteRepository.findById(nroRestaurante)
-                .orElseThrow(() -> new RuntimeException("Restaurante no encontrado"));
+                .orElseThrow(() -> new java.util.NoSuchElementException("Restaurante no encontrado"));
         return restaurante.estaAbierto(hora);
     }
 
     public boolean estaDisponible(int nroRestaurante, Zona zona, LocalDate fecha, LocalTime hora) {
         Restaurante restaurante = restauranteRepository.findById(nroRestaurante)
-                .orElseThrow(() -> new RuntimeException("Restaurante no encontrado"));
+                .orElseThrow(() -> new java.util.NoSuchElementException("Restaurante no encontrado"));
         return restaurante.estaDisponible(zona, fecha, hora);
     }
     public Restaurante guardar(Restaurante restaurante) {
@@ -46,7 +46,7 @@ public class RestauranteService {
 
     public Restaurante buscarPorId(int nroRestaurante) {
         return restauranteRepository.findById(nroRestaurante)
-                .orElseThrow(() -> new RuntimeException("Restaurante no encontrado"));
+                .orElseThrow(() -> new java.util.NoSuchElementException("Restaurante no encontrado"));
     }
 
     public List<Restaurante> listarTodos() {

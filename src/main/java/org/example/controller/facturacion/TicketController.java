@@ -28,6 +28,6 @@ public class TicketController {
 
     @PostMapping
     public Ticket crear(@RequestBody Ticket ticket) {
-        return ticketService.guardar(ticket);
+        return ticketService.crear(ticket);
     }
 }

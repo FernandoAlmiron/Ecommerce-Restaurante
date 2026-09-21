@@ -19,7 +19,6 @@ public class Stock {
     private boolean stockMinimoActivo;
     @ManyToOne
     @JoinColumn(name = "nroRestaurante")
-    @JsonBackReference
     private Restaurante restaurante;
     @ManyToOne
     @JoinColumn(name = "nroCategoria")
@@ -29,11 +28,10 @@ public class Stock {
         cantidadActual+=cantidad;
     }
     public void disminuirStock(double cantidad){
-        if(hayStockSuficiente(cantidad)){
-            cantidadActual-=cantidad;
-        }else {
-            System.out.println("No hay stock suficiente de "+nombre);
+        if (!hayStockSuficiente(cantidad)) {
+            throw new IllegalStateException("No hay stock suficiente de " + nombre);
         }
+        cantidadActual -= cantidad;
     }
     public boolean hayStockSuficiente(double cantidad){
         return cantidadActual >= cantidad;

@@ -9,13 +9,13 @@ import lombok.Setter;
 @Getter @Setter @NoArgsConstructor
 public class Proveedores {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int cuit;
     private int nroProveedor;
-    private int telefono;
+    @Column(unique = true, nullable = false, length = 11)
+    private String cuit;
+    private String telefono;
     private String email;
     private String razonSocial;
     @ManyToOne
     @JoinColumn(name = "nroCategoria")
     private Categoria categoria;
-
 }

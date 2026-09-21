@@ -16,7 +16,6 @@ public class Sector {
     private boolean activa;
     @ManyToOne
     @JoinColumn(name = "nroRestaurante")
-    @JsonBackReference
     private Restaurante restaurante;
     public void activar(){
         activa=true;

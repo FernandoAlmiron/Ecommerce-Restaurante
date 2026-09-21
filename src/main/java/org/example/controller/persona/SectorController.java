@@ -28,6 +28,7 @@ public class SectorController {
 
     @PostMapping
     public Sector crear(@RequestBody Sector sector) {
+        sector.setIdSector(0);
         return sectorService.guardar(sector);
     }
 }

@@ -33,6 +33,7 @@ public class StockController {
 
     @PostMapping
     public Stock crear(@RequestBody Stock stock) {
+        stock.setIdStock(0);
         return stockService.guardar(stock);
     }
 

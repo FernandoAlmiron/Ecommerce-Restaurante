@@ -9,6 +9,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import java.math.BigDecimal;
 
 import java.util.List;
 
@@ -17,12 +18,11 @@ import java.util.List;
 public class Ticket {
     @Id @GeneratedValue(strategy= GenerationType.IDENTITY)
     private int nroTicket;
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     @JoinColumn(name = "nroReserva")
     private Reserva reserva;
     @ManyToOne
     @JoinColumn(name = "nroRestaurante")
-    @JsonBackReference
     private Restaurante restaurante;
 
     @OneToOne(mappedBy = "ticket", cascade = CascadeType.ALL)
@@ -38,10 +38,10 @@ public class Ticket {
     public void agregarPedido(Pedido pedido){
         pedidos.add(pedido);
     }
-    public double calcularTotal(){
-        double total=0;
+    public BigDecimal calcularTotal(){
+        BigDecimal total= BigDecimal.ZERO;
         for(Pedido pedido : pedidos){
-            total += pedido.calcularSubtotal();
+            total = total.add(pedido.calcularSubtotal());
         }
         return total;
     }

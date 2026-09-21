@@ -21,7 +21,7 @@ public class TarjetaService {
 
     public Tarjeta buscarPorId(int nroTarjeta) {
         return tarjetaRepository.findById(nroTarjeta)
-                .orElseThrow(() -> new RuntimeException("Tarjeta no encontrada"));
+                .orElseThrow(() -> new java.util.NoSuchElementException("Tarjeta no encontrada"));
     }
 
     public List<Tarjeta> listarTodos() {

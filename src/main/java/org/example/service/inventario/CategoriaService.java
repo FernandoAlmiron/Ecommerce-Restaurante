@@ -21,7 +21,7 @@ public class CategoriaService {
 
     public Categoria buscarPorId(int nroCategoria) {
         return categoriaRepository.findById(nroCategoria)
-                .orElseThrow(() -> new RuntimeException("Categoria no encontrada"));
+                .orElseThrow(() -> new java.util.NoSuchElementException("Categoria no encontrada"));
     }
 
     public List<Categoria> listarTodos() {

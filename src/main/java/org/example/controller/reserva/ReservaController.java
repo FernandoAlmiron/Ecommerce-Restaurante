@@ -29,7 +29,7 @@ public class ReservaController {
 
     @PostMapping
     public Reserva crear(@RequestBody Reserva reserva) {
-        return reservaService.guardar(reserva);
+        return reservaService.crear(reserva);
     }
 
     @PutMapping("/{id}/confirmar")

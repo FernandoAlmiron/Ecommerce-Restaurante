@@ -21,7 +21,7 @@ public class SectorService {
 
     public Sector buscarPorId(int idSector) {
         return sectorRepository.findById(idSector)
-                .orElseThrow(() -> new RuntimeException("Sector no encontrado"));
+                .orElseThrow(() -> new java.util.NoSuchElementException("Sector no encontrado"));
     }
 
     public List<Sector> listarTodos() {

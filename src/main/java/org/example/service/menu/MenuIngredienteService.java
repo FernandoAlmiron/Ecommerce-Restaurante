@@ -6,8 +6,11 @@ import org.example.Modelo.menu.MenuIngrediente;
 import org.example.repository.inventario.StockRepository;
 import org.example.repository.menu.MenuIngredienteRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 @Service
 public class MenuIngredienteService {
@@ -26,7 +29,7 @@ public class MenuIngredienteService {
 
     public MenuIngrediente buscarPorId(int id) {
         return menuIngredienteRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("MenuIngrediente no encontrado"));
+                .orElseThrow(() -> new java.util.NoSuchElementException("MenuIngrediente no encontrado"));
     }
 
     public List<MenuIngrediente> listarPorMenu(Menu menu) {
@@ -47,16 +50,33 @@ public class MenuIngredienteService {
         menuIngredienteRepository.deleteById(id);
     }
 
+    @Transactional
     public void descontarStockPorPedido(Menu menu, int cantidadPedida) {
-        List<MenuIngrediente> ingredientes = menuIngredienteRepository.findByMenu(menu);
-        for (MenuIngrediente mi : ingredientes) {
-            Stock stock = mi.getStock();
-            double aDescontar = mi.calcularCantidadADescontar(cantidadPedida);
-            if (stock.getCantidadActual() < aDescontar) {
+        Map<Integer, Double> requerido = cantidadesRequeridas(menu, cantidadPedida);
+
+        // 1) bloquear y verificar TODO el stock antes de descontar nada
+        Map<Integer, Stock> bloqueados = new TreeMap<>();
+        for (Map.Entry<Integer, Double> e : requerido.entrySet()) {
+            Stock stock = stockRepository.findByIdForUpdate(e.getKey())
+                    .orElseThrow(() -> new IllegalStateException("Stock no encontrado: " + e.getKey()));
+            if (!stock.hayStockSuficiente(e.getValue())) {
                 throw new IllegalStateException("Stock insuficiente de " + stock.getNombre());
             }
-            stock.setCantidadActual(stock.getCantidadActual() - aDescontar);
+            bloqueados.put(e.getKey(), stock);
+        }
+
+        // 2) descontar
+        for (Map.Entry<Integer, Stock> e : bloqueados.entrySet()) {
+            Stock stock = e.getValue();
+            stock.setCantidadActual(stock.getCantidadActual() - requerido.get(e.getKey()));
             stockRepository.save(stock);
         }
+    }
+    private Map<Integer, Double> cantidadesRequeridas(Menu menu, int cantidad) {
+        Map<Integer, Double> requerido = new TreeMap<>();
+        for (MenuIngrediente mi : menuIngredienteRepository.findByMenu(menu)) {
+            requerido.merge(mi.getStock().getIdStock(), mi.calcularCantidadADescontar(cantidad), Double::sum);
+        }
+        return requerido;
     }
 }

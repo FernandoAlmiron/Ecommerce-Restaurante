@@ -21,7 +21,7 @@ public class SeniaService {
 
     public Senia buscarPorId(int idSenia) {
         return seniaRepository.findById(idSenia)
-                .orElseThrow(() -> new RuntimeException("Senia no encontrada"));
+                .orElseThrow(() -> new java.util.NoSuchElementException("Senia no encontrada"));
     }
 
     public List<Senia> listarTodos() {

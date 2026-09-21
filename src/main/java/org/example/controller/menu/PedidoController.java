@@ -28,6 +28,7 @@ public class PedidoController {
 
     @PostMapping
     public Pedido crear(@RequestBody Pedido pedido) {
+        pedido.setIdPedido(0);
         return pedidoService.guardar(pedido);
     }
 }

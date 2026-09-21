@@ -30,6 +30,7 @@ public class RestauranteController {
 
     @PostMapping
     public Restaurante crear(@RequestBody Restaurante restaurante) {
+        restaurante.setNroRestaurante(0);
         return restauranteService.guardar(restaurante);
     }
 

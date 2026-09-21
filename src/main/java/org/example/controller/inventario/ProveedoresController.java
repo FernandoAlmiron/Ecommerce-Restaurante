@@ -28,6 +28,7 @@ public class ProveedoresController {
 
     @PostMapping
     public Proveedores crear(@RequestBody Proveedores proveedores) {
+        proveedores.setNroProveedor(0);
         return proveedoresService.guardar(proveedores);
     }
 }

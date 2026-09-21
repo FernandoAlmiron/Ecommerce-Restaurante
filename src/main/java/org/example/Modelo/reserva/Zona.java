@@ -17,7 +17,6 @@ public class Zona {
     private boolean activa;
     @ManyToOne
     @JoinColumn(name = "nroRestaurante")
-    @JsonBackReference
     private Restaurante restaurante;
 
     public boolean tieneCapacidad(int cantComensales){

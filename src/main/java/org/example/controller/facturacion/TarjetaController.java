@@ -28,6 +28,7 @@ public class TarjetaController {
 
     @PostMapping
     public Tarjeta crear(@RequestBody Tarjeta tarjeta) {
+        tarjeta.setNroTarjeta(0);
         return tarjetaService.guardar(tarjeta);
     }
 }

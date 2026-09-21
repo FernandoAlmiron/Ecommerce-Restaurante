@@ -1,4 +1,5 @@
 package org.example.Modelo;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import org.example.Modelo.enums.EstadoReserva;
 import org.example.Modelo.facturacion.Ticket;
@@ -29,7 +30,7 @@ public class Restaurante {
     private LocalTime horarioApertura;
     private LocalTime horarioCierre;
     @OneToMany(mappedBy = "restaurante", cascade = CascadeType.ALL)
-    @JsonManagedReference
+    @JsonIgnore
     private List<Reserva> reservas;
 
     @OneToMany(mappedBy = "restaurante", cascade = CascadeType.ALL)
@@ -60,7 +61,12 @@ public class Restaurante {
         menus.add(menu);
     }
     public boolean estaAbierto(LocalTime hora){
-        return !hora.isBefore(horarioApertura)&& !hora.isAfter(horarioCierre);
+        if (horarioCierre.isAfter(horarioApertura)) {
+            // horario normal dentro del mismo dia
+            return !hora.isBefore(horarioApertura) && !hora.isAfter(horarioCierre);
+        }
+        // el cierre es pasada la medianoche
+        return !hora.isBefore(horarioApertura) || !hora.isAfter(horarioCierre);
     }
     public List<Ticket> listarTicketsPorFecha(LocalDate fecha){
         List<Ticket> resultado=new ArrayList<>();
@@ -73,7 +79,7 @@ public class Restaurante {
     }
     public boolean estaDisponible(Zona zona, LocalDate fecha, LocalTime hora) {
         for (Reserva reserva : reservas) {
-            if (reserva.getZona() == zona && reserva.getFechaReserva().equals(fecha) && reserva.getHoraReserva().equals(hora) && reserva.getEstado() != EstadoReserva.CANCELADA) {
+            if (reserva.getZona().getIdZona() == zona.getIdZona() && reserva.getFechaReserva().equals(fecha) && reserva.getHoraReserva().equals(hora) && reserva.getEstado() != EstadoReserva.CANCELADA) {
                 return false;
             }
         }

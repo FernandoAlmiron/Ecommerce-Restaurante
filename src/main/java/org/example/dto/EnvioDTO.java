@@ -4,6 +4,7 @@ import java.util.List;
 
 public class EnvioDTO {
     private int idCliente;
+    private int dni;
     private int nroRestaurante;
     private String direccionEntrega;
     private String nombreReceptor;
@@ -11,6 +12,8 @@ public class EnvioDTO {
 
     public int getIdCliente() { return idCliente; }
     public void setIdCliente(int idCliente) { this.idCliente = idCliente; }
+    public int getDni() { return dni; }
+    public void setDni(int dni) { this.dni = dni; }
     public int getNroRestaurante() { return nroRestaurante; }
     public void setNroRestaurante(int nroRestaurante) { this.nroRestaurante = nroRestaurante; }
     public String getDireccionEntrega() { return direccionEntrega; }

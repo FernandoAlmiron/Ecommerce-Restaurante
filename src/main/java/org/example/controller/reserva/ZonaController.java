@@ -28,6 +28,7 @@ public class ZonaController {
 
     @PostMapping
     public Zona crear(@RequestBody Zona zona) {
+        zona.setIdZona(0);
         return zonaService.guardar(zona);
     }
 }

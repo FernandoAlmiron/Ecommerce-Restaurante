@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import java.math.BigDecimal;
 
 @RestController
 @RequestMapping("/api/facturaciones")
@@ -30,11 +31,11 @@ public class FacturacionController {
 
     @PostMapping
     public Facturacion crear(@RequestBody Facturacion facturacion) {
-        return facturacionService.guardar(facturacion);
+        return facturacionService.crear(facturacion);
     }
 
     @PutMapping("/{id}/calcular-total")
-    public double calcularTotal(@PathVariable int id) {
+    public BigDecimal calcularTotal(@PathVariable int id) {
         return facturacionService.calcularTotal(id);
     }
 
@@ -49,7 +50,7 @@ public class FacturacionController {
     }
 
     @GetMapping("/reporte-delivery")
-    public Map<String, Double> reporteDelivery(@RequestParam int nroRestaurante,
+    public Map<String, BigDecimal> reporteDelivery(@RequestParam int nroRestaurante,
                                                @RequestParam(required = false) String fecha) {
         LocalDate f = (fecha != null) ? LocalDate.parse(fecha) : LocalDate.now();
         return facturacionService.reporteDelivery(nroRestaurante, f);

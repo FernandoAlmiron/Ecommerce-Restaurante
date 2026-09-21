@@ -28,6 +28,7 @@ public class SeniaController {
 
     @PostMapping
     public Senia crear(@RequestBody Senia senia) {
+        senia.setIdSenia(0);
         return seniaService.guardar(senia);
     }
 }

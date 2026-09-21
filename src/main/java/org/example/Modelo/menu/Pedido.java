@@ -6,13 +6,13 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.example.Modelo.facturacion.Ticket;
-
+import java.math.BigDecimal;
 @Entity
 @Getter @Setter @NoArgsConstructor
 public class Pedido {
     @Id @GeneratedValue(strategy= GenerationType.IDENTITY)
     private int idPedido;
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     @JoinColumn(name = "idMenu")
     private Menu menu;
     @ManyToOne
@@ -20,10 +20,11 @@ public class Pedido {
     @JsonBackReference
     private Ticket ticket;
     private int cantidad;
-    private double precioUnitario;
+    @Column(precision = 10, scale = 2)
+    private BigDecimal precioUnitario;
     private String observaciones;
 
-    public double calcularSubtotal(){
-        return cantidad*precioUnitario;
+    public BigDecimal calcularSubtotal(){
+        return precioUnitario.multiply(BigDecimal.valueOf(cantidad));
     }
 }

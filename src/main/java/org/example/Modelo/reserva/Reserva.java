@@ -20,6 +20,7 @@ public class Reserva {
     private int cantComensales;
     private LocalDate fechaReserva;
     private LocalTime horaReserva;
+    @Enumerated(EnumType.STRING)
     private EstadoReserva estado;
     @ManyToOne
     @JoinColumn(name = "idCliente")
@@ -29,7 +30,6 @@ public class Reserva {
     private Zona zona;
     @ManyToOne
     @JoinColumn(name = "nroRestaurante")
-    @JsonBackReference
     private Restaurante restaurante;
     @OneToOne(mappedBy = "reserva", cascade = CascadeType.ALL)
     @JsonManagedReference

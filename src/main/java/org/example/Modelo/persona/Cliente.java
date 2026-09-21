@@ -16,9 +16,8 @@ public class Cliente extends Persona{
     private String email;
     @ManyToOne
     @JoinColumn(name = "nroRestaurante")
-    @JsonBackReference
     private Restaurante restaurante;
-    public Cliente(String nombre,String apellido,int celular,int dni,String email){
+    public Cliente(String nombre,String apellido,String celular,int dni,String email){
         super(nombre,apellido,celular,dni);
         this.email=email;
     }

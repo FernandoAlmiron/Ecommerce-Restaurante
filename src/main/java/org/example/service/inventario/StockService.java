@@ -21,7 +21,7 @@ public class StockService {
 
     public Stock buscarPorId(int idStock) {
         return stockRepository.findById(idStock)
-                .orElseThrow(() -> new RuntimeException("Stock no encontrado"));
+                .orElseThrow(() -> new java.util.NoSuchElementException("Stock no encontrado"));
     }
 
     public List<Stock> listarTodos() {

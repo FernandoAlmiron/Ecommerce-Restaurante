@@ -3,6 +3,7 @@ package org.example.controller.facturacion;
 import org.example.Modelo.facturacion.CierreCaja;
 import org.example.service.facturacion.CierreCajaService;
 import org.example.dto.CierreCajaDTO;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -15,8 +16,9 @@ public class CierreCajaController {
     public CierreCajaController(CierreCajaService cierreCajaService) { this.cierreCajaService = cierreCajaService; }
 
     @PostMapping
-    public CierreCaja crear(@RequestBody CierreCajaDTO dto) { return cierreCajaService.crearCierre(dto); }
-
+    public CierreCaja crear(@RequestBody CierreCajaDTO dto, Authentication authentication) {
+        return cierreCajaService.crearCierre(dto, authentication.getName());
+    }
     @GetMapping
     public List<CierreCaja> listar() { return cierreCajaService.listarTodos(); }
 
