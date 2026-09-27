@@ -1,6 +1,5 @@
 package org.example.Modelo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import org.example.Modelo.enums.EstadoReserva;
 import org.example.Modelo.facturacion.Ticket;
 import org.example.Modelo.inventario.Stock;
@@ -34,22 +33,22 @@ public class Restaurante {
     private List<Reserva> reservas;
 
     @OneToMany(mappedBy = "restaurante", cascade = CascadeType.ALL)
-    @JsonManagedReference
+    @JsonIgnore
     private List<Cliente> clientes;
     @OneToMany(mappedBy = "restaurante", cascade = CascadeType.ALL)
-    @JsonManagedReference
+    @JsonIgnore
     private List<Ticket> tickets;
     @OneToMany(mappedBy = "restaurante", cascade = CascadeType.ALL)
-    @JsonManagedReference
+    @JsonIgnore
     private List<Zona> zonas;
     @OneToMany(mappedBy = "restaurante", cascade = CascadeType.ALL)
-    @JsonManagedReference
+    @JsonIgnore
     private List<Stock> stocks;
     @OneToMany(mappedBy = "restaurante", cascade = CascadeType.ALL)
-    @JsonManagedReference
+    @JsonIgnore
     private List<Sector> sectores;
     @OneToMany(mappedBy = "restaurante", cascade = CascadeType.ALL)
-    @JsonManagedReference
+    @JsonIgnore
     private List<Menu> menus;
     public void agregarReserva(Reserva reserva){
         reservas.add(reserva);

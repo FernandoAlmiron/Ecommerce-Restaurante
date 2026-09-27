@@ -4,6 +4,7 @@ import org.example.Modelo.reserva.Envio;
 import org.example.Modelo.enums.EstadoEnvio;
 import org.example.service.reserva.EnvioService;
 import org.example.dto.EnvioDTO;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -30,7 +31,10 @@ public class EnvioController {
     }
 
     @PutMapping("/{id}/estado")
-    public Envio cambiarEstado(@PathVariable int id, @RequestParam EstadoEnvio estado) {
-        return envioService.actualizarEstado(id, estado);
+    public Envio cambiarEstado(@PathVariable int id, @RequestParam EstadoEnvio estado,
+                               Authentication authentication) {
+        boolean esAdmin = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        return envioService.actualizarEstado(id, estado, authentication.getName(), esAdmin);
     }
 }

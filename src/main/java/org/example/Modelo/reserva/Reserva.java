@@ -42,6 +42,11 @@ public class Reserva {
         estado=EstadoReserva.CANCELADA;
     }
     public void marcarAsistencia(boolean asistio) {
-        senia.setAsistio(asistio);}
+        // los walk-in no tienen sena: sin este control daba NullPointerException (500)
+        if (senia == null) {
+            throw new IllegalStateException("La reserva no tiene sena: no se registra asistencia");
+        }
+        senia.setAsistio(asistio);
+    }
 
 }

@@ -74,7 +74,7 @@ public class FacturacionService {
 
     public Facturacion buscarPorId(int nroFacturacion) {
         return facturacionRepository.findById(nroFacturacion)
-                .orElseThrow(() -> new IllegalArgumentException("Facturacion no encontrada"));
+                .orElseThrow(() -> new java.util.NoSuchElementException("Facturacion no encontrada"));
     }
 
     public List<Facturacion> listarTodos() {

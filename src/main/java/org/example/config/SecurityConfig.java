@@ -27,6 +27,9 @@ public class SecurityConfig {
                 // API sin sesiones: cada request trae su usuario y clave (HTTP Basic)
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        // pagina de error interna de Spring: si no se permite, un 400 o 404 llega como 401/403
+                        .requestMatchers("/error").permitAll()
+
                         // cliente sin cuenta
                         .requestMatchers(HttpMethod.POST, "/api/reservas").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/clientes").permitAll()
@@ -39,10 +42,11 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/reservas/walkin").hasAnyRole("ADMIN", "RECEPCION")
                         .requestMatchers(HttpMethod.GET, "/api/reservas/**").hasAnyRole("ADMIN", "RECEPCION")
                         .requestMatchers(HttpMethod.PUT, "/api/reservas/**").hasAnyRole("ADMIN", "RECEPCION")
+                        // recepcion busca al cliente para el walk-in
+                        .requestMatchers(HttpMethod.GET, "/api/clientes/**").hasAnyRole("ADMIN", "RECEPCION")
 
                         // cocina
                         .requestMatchers(HttpMethod.DELETE, "/api/stocks/**").hasRole("ADMIN")
-                        .requestMatchers("/api/stocks/**").hasAnyRole("ADMIN", "COCINA")
                         .requestMatchers("/api/stocks/**").hasAnyRole("ADMIN", "COCINA")
                         .requestMatchers("/api/menu-ingredientes/**").hasAnyRole("ADMIN", "COCINA")
                         .requestMatchers(HttpMethod.POST, "/api/menus").hasAnyRole("ADMIN", "COCINA")
@@ -66,6 +70,8 @@ public class SecurityConfig {
 
                         // RRHH
                         .requestMatchers("/api/empleados/**").hasAnyRole("ADMIN", "RRHH")
+                        // RRHH necesita ver los sectores para saber que idSector asignar
+                        .requestMatchers(HttpMethod.GET, "/api/sectores/**").hasAnyRole("ADMIN", "RRHH")
 
                         // todo lo demás, solo admin
                         .anyRequest().hasRole("ADMIN")

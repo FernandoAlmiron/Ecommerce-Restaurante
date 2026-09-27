@@ -67,6 +67,6 @@ public class CierreCajaService {
 
     public CierreCaja buscarPorId(int id) {
         return cierreCajaRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Cierre de caja no encontrado"));
+                .orElseThrow(() -> new java.util.NoSuchElementException("Cierre de caja no encontrado"));
     }
 }

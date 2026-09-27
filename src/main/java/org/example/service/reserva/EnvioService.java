@@ -18,6 +18,7 @@ import org.example.repository.persona.EmpleadoRepository;
 import org.example.repository.reserva.EnvioRepository;
 import org.example.service.menu.MenuIngredienteService;
 import org.example.service.menu.PedidoService;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -56,6 +57,15 @@ public class EnvioService {
         if (dto.getDireccionEntrega() == null || dto.getDireccionEntrega().isBlank()) {
             throw new IllegalArgumentException("La direccion de entrega es obligatoria");
         }
+        // los limites se validan ANTES de crear el ticket y descontar stock
+        if (dto.getPedidos().size() > MAX_PLATOS_DISTINTOS) {
+            throw new IllegalArgumentException("Un envio admite hasta " + MAX_PLATOS_DISTINTOS + " platos distintos");
+        }
+        for (EnvioDTO.PedidoDTO pd : dto.getPedidos()) {
+            if (pd.getCantidad() > MAX_UNIDADES_POR_PLATO) {
+                throw new IllegalArgumentException("Un plato admite hasta " + MAX_UNIDADES_POR_PLATO + " unidades por envio");
+            }
+        }
         Restaurante restaurante = restauranteRepository.findById(dto.getNroRestaurante())
                 .orElseThrow(() -> new IllegalArgumentException("Restaurante no encontrado"));
         Cliente cliente = clienteRepository.findById(dto.getIdCliente())
@@ -76,14 +86,6 @@ public class EnvioService {
             pedido.setCantidad(pd.getCantidad());
             pedido.setObservaciones(pd.getObservaciones());
             pedidoService.guardar(pedido);   // valida, pone el precio y descuenta el stock
-        }
-        if (dto.getPedidos().size() > MAX_PLATOS_DISTINTOS) {
-            throw new IllegalArgumentException("Un envio admite hasta " + MAX_PLATOS_DISTINTOS + " platos distintos");
-        }
-        for (EnvioDTO.PedidoDTO pd : dto.getPedidos()) {
-            if (pd.getCantidad() > MAX_UNIDADES_POR_PLATO) {
-                throw new IllegalArgumentException("Un plato admite hasta " + MAX_UNIDADES_POR_PLATO + " unidades por envio");
-            }
         }
 
         Envio envio = new Envio();
@@ -109,9 +111,14 @@ public class EnvioService {
         envio.setRepartidor(repartidor);
         return envioRepository.save(envio);
     }
+    // El repartidor solo puede mover los envios que tiene asignados; el admin, cualquiera
     @Transactional
-    public Envio actualizarEstado(int idEnvio, EstadoEnvio nuevoEstado) {
+    public Envio actualizarEstado(int idEnvio, EstadoEnvio nuevoEstado, String username, boolean esAdmin) {
         Envio envio = envioRepository.findById(idEnvio).orElseThrow();
+        if (!esAdmin && (envio.getRepartidor() == null
+                || !envio.getRepartidor().getUsername().equals(username))) {
+            throw new AccessDeniedException("El envio no esta asignado a este repartidor");
+        }
         envio.cambiarEstado(nuevoEstado);   // valida que el cambio tenga sentido
         return envioRepository.save(envio);
     }
