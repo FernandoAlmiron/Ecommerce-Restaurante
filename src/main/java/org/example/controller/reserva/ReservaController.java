@@ -4,6 +4,7 @@ import org.example.Modelo.reserva.Reserva;
 import org.example.dto.ReservaWalkInDTO;
 import org.example.service.reserva.ReservaService;
 import org.springframework.web.bind.annotation.*;
+import org.example.dto.ReservaResponseDTO;
 
 import java.util.List;
 
@@ -18,37 +19,37 @@ public class ReservaController {
     }
 
     @GetMapping
-    public List<Reserva> listarTodas() {
-        return reservaService.listarTodos();
+    public List<ReservaResponseDTO> listarTodas() {
+        return reservaService.listarTodos().stream().map(ReservaResponseDTO::desde).toList();
     }
 
     @GetMapping("/{id}")
-    public Reserva buscarPorId(@PathVariable int id) {
-        return reservaService.buscarPorId(id);
+    public ReservaResponseDTO buscarPorId(@PathVariable int id) {
+        return ReservaResponseDTO.desde(reservaService.buscarPorId(id));
     }
 
     @PostMapping
-    public Reserva crear(@RequestBody Reserva reserva) {
-        return reservaService.crear(reserva);
+    public ReservaResponseDTO crear(@RequestBody Reserva reserva) {
+        return ReservaResponseDTO.desde(reservaService.crear(reserva));
     }
 
     @PutMapping("/{id}/confirmar")
-    public Reserva confirmar(@PathVariable int id) {
-        return reservaService.confirmar(id);
+    public ReservaResponseDTO confirmar(@PathVariable int id) {
+        return ReservaResponseDTO.desde(reservaService.confirmar(id));
     }
 
     @PutMapping("/{id}/cancelar")
-    public Reserva cancelar(@PathVariable int id) {
-        return reservaService.cancelar(id);
+    public ReservaResponseDTO cancelar(@PathVariable int id) {
+        return ReservaResponseDTO.desde(reservaService.cancelar(id));
     }
 
     @PutMapping("/{id}/asistencia")
-    public Reserva marcarAsistencia(@PathVariable int id, @RequestParam boolean asistio) {
-        return reservaService.marcarAsistencia(id, asistio);
+    public ReservaResponseDTO marcarAsistencia(@PathVariable int id, @RequestParam boolean asistio) {
+        return ReservaResponseDTO.desde(reservaService.marcarAsistencia(id, asistio));
     }
 
     @PostMapping("/walkin")
-    public Reserva reservarWalkIn(@RequestBody ReservaWalkInDTO dto) {
-        return reservaService.reservarWalkIn(dto);
+    public ReservaResponseDTO reservarWalkIn(@RequestBody ReservaWalkInDTO dto) {
+        return ReservaResponseDTO.desde(reservaService.reservarWalkIn(dto));
     }
 }
