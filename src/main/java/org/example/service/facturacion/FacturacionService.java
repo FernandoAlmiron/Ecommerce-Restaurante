@@ -2,6 +2,8 @@ package org.example.service.facturacion;
 
 import org.example.Modelo.enums.EstadoEnvio;
 import org.example.Modelo.enums.EstadoPago;
+import org.example.Modelo.enums.MetodoPago;
+import org.example.Modelo.reserva.Envio;
 import org.example.Modelo.enums.OrigenTicket;
 import org.example.Modelo.facturacion.Facturacion;
 import org.example.Modelo.facturacion.Ticket;
@@ -43,11 +45,17 @@ public class FacturacionService {
         if (datos.getTicket() == null) {
             throw new IllegalArgumentException("La facturacion necesita un ticket");
         }
-        if (datos.getMetodoPago() == null) {
-            throw new IllegalArgumentException("El metodo de pago es obligatorio");
-        }
         Ticket ticket = ticketRepository.findById(datos.getTicket().getNroTicket())
                 .orElseThrow(() -> new IllegalArgumentException("Ticket no encontrado"));
+        // en un delivery, si caja no indica el metodo, se usa el que eligio el cliente al pedir
+        MetodoPago metodo = datos.getMetodoPago();
+        if (metodo == null && ticket.getOrigen() == OrigenTicket.DELIVERY) {
+            metodo = envioRepository.findByTicket_NroTicket(ticket.getNroTicket())
+                    .map(Envio::getMetodoPago).orElse(null);
+        }
+        if (metodo == null) {
+            throw new IllegalArgumentException("El metodo de pago es obligatorio");
+        }
 
         if (ticket.getFacturacion() != null) {
             throw new IllegalStateException("El ticket ya tiene una facturacion");
@@ -66,7 +74,7 @@ public class FacturacionService {
 
         Facturacion nueva = new Facturacion();
         nueva.setTicket(ticket);
-        nueva.setMetodoPago(datos.getMetodoPago());
+        nueva.setMetodoPago(metodo);
         nueva.setFecha(LocalDateTime.now());
         nueva.calcularTotal();
         return facturacionRepository.save(nueva);

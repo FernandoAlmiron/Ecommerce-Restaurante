@@ -19,6 +19,7 @@ import org.example.repository.reserva.EnvioRepository;
 import org.example.service.menu.MenuIngredienteService;
 import org.example.service.menu.PedidoService;
 import org.springframework.security.access.AccessDeniedException;
+import org.example.service.persona.ClienteService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,13 +34,15 @@ public class EnvioService {
     private final MenuRepository menuRepository;
     private final RestauranteRepository restauranteRepository;
     private final PedidoService pedidoService;
+    private final ClienteService clienteService;
     private static final int MAX_PLATOS_DISTINTOS = 10;
     private static final int MAX_UNIDADES_POR_PLATO = 10;
 
     public EnvioService(EnvioRepository envioRepository, TicketRepository ticketRepository,
                         ClienteRepository clienteRepository, EmpleadoRepository empleadoRepository,
                         MenuRepository menuRepository, RestauranteRepository restauranteRepository,
-                        PedidoService pedidoService, MenuIngredienteService menuIngredienteService) {
+                        PedidoService pedidoService, MenuIngredienteService menuIngredienteService,
+                        ClienteService clienteService) {
         this.envioRepository = envioRepository;
         this.ticketRepository = ticketRepository;
         this.clienteRepository = clienteRepository;
@@ -47,15 +50,19 @@ public class EnvioService {
         this.menuRepository = menuRepository;
         this.restauranteRepository = restauranteRepository;
         this.pedidoService = pedidoService;
+        this.clienteService = clienteService;
     }
 
     @Transactional
-    public Envio crearEnvioConPedido(EnvioDTO dto) {
+    public Envio crearEnvioConPedido(EnvioDTO dto, String usuarioCliente) {
         if (dto.getPedidos() == null || dto.getPedidos().isEmpty()) {
             throw new IllegalArgumentException("El envio necesita al menos un pedido");
         }
         if (dto.getDireccionEntrega() == null || dto.getDireccionEntrega().isBlank()) {
             throw new IllegalArgumentException("La direccion de entrega es obligatoria");
+        }
+        if (dto.getMetodoPago() == null) {
+            throw new IllegalArgumentException("El metodo de pago es obligatorio: EFECTIVO, TARJETA o QR");
         }
         // los limites se validan ANTES de crear el ticket y descontar stock
         if (dto.getPedidos().size() > MAX_PLATOS_DISTINTOS) {
@@ -66,11 +73,27 @@ public class EnvioService {
                 throw new IllegalArgumentException("Un plato admite hasta " + MAX_UNIDADES_POR_PLATO + " unidades por envio");
             }
         }
-        Restaurante restaurante = restauranteRepository.findById(dto.getNroRestaurante())
-                .orElseThrow(() -> new IllegalArgumentException("Restaurante no encontrado"));
-        Cliente cliente = clienteRepository.findById(dto.getIdCliente())
-                .filter(c -> c.getDni() == dto.getDni())
-                .orElseThrow(() -> new IllegalArgumentException("Cliente no encontrado o el DNI no coincide"));
+        // cliente con cuenta: se lo toma del login y no tiene que mandar sus datos
+        Cliente logueado = usuarioCliente != null ? clienteService.buscarPorUsername(usuarioCliente) : null;
+        Restaurante restaurante = dto.getNroRestaurante() > 0
+                ? restauranteRepository.findById(dto.getNroRestaurante())
+                        .orElseThrow(() -> new IllegalArgumentException("Restaurante no encontrado"))
+                : (logueado != null ? logueado.getRestaurante() : null);
+        if (restaurante == null) {
+            throw new IllegalArgumentException("Restaurante no encontrado");
+        }
+        Cliente cliente;
+        if (logueado != null) {
+            cliente = logueado;
+        } else if (dto.getIdCliente() > 0) {
+            cliente = clienteRepository.findById(dto.getIdCliente())
+                    .filter(c -> c.getDni() == dto.getDni())
+                    .orElseThrow(() -> new IllegalArgumentException("Cliente no encontrado o el DNI no coincide"));
+        } else {
+            // lo normal: el cliente solo da su DNI (y sus datos la primera vez)
+            cliente = clienteService.obtenerOCrear(dto.getDni(), dto.getNombre(), dto.getApellido(),
+                    dto.getCelular(), dto.getEmail(), restaurante);
+        }
 
         Ticket ticket = new Ticket();
         ticket.setRestaurante(restaurante);
@@ -92,8 +115,11 @@ public class EnvioService {
         envio.setCliente(cliente);
         envio.setTicket(ticket);
         envio.setDireccionEntrega(dto.getDireccionEntrega());
-        envio.setNombreReceptor(dto.getNombreReceptor());
+        envio.setNombreReceptor(dto.getNombreReceptor() != null && !dto.getNombreReceptor().isBlank()
+                ? dto.getNombreReceptor()
+                : cliente.getNombre() + " " + cliente.getApellido());
         envio.setEstado(EstadoEnvio.PENDIENTE);
+        envio.setMetodoPago(dto.getMetodoPago());
         return envioRepository.save(envio);
     }
 
@@ -124,5 +150,9 @@ public class EnvioService {
     }
 
     public Envio buscarPorId(int idEnvio) { return envioRepository.findById(idEnvio).orElseThrow(); }
+    public List<Envio> listarPorCliente(int idCliente) {
+        return envioRepository.findByCliente_IdCliente(idCliente);
+    }
+
     public List<Envio> listarTodos() { return envioRepository.findAll(); }
 }

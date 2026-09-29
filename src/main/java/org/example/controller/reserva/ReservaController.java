@@ -3,6 +3,7 @@ package org.example.controller.reserva;
 import org.example.Modelo.reserva.Reserva;
 import org.example.dto.ReservaWalkInDTO;
 import org.example.service.reserva.ReservaService;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.example.dto.ReservaResponseDTO;
 
@@ -29,8 +30,8 @@ public class ReservaController {
     }
 
     @PostMapping
-    public ReservaResponseDTO crear(@RequestBody Reserva reserva) {
-        return ReservaResponseDTO.desde(reservaService.crear(reserva));
+    public ReservaResponseDTO crear(@RequestBody Reserva reserva, Authentication authentication) {
+        return ReservaResponseDTO.desde(reservaService.crear(reserva, clienteLogueado(authentication)));
     }
 
     @PutMapping("/{id}/confirmar")
@@ -51,5 +52,11 @@ public class ReservaController {
     @PostMapping("/walkin")
     public ReservaResponseDTO reservarWalkIn(@RequestBody ReservaWalkInDTO dto) {
         return ReservaResponseDTO.desde(reservaService.reservarWalkIn(dto));
+    }
+
+    // usuario del cliente logueado, o null si pide sin cuenta
+    private String clienteLogueado(Authentication auth) {
+        return auth != null && auth.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_CLIENTE")) ? auth.getName() : null;
     }
 }

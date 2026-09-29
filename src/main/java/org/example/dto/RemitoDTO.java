@@ -1,6 +1,7 @@
 package org.example.dto;
 
 import org.example.Modelo.enums.EstadoEnvio;
+import org.example.Modelo.enums.MetodoPago;
 import org.example.Modelo.reserva.Envio;
 import org.example.Modelo.facturacion.Ticket;
 import org.example.Modelo.menu.Pedido;
@@ -17,6 +18,7 @@ public record RemitoDTO(
         String nombreReceptor,
         List<Item> pedidos,
         BigDecimal total,
+        MetodoPago metodoPago,
         String estadoPago,
         EstadoEnvio estado,
         String repartidor
@@ -40,6 +42,7 @@ public record RemitoDTO(
                         .map(p -> new Item(p.getMenu().getNombre(), p.getCantidad(), p.getObservaciones()))
                         .toList(),
                 total,
+                e.getMetodoPago(),
                 estadoPago,
                 e.getEstado(),
                 e.getRepartidor() != null

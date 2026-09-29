@@ -30,7 +30,10 @@ public class SecurityConfig {
                         // pagina de error interna de Spring: si no se permite, un 400 o 404 llega como 401/403
                         .requestMatchers("/error").permitAll()
 
-                        // cliente sin cuenta
+                        // cliente con cuenta: solo sus propios datos, reservas y envios
+                        .requestMatchers("/api/mi-cuenta/**").hasRole("CLIENTE")
+
+                        // cliente (con o sin cuenta)
                         .requestMatchers(HttpMethod.POST, "/api/reservas").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/clientes").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/menus/**").permitAll()

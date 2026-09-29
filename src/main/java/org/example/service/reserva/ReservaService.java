@@ -13,6 +13,7 @@ import org.example.repository.persona.ClienteRepository;
 import org.example.repository.reserva.ReservaRepository;
 import org.example.repository.reserva.ZonaRepository;
 import org.springframework.beans.factory.annotation.Value;
+import org.example.service.persona.ClienteService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,13 +36,16 @@ public class ReservaService {
     private final ClienteRepository clienteRepository;
     private final ZonaRepository zonaRepository;
     private final RestauranteRepository restauranteRepository;
+    private final ClienteService clienteService;
 
     public ReservaService(ReservaRepository reservaRepository, ClienteRepository clienteRepository,
-                          ZonaRepository zonaRepository, RestauranteRepository restauranteRepository) {
+                          ZonaRepository zonaRepository, RestauranteRepository restauranteRepository,
+                          ClienteService clienteService) {
         this.reservaRepository = reservaRepository;
         this.clienteRepository = clienteRepository;
         this.zonaRepository = zonaRepository;
         this.restauranteRepository = restauranteRepository;
+        this.clienteService = clienteService;
     }
 
     public Reserva guardar(Reserva reserva) {
@@ -53,12 +57,24 @@ public class ReservaService {
                 .orElseThrow(() -> new java.util.NoSuchElementException("Reserva no encontrada"));
     }
 
+    public List<Reserva> listarPorCliente(int idCliente) {
+        return reservaRepository.findByCliente_IdCliente(idCliente);
+    }
+
     public List<Reserva> listarTodos() {
         return reservaRepository.findAll();
     }
 
     @Transactional
-    public Reserva crear(Reserva reserva) {
+    public Reserva crear(Reserva reserva, String usuarioCliente) {
+        // cliente con cuenta: se lo toma del login y no tiene que mandar sus datos
+        Cliente logueado = usuarioCliente != null ? clienteService.buscarPorUsername(usuarioCliente) : null;
+        if (logueado != null) {
+            reserva.setCliente(logueado);
+            if (reserva.getRestaurante() == null) {
+                reserva.setRestaurante(logueado.getRestaurante());
+            }
+        }
         if (reserva.getCliente() == null || reserva.getZona() == null || reserva.getRestaurante() == null
                 || reserva.getFechaReserva() == null || reserva.getHoraReserva() == null) {
             throw new IllegalArgumentException(
@@ -68,9 +84,19 @@ public class ReservaService {
                 .orElseThrow(() -> new IllegalArgumentException("Restaurante no encontrado"));
         Zona zona = zonaRepository.findById(reserva.getZona().getIdZona())
                 .orElseThrow(() -> new IllegalArgumentException("Zona no encontrada"));
-        Cliente cliente = clienteRepository.findById(reserva.getCliente().getIdCliente())
-                .filter(c -> c.getDni() == reserva.getCliente().getDni())
-                .orElseThrow(() -> new IllegalArgumentException("Cliente no encontrado o el DNI no coincide"));
+        Cliente datos = reserva.getCliente();
+        Cliente cliente;
+        if (logueado != null) {
+            cliente = logueado;
+        } else if (datos.getIdCliente() > 0) {
+            cliente = clienteRepository.findById(datos.getIdCliente())
+                    .filter(c -> c.getDni() == datos.getDni())
+                    .orElseThrow(() -> new IllegalArgumentException("Cliente no encontrado o el DNI no coincide"));
+        } else {
+            // lo normal: el cliente solo da su DNI (y sus datos la primera vez)
+            cliente = clienteService.obtenerOCrear(datos.getDni(), datos.getNombre(), datos.getApellido(),
+                    datos.getCelular(), datos.getEmail(), restaurante);
+        }
 
         if (LocalDateTime.of(reserva.getFechaReserva(), reserva.getHoraReserva()).isBefore(LocalDateTime.now())) {
             throw new IllegalArgumentException("La fecha y hora de la reserva ya pasaron");
@@ -144,13 +170,9 @@ public class ReservaService {
             cliente = clienteRepository.findById(dto.getIdCliente())
                     .orElseThrow(() -> new IllegalArgumentException("Cliente no encontrado"));
         } else {
-            Cliente nuevo = new Cliente();
-            nuevo.setNombre(dto.getNombre());
-            nuevo.setApellido(dto.getApellido());
-            nuevo.setCelular(dto.getCelular());
-            nuevo.setDni(dto.getDni());
-            nuevo.setRestaurante(restaurante);
-            cliente = clienteRepository.save(nuevo);
+            // si ya vino antes, se reutiliza su registro en lugar de duplicarlo
+            cliente = clienteService.obtenerOCrear(dto.getDni(), dto.getNombre(), dto.getApellido(),
+                    dto.getCelular(), null, restaurante);
         }
 
         Reserva reserva = new Reserva();

@@ -4,6 +4,7 @@ import org.example.Modelo.facturacion.Ticket;
 import org.example.Modelo.persona.Cliente;
 import org.example.Modelo.persona.Empleado;
 import org.example.Modelo.enums.EstadoEnvio;
+import org.example.Modelo.enums.MetodoPago;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -21,6 +22,10 @@ public class Envio {
 
     @Enumerated(EnumType.STRING)
     private EstadoEnvio estado;
+
+    // lo elige el cliente al pedir; caja lo usa al facturar y el repartidor sabe si cobra en efectivo
+    @Enumerated(EnumType.STRING)
+    private MetodoPago metodoPago;
 
     @ManyToOne
     @JoinColumn(name = "idCliente")

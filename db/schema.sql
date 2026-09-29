@@ -108,6 +108,8 @@ CREATE TABLE Clientes (
     celular        VARCHAR(20),
     dni            INT NOT NULL,
     email          VARCHAR(100),
+    username       VARCHAR(50) UNIQUE,     -- cuenta opcional del cliente
+    password       VARCHAR(100),
     nroRestaurante INT NOT NULL,
     INDEX idx_clientes_dni (nroRestaurante, dni),
     CONSTRAINT fk_cliente_restaurante FOREIGN KEY (nroRestaurante) REFERENCES Restaurante (nroRestaurante)
@@ -205,6 +207,7 @@ CREATE TABLE Envio (
     direccionEntrega  VARCHAR(200) NOT NULL,
     nombreReceptor    VARCHAR(100),
     estado            ENUM('PENDIENTE','EN_CAMINO','ENTREGADO','CANCELADO') NOT NULL DEFAULT 'PENDIENTE',
+    metodoPago        ENUM('TARJETA','EFECTIVO','QR') NULL,   -- lo elige el cliente al pedir
     idCliente         INT NOT NULL,
     nroTicket         INT NOT NULL UNIQUE,
     legajoRepartidor  INT NULL,

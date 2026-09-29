@@ -8,8 +8,11 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
 
 public interface ReservaRepository extends JpaRepository<Reserva, Integer> {
+
+    List<Reserva> findByCliente_IdCliente(int idCliente);
 
     @Query("SELECT COALESCE(SUM(r.cantComensales), 0) FROM Reserva r " +
             "WHERE r.zona.idZona = :idZona AND r.fechaReserva = :fecha " +

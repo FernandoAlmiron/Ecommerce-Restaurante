@@ -1,5 +1,7 @@
 package org.example.Modelo.persona;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -14,6 +16,11 @@ public class Cliente extends Persona{
     @Id @GeneratedValue(strategy= GenerationType.IDENTITY)
     private int idCliente;
     private String email;
+    // cuenta opcional: con usuario y clave, el cliente pide sin volver a dar sus datos
+    @Column(unique = true)
+    private String username;
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    private String password;
     @ManyToOne
     @JoinColumn(name = "nroRestaurante")
     private Restaurante restaurante;

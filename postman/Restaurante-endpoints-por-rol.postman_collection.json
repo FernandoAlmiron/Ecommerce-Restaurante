@@ -1,16 +1,16 @@
 {
   "info": {
-    "name": "Restaurante - Plantillas de creacion",
-    "description": "GET, POST, PUT y DELETE de cada modulo, listos para enviar. Los datos de personas se inventan solos y los ids se pasan de un request al siguiente: cada DELETE borra lo que creo el POST de su carpeta.\nUsa el environment 'Restaurante local' (baseUrl y pass_*).",
+    "name": "Restaurante - Endpoints por rol (con cuentas)",
+    "description": "Una carpeta por rol, con sus endpoints en el orden en que los usa, igual que el documento 'Endpoints por rol'. Cada carpeta ya tiene el usuario del rol configurado: los requests heredan su Authorization.\nCorriendo las carpetas en orden, cada rol usa lo que creo el anterior: el cliente pide y reserva, recepcion confirma, el mozo abre la mesa, cocina prepara, caja cobra, el admin asigna el envio y el repartidor lo entrega.\nUsa el environment 'Restaurante local' (baseUrl y pass_*).",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
     {
-      "name": "01. Clientes (CRUD)",
-      "description": "CRUD completo sobre un cliente nuevo, que se borra al final.",
+      "name": "1. Publico (sin usuario)",
+      "description": "Lo que cualquiera puede hacer sin usuario.",
       "item": [
         {
-          "name": "GET - Listar clientes",
+          "name": "GET - Ver la carta",
           "event": [
             {
               "listen": "test",
@@ -25,76 +25,14 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": "{{baseUrl}}/api/clientes",
-            "auth": {
-              "type": "basic",
-              "basic": [
-                {
-                  "key": "username",
-                  "value": "recepcion",
-                  "type": "string"
-                },
-                {
-                  "key": "password",
-                  "value": "{{pass_recepcion}}",
-                  "type": "string"
-                }
-              ]
-            }
-          }
-        },
-        {
-          "name": "POST - Registrar cliente",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
-                  "if (pm.response.code === 200) {",
-                  "  pm.collectionVariables.set(\"idClienteCrud\", pm.response.json().idCliente);",
-                  "  pm.collectionVariables.set(\"dniClienteCrud\", pm.response.json().dni);",
-                  "}"
-                ]
-              }
-            },
-            {
-              "listen": "prerequest",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.collectionVariables.set(\"dniNuevo\", Math.floor(20000000 + Math.random() * 30000000));"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{baseUrl}}/api/clientes",
+            "url": "{{baseUrl}}/api/menus",
             "auth": {
               "type": "noauth"
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"nombre\": \"{{$randomFirstName}}\",\n  \"apellido\": \"{{$randomLastName}}\",\n  \"celular\": \"1155550009\",\n  \"dni\": {{dniNuevo}},\n  \"email\": \"{{$randomEmail}}\",\n  \"restaurante\": { \"nroRestaurante\": 1 }\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "description": "Publico. Nombre, DNI y email se inventan solos."
+            }
           }
         },
         {
-          "name": "GET - Ver el cliente creado",
+          "name": "GET - Ver un plato",
           "event": [
             {
               "listen": "test",
@@ -109,26 +47,14 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": "{{baseUrl}}/api/clientes/{{idClienteCrud}}",
+            "url": "{{baseUrl}}/api/menus/1",
             "auth": {
-              "type": "basic",
-              "basic": [
-                {
-                  "key": "username",
-                  "value": "recepcion",
-                  "type": "string"
-                },
-                {
-                  "key": "password",
-                  "value": "{{pass_recepcion}}",
-                  "type": "string"
-                }
-              ]
+              "type": "noauth"
             }
           }
         },
         {
-          "name": "PUT - Modificar el cliente creado",
+          "name": "GET - Ver las zonas",
           "event": [
             {
               "listen": "test",
@@ -141,83 +67,60 @@
             }
           ],
           "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{baseUrl}}/api/clientes/{{idClienteCrud}}",
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/zonas",
             "auth": {
-              "type": "basic",
-              "basic": [
-                {
-                  "key": "username",
-                  "value": "admin",
-                  "type": "string"
-                },
-                {
-                  "key": "password",
-                  "value": "{{pass_admin}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"nombre\": \"{{$randomFirstName}}\",\n  \"apellido\": \"{{$randomLastName}}\",\n  \"celular\": \"1155551234\",\n  \"dni\": {{dniClienteCrud}},\n  \"email\": \"{{$randomEmail}}\",\n  \"restaurante\": { \"nroRestaurante\": 1 }\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "type": "noauth"
             }
           }
         },
         {
-          "name": "DELETE - Eliminar el cliente creado",
+          "name": "GET - Ver el restaurante",
           "event": [
             {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status 204\", () => pm.response.to.have.status(204));"
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
                 ]
               }
             }
           ],
           "request": {
-            "method": "DELETE",
+            "method": "GET",
             "header": [],
-            "url": "{{baseUrl}}/api/clientes/{{idClienteCrud}}",
+            "url": "{{baseUrl}}/api/restaurantes/1",
             "auth": {
-              "type": "basic",
-              "basic": [
-                {
-                  "key": "username",
-                  "value": "admin",
-                  "type": "string"
-                },
-                {
-                  "key": "password",
-                  "value": "{{pass_admin}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "description": "Funciona porque el cliente no tiene reservas. Uno con reservas da 409."
+              "type": "noauth"
+            }
           }
-        }
-      ]
-    },
-    {
-      "name": "02. Reservas",
-      "description": "",
-      "item": [
+        },
         {
-          "name": "POST - Registrar cliente para reservar",
+          "name": "GET - Esta abierto a las 21",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/restaurantes/1/abierto?hora=21:00",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "POST - Registrarse con cuenta",
           "event": [
             {
               "listen": "test",
@@ -226,7 +129,7 @@
                 "exec": [
                   "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
                   "if (pm.response.code === 200) {",
-                  "  pm.collectionVariables.set(\"idCliente\", pm.response.json().idCliente);",
+                  "  pm.collectionVariables.set(\"usuarioCliente\", pm.response.json().username);",
                   "  pm.collectionVariables.set(\"dniCliente\", pm.response.json().dni);",
                   "}"
                 ]
@@ -237,7 +140,8 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.collectionVariables.set(\"dniNuevo\", Math.floor(20000000 + Math.random() * 30000000));"
+                  "pm.collectionVariables.set(\"dniNuevo\", Math.floor(20000000 + Math.random() * 30000000));",
+                  "pm.collectionVariables.set(\"sufijo\", Date.now().toString().slice(-6));"
                 ]
               }
             }
@@ -251,23 +155,150 @@
               }
             ],
             "url": "{{baseUrl}}/api/clientes",
-            "auth": {
-              "type": "noauth"
-            },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"nombre\": \"{{$randomFirstName}}\",\n  \"apellido\": \"{{$randomLastName}}\",\n  \"celular\": \"1155550009\",\n  \"dni\": {{dniNuevo}},\n  \"email\": \"{{$randomEmail}}\",\n  \"restaurante\": { \"nroRestaurante\": 1 }\n}",
+              "raw": "{\n  \"nombre\": \"{{$randomFirstName}}\",\n  \"apellido\": \"{{$randomLastName}}\",\n  \"celular\": \"1155550009\",\n  \"dni\": {{dniNuevo}},\n  \"email\": \"{{$randomEmail}}\",\n  \"username\": \"cliente{{sufijo}}\",\n  \"password\": \"cliente123\",\n  \"restaurante\": { \"nroRestaurante\": 1 }\n}",
               "options": {
                 "raw": {
                   "language": "json"
                 }
               }
             },
-            "description": "Publico. Guarda idCliente y dni para la reserva y el envio."
+            "description": "Crea la cuenta del cliente (clave cliente123). Desde aca, la carpeta Cliente usa este usuario. Si no se ejecuta, usa la cuenta de prueba cliente / cliente123.",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Cliente",
+      "description": "Con la cuenta del cliente (rol CLIENTE).",
+      "item": [
+        {
+          "name": "GET - Mis datos",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/mi-cuenta",
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{usuarioCliente}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{passCliente}}",
+                  "type": "string"
+                }
+              ]
+            }
           }
         },
         {
-          "name": "POST - Crear reserva online",
+          "name": "POST - Pedir delivery",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) {",
+                  "  pm.collectionVariables.set(\"idEnvio\", pm.response.json().idEnvio);",
+                  "  pm.collectionVariables.set(\"nroTicketEnvio\", pm.response.json().ticket.nroTicket);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/envios",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"direccionEntrega\": \"Av. Rivadavia 5000, CABA\",\n  \"metodoPago\": \"EFECTIVO\",\n  \"pedidos\": [\n    { \"idMenu\": 1, \"cantidad\": 2, \"observaciones\": \"sin queso\" },\n    { \"idMenu\": 3, \"cantidad\": 1 }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Solo la direccion, el metodo de pago (EFECTIVO, TARJETA o QR) y la comida: el cliente sale del login.",
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{usuarioCliente}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{passCliente}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET - Mis envios",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/mi-cuenta/envios",
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{usuarioCliente}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{passCliente}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST - Reservar mesa",
           "event": [
             {
               "listen": "test",
@@ -301,23 +332,121 @@
               }
             ],
             "url": "{{baseUrl}}/api/reservas",
-            "auth": {
-              "type": "noauth"
-            },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"cantComensales\": 4,\n  \"fechaReserva\": \"{{fechaReserva}}\",\n  \"horaReserva\": \"21:00\",\n  \"cliente\": { \"idCliente\": {{idCliente}}, \"dni\": {{dniCliente}} },\n  \"zona\": { \"idZona\": 1 },\n  \"restaurante\": { \"nroRestaurante\": 1 },\n  \"senia\": { \"tarjeta\": { \"titular\": \"TITULAR PRUEBA\", \"vencimiento\": \"2029-08\" } }\n}",
+              "raw": "{\n  \"cantComensales\": 4,\n  \"fechaReserva\": \"{{fechaReserva}}\",\n  \"horaReserva\": \"21:00\",\n  \"zona\": { \"idZona\": 1 },\n  \"senia\": { \"tarjeta\": { \"titular\": \"TITULAR PRUEBA\", \"vencimiento\": \"2029-08\" } }\n}",
               "options": {
                 "raw": {
                   "language": "json"
                 }
               }
             },
-            "description": "Publico. Fecha: dentro de 7 dias. Queda PENDIENTE con sena de 30000."
+            "description": "Fecha: dentro de 7 dias. Queda PENDIENTE con sena de 30000.",
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{usuarioCliente}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{passCliente}}",
+                  "type": "string"
+                }
+              ]
+            }
           }
         },
         {
-          "name": "GET - Listar reservas",
+          "name": "GET - Mis reservas",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/mi-cuenta/reservas",
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{usuarioCliente}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{passCliente}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST - Pedir delivery sin cuenta (con DNI)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set(\"dniNuevo\", Math.floor(20000000 + Math.random() * 30000000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/envios",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dni\": {{dniNuevo}},\n  \"nombre\": \"{{$randomFirstName}}\",\n  \"apellido\": \"{{$randomLastName}}\",\n  \"celular\": \"1155554444\",\n  \"nroRestaurante\": 1,\n  \"direccionEntrega\": \"Av. Corrientes 3000, CABA\",\n  \"metodoPago\": \"QR\",\n  \"pedidos\": [ { \"idMenu\": 2, \"cantidad\": 1 } ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Alternativa sin cuenta: el cliente se identifica con su DNI."
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Recepcion",
+      "description": "Recibe al cliente en el local.",
+      "item": [
+        {
+          "name": "GET - Ver todas las reservas",
           "event": [
             {
               "listen": "test",
@@ -351,7 +480,7 @@
           }
         },
         {
-          "name": "GET - Ver la reserva creada",
+          "name": "GET - Ver la reserva del cliente",
           "event": [
             {
               "listen": "test",
@@ -385,7 +514,7 @@
           }
         },
         {
-          "name": "PUT - Confirmar reserva",
+          "name": "PUT - Confirmar la reserva",
           "event": [
             {
               "listen": "test",
@@ -453,6 +582,40 @@
           }
         },
         {
+          "name": "GET - Buscar clientes",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/clientes",
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "recepcion",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{pass_recepcion}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
           "name": "POST - Walk-in cliente nuevo",
           "event": [
             {
@@ -486,6 +649,16 @@
               }
             ],
             "url": "{{baseUrl}}/api/reservas/walkin",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"{{$randomFirstName}}\",\n  \"apellido\": \"{{$randomLastName}}\",\n  \"dni\": {{dniNuevo}},\n  \"celular\": \"1155550009\",\n  \"nroRestaurante\": 1,\n  \"idZona\": 1,\n  \"cantComensales\": 2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Solo en horario del local (11 a 00). Queda CONFIRMADA y sin sena.",
             "auth": {
               "type": "basic",
               "basic": [
@@ -500,21 +673,11 @@
                   "type": "string"
                 }
               ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"nombre\": \"{{$randomFirstName}}\",\n  \"apellido\": \"{{$randomLastName}}\",\n  \"dni\": {{dniNuevo}},\n  \"celular\": \"1155550009\",\n  \"nroRestaurante\": 1,\n  \"idZona\": 1,\n  \"cantComensales\": 2\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "description": "Solo en horario del local (11 a 00). Queda CONFIRMADA y sin sena."
+            }
           }
         },
         {
-          "name": "POST - Walk-in cliente existente",
+          "name": "POST - Walk-in de un cliente que ya existe (DNI)",
           "event": [
             {
               "listen": "test",
@@ -535,6 +698,15 @@
               }
             ],
             "url": "{{baseUrl}}/api/reservas/walkin",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dni\": {{dniCliente}},\n  \"nroRestaurante\": 1,\n  \"idZona\": 1,\n  \"cantComensales\": 2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
             "auth": {
               "type": "basic",
               "basic": [
@@ -549,15 +721,6 @@
                   "type": "string"
                 }
               ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"idCliente\": {{idCliente}},\n  \"nroRestaurante\": 1,\n  \"idZona\": 1,\n  \"cantComensales\": 2\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
             }
           }
         },
@@ -598,11 +761,11 @@
       ]
     },
     {
-      "name": "03. Salon: tickets y pedidos",
-      "description": "",
+      "name": "4. Mozo",
+      "description": "Atiende la mesa.",
       "item": [
         {
-          "name": "POST - Abrir ticket",
+          "name": "POST - Abrir la mesa con la reserva",
           "event": [
             {
               "listen": "test",
@@ -626,72 +789,6 @@
               }
             ],
             "url": "{{baseUrl}}/api/tickets",
-            "auth": {
-              "type": "basic",
-              "basic": [
-                {
-                  "key": "username",
-                  "value": "mozo",
-                  "type": "string"
-                },
-                {
-                  "key": "password",
-                  "value": "{{pass_mozo}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"restaurante\": {\n    \"nroRestaurante\": 1\n  }\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          }
-        },
-        {
-          "name": "POST - Abrir ticket con la reserva",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
-                  "if (pm.response.code === 200) {",
-                  "  pm.collectionVariables.set(\"nroTicketReserva\", pm.response.json().nroTicket);",
-                  "}"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{baseUrl}}/api/tickets",
-            "auth": {
-              "type": "basic",
-              "basic": [
-                {
-                  "key": "username",
-                  "value": "mozo",
-                  "type": "string"
-                },
-                {
-                  "key": "password",
-                  "value": "{{pass_mozo}}",
-                  "type": "string"
-                }
-              ]
-            },
             "body": {
               "mode": "raw",
               "raw": "{\n  \"restaurante\": { \"nroRestaurante\": 1 },\n  \"reserva\": { \"nroReserva\": {{nroReserva}} }\n}",
@@ -700,26 +797,7 @@
                   "language": "json"
                 }
               }
-            }
-          }
-        },
-        {
-          "name": "GET - Listar tickets",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": "{{baseUrl}}/api/tickets",
+            },
             "auth": {
               "type": "basic",
               "basic": [
@@ -738,7 +816,7 @@
           }
         },
         {
-          "name": "POST - Cargar pedido al ticket",
+          "name": "POST - Cargar pedido",
           "event": [
             {
               "listen": "test",
@@ -762,6 +840,15 @@
               }
             ],
             "url": "{{baseUrl}}/api/pedidos",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"menu\": { \"idMenu\": 1 },\n  \"ticket\": { \"nroTicket\": {{nroTicket}} },\n  \"cantidad\": 2,\n  \"observaciones\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
             "auth": {
               "type": "basic",
               "basic": [
@@ -776,15 +863,6 @@
                   "type": "string"
                 }
               ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"menu\": { \"idMenu\": 1 },\n  \"ticket\": { \"nroTicket\": {{nroTicket}} },\n  \"cantidad\": 2,\n  \"observaciones\": \"\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
             }
           }
         },
@@ -810,6 +888,15 @@
               }
             ],
             "url": "{{baseUrl}}/api/pedidos",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"menu\": { \"idMenu\": 3 },\n  \"ticket\": { \"nroTicket\": {{nroTicket}} },\n  \"cantidad\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
             "auth": {
               "type": "basic",
               "basic": [
@@ -824,20 +911,11 @@
                   "type": "string"
                 }
               ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"menu\": { \"idMenu\": 3 },\n  \"ticket\": { \"nroTicket\": {{nroTicket}} },\n  \"cantidad\": 1\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
             }
           }
         },
         {
-          "name": "GET - Ver el ticket con sus pedidos",
+          "name": "GET - Ver la mesa",
           "event": [
             {
               "listen": "test",
@@ -871,7 +949,75 @@
           }
         },
         {
-          "name": "GET - Listar pedidos (cocina)",
+          "name": "GET - Ver la comanda",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/tickets/{{nroTicket}}/comanda",
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "mozo",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{pass_mozo}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET - Ver todas las mesas",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/tickets",
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "mozo",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{pass_mozo}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET - Ver pedidos",
           "event": [
             {
               "listen": "test",
@@ -892,12 +1038,12 @@
               "basic": [
                 {
                   "key": "username",
-                  "value": "cocina",
+                  "value": "mozo",
                   "type": "string"
                 },
                 {
                   "key": "password",
-                  "value": "{{pass_cocina}}",
+                  "value": "{{pass_mozo}}",
                   "type": "string"
                 }
               ]
@@ -937,9 +1083,15 @@
               ]
             }
           }
-        },
+        }
+      ]
+    },
+    {
+      "name": "5. Cocina",
+      "description": "Prepara, controla el stock y arma las recetas.",
+      "item": [
         {
-          "name": "GET - Comanda para la cocina",
+          "name": "GET - Comanda de la mesa",
           "event": [
             {
               "listen": "test",
@@ -955,6 +1107,573 @@
             "method": "GET",
             "header": [],
             "url": "{{baseUrl}}/api/tickets/{{nroTicket}}/comanda",
+            "description": "Que preparar, sin precios.",
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "cocina",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{pass_cocina}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET - Pedidos",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/pedidos",
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "cocina",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{pass_cocina}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET - Stock",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/stocks",
+            "description": "El stock de los platos pedidos ya bajo.",
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "cocina",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{pass_cocina}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET - Stock bajo minimo",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/stocks/bajo-minimo",
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "cocina",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{pass_cocina}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "PUT - Reponer insumo 1",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": "{{baseUrl}}/api/stocks/1/reponer?cantidad=5",
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "cocina",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{pass_cocina}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST - Alta de insumo",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) {",
+                  "  pm.collectionVariables.set(\"idStockNuevo\", pm.response.json().idStock);",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set(\"sufijo\", Date.now().toString().slice(-6));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/stocks",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Espinaca {{sufijo}}\",\n  \"unidadMedida\": \"kg\",\n  \"cantidadActual\": 10,\n  \"stockMinimo\": 2,\n  \"stockMinimoActivo\": true,\n  \"restaurante\": { \"nroRestaurante\": 1 },\n  \"categoria\": { \"nroCategoria\": 1 }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "cocina",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{pass_cocina}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET - Ver el insumo",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/stocks/{{idStockNuevo}}",
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "cocina",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{pass_cocina}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "PUT - Modificar el insumo",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/stocks/{{idStockNuevo}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Espinaca {{sufijo}}\",\n  \"unidadMedida\": \"kg\",\n  \"cantidadActual\": 10,\n  \"stockMinimo\": 3,\n  \"stockMinimoActivo\": true,\n  \"restaurante\": { \"nroRestaurante\": 1 },\n  \"categoria\": { \"nroCategoria\": 1 }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "cocina",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{pass_cocina}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "PUT - Ajustar el insumo a 12",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": "{{baseUrl}}/api/stocks/{{idStockNuevo}}/ajustar?nuevaCantidad=12",
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "cocina",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{pass_cocina}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST - Crear plato",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) {",
+                  "  pm.collectionVariables.set(\"idMenuNuevo\", pm.response.json().idMenu);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/menus",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Lasagna de verdura\",\n  \"descripcion\": \"Capas de pasta con verduras y salsa blanca\",\n  \"precio\": 14500.00,\n  \"disponible\": true,\n  \"restaurante\": { \"nroRestaurante\": 1 }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "cocina",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{pass_cocina}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "PUT - Modificar el plato",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/menus/{{idMenuNuevo}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Lasagna de verdura\",\n  \"descripcion\": \"Capas de pasta con verduras y salsa blanca\",\n  \"precio\": 15200.00,\n  \"disponible\": true,\n  \"restaurante\": { \"nroRestaurante\": 1 }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "cocina",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{pass_cocina}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET - Ver recetas",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/menu-ingredientes",
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "cocina",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{pass_cocina}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST - Agregar insumo a un plato",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) {",
+                  "  pm.collectionVariables.set(\"idMenuIngrediente\", pm.response.json().idMenuIngrediente);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/menu-ingredientes",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"menu\": { \"idMenu\": {{idMenuNuevo}} },\n  \"stock\": { \"idStock\": {{idStockNuevo}} },\n  \"cantidadNecesaria\": 0.2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Arma la receta del plato nuevo con el insumo nuevo.",
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "cocina",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{pass_cocina}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "PUT - Cambiar la cantidad",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": "{{baseUrl}}/api/menu-ingredientes/{{idMenuIngrediente}}?cantidad=0.3",
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "cocina",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{pass_cocina}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "DELETE - Quitar el insumo del plato",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 204\", () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/api/menu-ingredientes/{{idMenuIngrediente}}",
             "auth": {
               "type": "basic",
               "basic": [
@@ -975,11 +1694,45 @@
       ]
     },
     {
-      "name": "04. Caja",
-      "description": "",
+      "name": "6. Caja",
+      "description": "Cobra y cierra la caja.",
       "item": [
         {
-          "name": "POST - Facturar el ticket",
+          "name": "GET - Ver la mesa antes de cobrar",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/tickets/{{nroTicket}}",
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "caja",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{pass_caja}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST - Facturar la mesa",
           "event": [
             {
               "listen": "test",
@@ -1003,21 +1756,6 @@
               }
             ],
             "url": "{{baseUrl}}/api/facturaciones",
-            "auth": {
-              "type": "basic",
-              "basic": [
-                {
-                  "key": "username",
-                  "value": "caja",
-                  "type": "string"
-                },
-                {
-                  "key": "password",
-                  "value": "{{pass_caja}}",
-                  "type": "string"
-                }
-              ]
-            },
             "body": {
               "mode": "raw",
               "raw": "{\n  \"ticket\": { \"nroTicket\": {{nroTicket}} },\n  \"metodoPago\": \"EFECTIVO\"\n}",
@@ -1027,26 +1765,7 @@
                 }
               }
             },
-            "description": "metodoPago: EFECTIVO, TARJETA o QR."
-          }
-        },
-        {
-          "name": "GET - Listar facturas",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": "{{baseUrl}}/api/facturaciones",
+            "description": "metodoPago: EFECTIVO, TARJETA o QR.",
             "auth": {
               "type": "basic",
               "basic": [
@@ -1065,41 +1784,7 @@
           }
         },
         {
-          "name": "GET - Ver la factura",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": "{{baseUrl}}/api/facturaciones/{{nroFacturacion}}",
-            "auth": {
-              "type": "basic",
-              "basic": [
-                {
-                  "key": "username",
-                  "value": "caja",
-                  "type": "string"
-                },
-                {
-                  "key": "password",
-                  "value": "{{pass_caja}}",
-                  "type": "string"
-                }
-              ]
-            }
-          }
-        },
-        {
-          "name": "PUT - Aplicar propina 10%",
+          "name": "PUT - Aplicar propina 10 por ciento",
           "event": [
             {
               "listen": "test",
@@ -1115,6 +1800,40 @@
             "method": "PUT",
             "header": [],
             "url": "{{baseUrl}}/api/facturaciones/{{nroFacturacion}}/propina?porcentaje=10",
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "caja",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{pass_caja}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "PUT - Recalcular total",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": "{{baseUrl}}/api/facturaciones/{{nroFacturacion}}/calcular-total",
             "auth": {
               "type": "basic",
               "basic": [
@@ -1167,7 +1886,7 @@
           }
         },
         {
-          "name": "GET - Ticket de facturacion (comprobante)",
+          "name": "GET - Comprobante",
           "event": [
             {
               "listen": "test",
@@ -1183,6 +1902,89 @@
             "method": "GET",
             "header": [],
             "url": "{{baseUrl}}/api/facturaciones/{{nroFacturacion}}/comprobante",
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "caja",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{pass_caja}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST - Facturar el delivery",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/facturaciones",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ticket\": { \"nroTicket\": {{nroTicketEnvio}} }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "No hace falta el metodo de pago: se usa el que eligio el cliente al pedir.",
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "caja",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{pass_caja}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET - Ver facturas",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/facturaciones",
             "auth": {
               "type": "basic",
               "basic": [
@@ -1259,21 +2061,6 @@
               }
             ],
             "url": "{{baseUrl}}/api/cierres-caja",
-            "auth": {
-              "type": "basic",
-              "basic": [
-                {
-                  "key": "username",
-                  "value": "caja",
-                  "type": "string"
-                },
-                {
-                  "key": "password",
-                  "value": "{{pass_caja}}",
-                  "type": "string"
-                }
-              ]
-            },
             "body": {
               "mode": "raw",
               "raw": "{\n  \"nroRestaurante\": 1,\n  \"montoContado\": 50000,\n  \"observaciones\": \"\"\n}",
@@ -1282,26 +2069,7 @@
                   "language": "json"
                 }
               }
-            }
-          }
-        },
-        {
-          "name": "GET - Listar cierres",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": "{{baseUrl}}/api/cierres-caja",
+            },
             "auth": {
               "type": "basic",
               "basic": [
@@ -1354,6 +2122,40 @@
           }
         },
         {
+          "name": "GET - Ver cierres",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/cierres-caja",
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "caja",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{pass_caja}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
           "name": "POST - Registrar tarjeta",
           "event": [
             {
@@ -1375,6 +2177,15 @@
               }
             ],
             "url": "{{baseUrl}}/api/tarjetas",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titular\": \"TITULAR PRUEBA\",\n  \"vencimiento\": \"2029-08\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
             "auth": {
               "type": "basic",
               "basic": [
@@ -1389,20 +2200,11 @@
                   "type": "string"
                 }
               ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"titular\": \"TITULAR PRUEBA\",\n  \"vencimiento\": \"2029-08\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
             }
           }
         },
         {
-          "name": "GET - Listar tarjetas",
+          "name": "GET - Ver tarjetas",
           "event": [
             {
               "listen": "test",
@@ -1438,11 +2240,80 @@
       ]
     },
     {
-      "name": "05. Delivery",
-      "description": "",
+      "name": "7. Administrador",
+      "description": "Lo exclusivo del admin. Va antes de Repartidor porque el admin asigna el envio.",
       "item": [
         {
-          "name": "POST - Pedir envio",
+          "name": "Operacion - PUT - Asignar repartidor al envio del cliente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": "{{baseUrl}}/api/envios/{{idEnvio}}/asignar-repartidor/7",
+            "description": "7 es el legajo del usuario repartidor. Va antes de la carpeta Repartidor.",
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "admin",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{pass_admin}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Operacion - GET - Ver senias",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/senias",
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "admin",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{pass_admin}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Zonas - POST - Crear zona",
           "event": [
             {
               "listen": "test",
@@ -1451,8 +2322,17 @@
                 "exec": [
                   "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
                   "if (pm.response.code === 200) {",
-                  "  pm.collectionVariables.set(\"idEnvio\", pm.response.json().idEnvio);",
+                  "  pm.collectionVariables.set(\"idZona\", pm.response.json().idZona);",
                   "}"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set(\"sufijo\", Date.now().toString().slice(-6));"
                 ]
               }
             }
@@ -1465,24 +2345,934 @@
                 "value": "application/json"
               }
             ],
-            "url": "{{baseUrl}}/api/envios",
-            "auth": {
-              "type": "noauth"
-            },
+            "url": "{{baseUrl}}/api/zonas",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"idCliente\": {{idCliente}},\n  \"dni\": {{dniCliente}},\n  \"nroRestaurante\": 1,\n  \"direccionEntrega\": \"Av. Rivadavia 5000, CABA\",\n  \"nombreReceptor\": \"Receptor Prueba\",\n  \"pedidos\": [\n    { \"idMenu\": 1, \"cantidad\": 2, \"observaciones\": \"\" },\n    { \"idMenu\": 3, \"cantidad\": 1 }\n  ]\n}",
+              "raw": "{\n  \"nombre\": \"Vereda {{sufijo}}\",\n  \"capacidadMaxima\": 10,\n  \"activa\": true,\n  \"restaurante\": { \"nroRestaurante\": 1 }\n}",
               "options": {
                 "raw": {
                   "language": "json"
                 }
               }
             },
-            "description": "Publico. Usa el cliente registrado en 02. Reservas."
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "admin",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{pass_admin}}",
+                  "type": "string"
+                }
+              ]
+            }
           }
         },
         {
-          "name": "GET - Listar envios",
+          "name": "Zonas - PUT - Modificar la zona",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/zonas/{{idZona}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Vereda {{sufijo}}\",\n  \"capacidadMaxima\": 14,\n  \"activa\": true,\n  \"restaurante\": { \"nroRestaurante\": 1 }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "admin",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{pass_admin}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Zonas - DELETE - Eliminar la zona",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 204\", () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/api/zonas/{{idZona}}",
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "admin",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{pass_admin}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Carta y stock - DELETE - Eliminar el plato creado por cocina",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 204\", () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/api/menus/{{idMenuNuevo}}",
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "admin",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{pass_admin}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Carta y stock - DELETE - Eliminar el insumo creado por cocina",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 204\", () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/api/stocks/{{idStockNuevo}}",
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "admin",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{pass_admin}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Categorias - GET - Ver categorias",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/categorias",
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "admin",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{pass_admin}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Categorias - POST - Crear categoria",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) {",
+                  "  pm.collectionVariables.set(\"nroCategoriaNueva\", pm.response.json().nroCategoria);",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set(\"sufijo\", Date.now().toString().slice(-6));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/categorias",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Bebidas {{sufijo}}\",\n  \"descripcion\": \"Gaseosas, aguas y vinos\",\n  \"activo\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "admin",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{pass_admin}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Categorias - GET - Ver la categoria",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/categorias/{{nroCategoriaNueva}}",
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "admin",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{pass_admin}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Categorias - PUT - Modificar la categoria",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/categorias/{{nroCategoriaNueva}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Bebidas {{sufijo}}\",\n  \"descripcion\": \"Gaseosas y aguas\",\n  \"activo\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "admin",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{pass_admin}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Categorias - DELETE - Eliminar la categoria",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 204\", () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/api/categorias/{{nroCategoriaNueva}}",
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "admin",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{pass_admin}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Proveedores - GET - Ver proveedores",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/proveedores",
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "admin",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{pass_admin}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Proveedores - POST - Crear proveedor",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) {",
+                  "  pm.collectionVariables.set(\"nroProveedorNuevo\", pm.response.json().nroProveedor);",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set(\"cuitNuevo\", \"30\" + Math.floor(10000000 + Math.random() * 89999999) + \"1\");"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/proveedores",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"razonSocial\": \"Distribuidora Sur SRL\",\n  \"cuit\": \"{{cuitNuevo}}\",\n  \"telefono\": \"1145559999\",\n  \"email\": \"ventas@distsur.example.com\",\n  \"categoria\": { \"nroCategoria\": 1 }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "El CUIT se genera solo: 11 digitos.",
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "admin",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{pass_admin}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Proveedores - GET - Ver el proveedor",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/proveedores/{{nroProveedorNuevo}}",
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "admin",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{pass_admin}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Proveedores - PUT - Modificar el proveedor",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/proveedores/{{nroProveedorNuevo}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"razonSocial\": \"Distribuidora Sur SRL\",\n  \"cuit\": \"{{cuitNuevo}}\",\n  \"telefono\": \"1145558888\",\n  \"email\": \"ventas@distsur.example.com\",\n  \"categoria\": { \"nroCategoria\": 1 }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "admin",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{pass_admin}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Proveedores - DELETE - Eliminar el proveedor",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 204\", () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/api/proveedores/{{nroProveedorNuevo}}",
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "admin",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{pass_admin}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Clientes - POST - Alta de un cliente de prueba (publico)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) {",
+                  "  pm.collectionVariables.set(\"idClienteCrud\", pm.response.json().idCliente);",
+                  "  pm.collectionVariables.set(\"dniClienteCrud\", pm.response.json().dni);",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set(\"dniNuevo\", Math.floor(20000000 + Math.random() * 30000000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/clientes",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"{{$randomFirstName}}\",\n  \"apellido\": \"{{$randomLastName}}\",\n  \"celular\": \"1155550009\",\n  \"dni\": {{dniNuevo}},\n  \"email\": \"{{$randomEmail}}\",\n  \"restaurante\": { \"nroRestaurante\": 1 }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Clientes - PUT - Modificar el cliente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/clientes/{{idClienteCrud}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"{{$randomFirstName}}\",\n  \"apellido\": \"{{$randomLastName}}\",\n  \"celular\": \"1155551234\",\n  \"dni\": {{dniClienteCrud}},\n  \"email\": \"{{$randomEmail}}\",\n  \"restaurante\": { \"nroRestaurante\": 1 }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "admin",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{pass_admin}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Clientes - DELETE - Eliminar el cliente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 204\", () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/api/clientes/{{idClienteCrud}}",
+            "description": "Funciona porque no tiene reservas ni envios; si tiene, da 409.",
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "admin",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{pass_admin}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Restaurante y sectores - PUT - Modificar el restaurante",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/restaurantes/1",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"La Pasta de la Nonna\",\n  \"direccion\": \"Av. Corrientes 1234, CABA\",\n  \"telefono\": \"1145551234\",\n  \"email\": \"contacto@lapastadelanonna.example.com\",\n  \"horarioApertura\": \"11:00:00\",\n  \"horarioCierre\": \"00:00:00\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "admin",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{pass_admin}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Restaurante y sectores - POST - Crear sector",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) {",
+                  "  pm.collectionVariables.set(\"idSectorNuevo\", pm.response.json().idSector);",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set(\"sufijo\", Date.now().toString().slice(-6));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/sectores",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"DEPOSITO {{sufijo}}\",\n  \"activa\": true,\n  \"restaurante\": { \"nroRestaurante\": 1 }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "admin",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{pass_admin}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Restaurante y sectores - PUT - Modificar el sector",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/sectores/{{idSectorNuevo}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"DEPOSITO {{sufijo}}\",\n  \"activa\": false,\n  \"restaurante\": { \"nroRestaurante\": 1 }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "admin",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{pass_admin}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Restaurante y sectores - DELETE - Eliminar el sector",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 204\", () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/api/sectores/{{idSectorNuevo}}",
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "admin",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{pass_admin}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "8. Repartidor",
+      "description": "Lleva el envio que pidio el cliente en la carpeta 2.",
+      "item": [
+        {
+          "name": "GET - Ver envios",
           "event": [
             {
               "listen": "test",
@@ -1550,7 +3340,7 @@
           }
         },
         {
-          "name": "PUT - Asignar repartidor (admin)",
+          "name": "GET - Remito",
           "event": [
             {
               "listen": "test",
@@ -1563,25 +3353,24 @@
             }
           ],
           "request": {
-            "method": "PUT",
+            "method": "GET",
             "header": [],
-            "url": "{{baseUrl}}/api/envios/{{idEnvio}}/asignar-repartidor/7",
+            "url": "{{baseUrl}}/api/envios/{{idEnvio}}/remito",
             "auth": {
               "type": "basic",
               "basic": [
                 {
                   "key": "username",
-                  "value": "admin",
+                  "value": "repartidor",
                   "type": "string"
                 },
                 {
                   "key": "password",
-                  "value": "{{pass_admin}}",
+                  "value": "{{pass_repartidor}}",
                   "type": "string"
                 }
               ]
-            },
-            "description": "7 es el legajo del usuario repartidor."
+            }
           }
         },
         {
@@ -1651,1365 +3440,15 @@
               ]
             }
           }
-        },
-        {
-          "name": "GET - Ticket de envio (remito)",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": "{{baseUrl}}/api/envios/{{idEnvio}}/remito",
-            "auth": {
-              "type": "basic",
-              "basic": [
-                {
-                  "key": "username",
-                  "value": "repartidor",
-                  "type": "string"
-                },
-                {
-                  "key": "password",
-                  "value": "{{pass_repartidor}}",
-                  "type": "string"
-                }
-              ]
-            }
-          }
         }
       ]
     },
     {
-      "name": "06. Zonas (CRUD)",
-      "description": "",
+      "name": "9. Recursos Humanos",
+      "description": "Gestiona al personal.",
       "item": [
         {
-          "name": "GET - Listar zonas",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": "{{baseUrl}}/api/zonas",
-            "auth": {
-              "type": "noauth"
-            },
-            "description": "Publico."
-          }
-        },
-        {
-          "name": "POST - Crear zona",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
-                  "if (pm.response.code === 200) {",
-                  "  pm.collectionVariables.set(\"idZona\", pm.response.json().idZona);",
-                  "}"
-                ]
-              }
-            },
-            {
-              "listen": "prerequest",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.collectionVariables.set(\"sufijo\", Date.now().toString().slice(-6));"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{baseUrl}}/api/zonas",
-            "auth": {
-              "type": "basic",
-              "basic": [
-                {
-                  "key": "username",
-                  "value": "admin",
-                  "type": "string"
-                },
-                {
-                  "key": "password",
-                  "value": "{{pass_admin}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"nombre\": \"Vereda {{sufijo}}\",\n  \"capacidadMaxima\": 10,\n  \"activa\": true,\n  \"restaurante\": { \"nroRestaurante\": 1 }\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          }
-        },
-        {
-          "name": "GET - Ver la zona creada",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": "{{baseUrl}}/api/zonas/{{idZona}}",
-            "auth": {
-              "type": "noauth"
-            }
-          }
-        },
-        {
-          "name": "PUT - Modificar la zona creada",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{baseUrl}}/api/zonas/{{idZona}}",
-            "auth": {
-              "type": "basic",
-              "basic": [
-                {
-                  "key": "username",
-                  "value": "admin",
-                  "type": "string"
-                },
-                {
-                  "key": "password",
-                  "value": "{{pass_admin}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"nombre\": \"Vereda {{sufijo}}\",\n  \"capacidadMaxima\": 14,\n  \"activa\": true,\n  \"restaurante\": { \"nroRestaurante\": 1 }\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          }
-        },
-        {
-          "name": "DELETE - Eliminar la zona creada",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Status 204\", () => pm.response.to.have.status(204));"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "DELETE",
-            "header": [],
-            "url": "{{baseUrl}}/api/zonas/{{idZona}}",
-            "auth": {
-              "type": "basic",
-              "basic": [
-                {
-                  "key": "username",
-                  "value": "admin",
-                  "type": "string"
-                },
-                {
-                  "key": "password",
-                  "value": "{{pass_admin}}",
-                  "type": "string"
-                }
-              ]
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "07. Menus (CRUD)",
-      "description": "",
-      "item": [
-        {
-          "name": "GET - Listar menus",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": "{{baseUrl}}/api/menus",
-            "auth": {
-              "type": "noauth"
-            },
-            "description": "Publico."
-          }
-        },
-        {
-          "name": "POST - Crear menu",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
-                  "if (pm.response.code === 200) {",
-                  "  pm.collectionVariables.set(\"idMenuNuevo\", pm.response.json().idMenu);",
-                  "}"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{baseUrl}}/api/menus",
-            "auth": {
-              "type": "basic",
-              "basic": [
-                {
-                  "key": "username",
-                  "value": "cocina",
-                  "type": "string"
-                },
-                {
-                  "key": "password",
-                  "value": "{{pass_cocina}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"nombre\": \"Lasagna de verdura\",\n  \"descripcion\": \"Capas de pasta con verduras y salsa blanca\",\n  \"precio\": 14500.00,\n  \"disponible\": true,\n  \"restaurante\": { \"nroRestaurante\": 1 }\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          }
-        },
-        {
-          "name": "GET - Ver el menu creado",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": "{{baseUrl}}/api/menus/{{idMenuNuevo}}",
-            "auth": {
-              "type": "noauth"
-            }
-          }
-        },
-        {
-          "name": "PUT - Modificar el menu creado",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{baseUrl}}/api/menus/{{idMenuNuevo}}",
-            "auth": {
-              "type": "basic",
-              "basic": [
-                {
-                  "key": "username",
-                  "value": "cocina",
-                  "type": "string"
-                },
-                {
-                  "key": "password",
-                  "value": "{{pass_cocina}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"nombre\": \"Lasagna de verdura\",\n  \"descripcion\": \"Capas de pasta con verduras y salsa blanca\",\n  \"precio\": 15200.00,\n  \"disponible\": true,\n  \"restaurante\": { \"nroRestaurante\": 1 }\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          }
-        },
-        {
-          "name": "DELETE - Eliminar el menu creado (admin)",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Status 204\", () => pm.response.to.have.status(204));"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "DELETE",
-            "header": [],
-            "url": "{{baseUrl}}/api/menus/{{idMenuNuevo}}",
-            "auth": {
-              "type": "basic",
-              "basic": [
-                {
-                  "key": "username",
-                  "value": "admin",
-                  "type": "string"
-                },
-                {
-                  "key": "password",
-                  "value": "{{pass_admin}}",
-                  "type": "string"
-                }
-              ]
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "08. Recetas: menu-ingredientes (CRUD)",
-      "description": "",
-      "item": [
-        {
-          "name": "GET - Listar recetas",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": "{{baseUrl}}/api/menu-ingredientes",
-            "auth": {
-              "type": "basic",
-              "basic": [
-                {
-                  "key": "username",
-                  "value": "cocina",
-                  "type": "string"
-                },
-                {
-                  "key": "password",
-                  "value": "{{pass_cocina}}",
-                  "type": "string"
-                }
-              ]
-            }
-          }
-        },
-        {
-          "name": "POST - Agregar ingrediente a un menu",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
-                  "if (pm.response.code === 200) {",
-                  "  pm.collectionVariables.set(\"idMenuIngrediente\", pm.response.json().idMenuIngrediente);",
-                  "}"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{baseUrl}}/api/menu-ingredientes",
-            "auth": {
-              "type": "basic",
-              "basic": [
-                {
-                  "key": "username",
-                  "value": "cocina",
-                  "type": "string"
-                },
-                {
-                  "key": "password",
-                  "value": "{{pass_cocina}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"menu\": {\n    \"idMenu\": 1\n  },\n  \"stock\": {\n    \"idStock\": 1\n  },\n  \"cantidadNecesaria\": 0.2\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "description": "Si el par menu-insumo ya existe da 409. Si da error porque el menu llega vacio, es el @JsonBackReference de MenuIngrediente.menu."
-          }
-        },
-        {
-          "name": "GET - Ver el ingrediente agregado",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": "{{baseUrl}}/api/menu-ingredientes/{{idMenuIngrediente}}",
-            "auth": {
-              "type": "basic",
-              "basic": [
-                {
-                  "key": "username",
-                  "value": "cocina",
-                  "type": "string"
-                },
-                {
-                  "key": "password",
-                  "value": "{{pass_cocina}}",
-                  "type": "string"
-                }
-              ]
-            }
-          }
-        },
-        {
-          "name": "PUT - Cambiar la cantidad",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "PUT",
-            "header": [],
-            "url": "{{baseUrl}}/api/menu-ingredientes/{{idMenuIngrediente}}?cantidad=0.3",
-            "auth": {
-              "type": "basic",
-              "basic": [
-                {
-                  "key": "username",
-                  "value": "cocina",
-                  "type": "string"
-                },
-                {
-                  "key": "password",
-                  "value": "{{pass_cocina}}",
-                  "type": "string"
-                }
-              ]
-            }
-          }
-        },
-        {
-          "name": "DELETE - Quitar el ingrediente",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Status 204\", () => pm.response.to.have.status(204));"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "DELETE",
-            "header": [],
-            "url": "{{baseUrl}}/api/menu-ingredientes/{{idMenuIngrediente}}",
-            "auth": {
-              "type": "basic",
-              "basic": [
-                {
-                  "key": "username",
-                  "value": "cocina",
-                  "type": "string"
-                },
-                {
-                  "key": "password",
-                  "value": "{{pass_cocina}}",
-                  "type": "string"
-                }
-              ]
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "09. Stock (CRUD)",
-      "description": "",
-      "item": [
-        {
-          "name": "GET - Listar stock",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": "{{baseUrl}}/api/stocks",
-            "auth": {
-              "type": "basic",
-              "basic": [
-                {
-                  "key": "username",
-                  "value": "cocina",
-                  "type": "string"
-                },
-                {
-                  "key": "password",
-                  "value": "{{pass_cocina}}",
-                  "type": "string"
-                }
-              ]
-            }
-          }
-        },
-        {
-          "name": "GET - Stock bajo minimo",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": "{{baseUrl}}/api/stocks/bajo-minimo",
-            "auth": {
-              "type": "basic",
-              "basic": [
-                {
-                  "key": "username",
-                  "value": "cocina",
-                  "type": "string"
-                },
-                {
-                  "key": "password",
-                  "value": "{{pass_cocina}}",
-                  "type": "string"
-                }
-              ]
-            }
-          }
-        },
-        {
-          "name": "POST - Crear insumo",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
-                  "if (pm.response.code === 200) {",
-                  "  pm.collectionVariables.set(\"idStockNuevo\", pm.response.json().idStock);",
-                  "}"
-                ]
-              }
-            },
-            {
-              "listen": "prerequest",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.collectionVariables.set(\"sufijo\", Date.now().toString().slice(-6));"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{baseUrl}}/api/stocks",
-            "auth": {
-              "type": "basic",
-              "basic": [
-                {
-                  "key": "username",
-                  "value": "cocina",
-                  "type": "string"
-                },
-                {
-                  "key": "password",
-                  "value": "{{pass_cocina}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"nombre\": \"Espinaca {{sufijo}}\",\n  \"unidadMedida\": \"kg\",\n  \"cantidadActual\": 10,\n  \"stockMinimo\": 2,\n  \"stockMinimoActivo\": true,\n  \"restaurante\": { \"nroRestaurante\": 1 },\n  \"categoria\": { \"nroCategoria\": 1 }\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          }
-        },
-        {
-          "name": "GET - Ver el insumo creado",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": "{{baseUrl}}/api/stocks/{{idStockNuevo}}",
-            "auth": {
-              "type": "basic",
-              "basic": [
-                {
-                  "key": "username",
-                  "value": "cocina",
-                  "type": "string"
-                },
-                {
-                  "key": "password",
-                  "value": "{{pass_cocina}}",
-                  "type": "string"
-                }
-              ]
-            }
-          }
-        },
-        {
-          "name": "PUT - Modificar el insumo creado",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{baseUrl}}/api/stocks/{{idStockNuevo}}",
-            "auth": {
-              "type": "basic",
-              "basic": [
-                {
-                  "key": "username",
-                  "value": "cocina",
-                  "type": "string"
-                },
-                {
-                  "key": "password",
-                  "value": "{{pass_cocina}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"nombre\": \"Espinaca {{sufijo}}\",\n  \"unidadMedida\": \"kg\",\n  \"cantidadActual\": 10,\n  \"stockMinimo\": 3,\n  \"stockMinimoActivo\": true,\n  \"restaurante\": { \"nroRestaurante\": 1 },\n  \"categoria\": { \"nroCategoria\": 1 }\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          }
-        },
-        {
-          "name": "PUT - Reponer 5",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "PUT",
-            "header": [],
-            "url": "{{baseUrl}}/api/stocks/{{idStockNuevo}}/reponer?cantidad=5",
-            "auth": {
-              "type": "basic",
-              "basic": [
-                {
-                  "key": "username",
-                  "value": "cocina",
-                  "type": "string"
-                },
-                {
-                  "key": "password",
-                  "value": "{{pass_cocina}}",
-                  "type": "string"
-                }
-              ]
-            }
-          }
-        },
-        {
-          "name": "PUT - Ajustar a 12",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "PUT",
-            "header": [],
-            "url": "{{baseUrl}}/api/stocks/{{idStockNuevo}}/ajustar?nuevaCantidad=12",
-            "auth": {
-              "type": "basic",
-              "basic": [
-                {
-                  "key": "username",
-                  "value": "cocina",
-                  "type": "string"
-                },
-                {
-                  "key": "password",
-                  "value": "{{pass_cocina}}",
-                  "type": "string"
-                }
-              ]
-            }
-          }
-        },
-        {
-          "name": "DELETE - Eliminar el insumo creado (admin)",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Status 204\", () => pm.response.to.have.status(204));"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "DELETE",
-            "header": [],
-            "url": "{{baseUrl}}/api/stocks/{{idStockNuevo}}",
-            "auth": {
-              "type": "basic",
-              "basic": [
-                {
-                  "key": "username",
-                  "value": "admin",
-                  "type": "string"
-                },
-                {
-                  "key": "password",
-                  "value": "{{pass_admin}}",
-                  "type": "string"
-                }
-              ]
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "10. Categorias y proveedores (CRUD)",
-      "description": "",
-      "item": [
-        {
-          "name": "GET - Listar categorias",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": "{{baseUrl}}/api/categorias",
-            "auth": {
-              "type": "basic",
-              "basic": [
-                {
-                  "key": "username",
-                  "value": "admin",
-                  "type": "string"
-                },
-                {
-                  "key": "password",
-                  "value": "{{pass_admin}}",
-                  "type": "string"
-                }
-              ]
-            }
-          }
-        },
-        {
-          "name": "POST - Crear categoria",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
-                  "if (pm.response.code === 200) {",
-                  "  pm.collectionVariables.set(\"nroCategoriaNueva\", pm.response.json().nroCategoria);",
-                  "}"
-                ]
-              }
-            },
-            {
-              "listen": "prerequest",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.collectionVariables.set(\"sufijo\", Date.now().toString().slice(-6));"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{baseUrl}}/api/categorias",
-            "auth": {
-              "type": "basic",
-              "basic": [
-                {
-                  "key": "username",
-                  "value": "admin",
-                  "type": "string"
-                },
-                {
-                  "key": "password",
-                  "value": "{{pass_admin}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"nombre\": \"Bebidas {{sufijo}}\",\n  \"descripcion\": \"Gaseosas, aguas y vinos\",\n  \"activo\": true\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          }
-        },
-        {
-          "name": "GET - Ver la categoria creada",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": "{{baseUrl}}/api/categorias/{{nroCategoriaNueva}}",
-            "auth": {
-              "type": "basic",
-              "basic": [
-                {
-                  "key": "username",
-                  "value": "admin",
-                  "type": "string"
-                },
-                {
-                  "key": "password",
-                  "value": "{{pass_admin}}",
-                  "type": "string"
-                }
-              ]
-            }
-          }
-        },
-        {
-          "name": "PUT - Modificar la categoria creada",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{baseUrl}}/api/categorias/{{nroCategoriaNueva}}",
-            "auth": {
-              "type": "basic",
-              "basic": [
-                {
-                  "key": "username",
-                  "value": "admin",
-                  "type": "string"
-                },
-                {
-                  "key": "password",
-                  "value": "{{pass_admin}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"nombre\": \"Bebidas {{sufijo}}\",\n  \"descripcion\": \"Gaseosas y aguas\",\n  \"activo\": true\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          }
-        },
-        {
-          "name": "DELETE - Eliminar la categoria creada",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Status 204\", () => pm.response.to.have.status(204));"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "DELETE",
-            "header": [],
-            "url": "{{baseUrl}}/api/categorias/{{nroCategoriaNueva}}",
-            "auth": {
-              "type": "basic",
-              "basic": [
-                {
-                  "key": "username",
-                  "value": "admin",
-                  "type": "string"
-                },
-                {
-                  "key": "password",
-                  "value": "{{pass_admin}}",
-                  "type": "string"
-                }
-              ]
-            }
-          }
-        },
-        {
-          "name": "GET - Listar proveedores",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": "{{baseUrl}}/api/proveedores",
-            "auth": {
-              "type": "basic",
-              "basic": [
-                {
-                  "key": "username",
-                  "value": "admin",
-                  "type": "string"
-                },
-                {
-                  "key": "password",
-                  "value": "{{pass_admin}}",
-                  "type": "string"
-                }
-              ]
-            }
-          }
-        },
-        {
-          "name": "POST - Crear proveedor",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
-                  "if (pm.response.code === 200) {",
-                  "  pm.collectionVariables.set(\"nroProveedorNuevo\", pm.response.json().nroProveedor);",
-                  "}"
-                ]
-              }
-            },
-            {
-              "listen": "prerequest",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.collectionVariables.set(\"cuitNuevo\", \"30\" + Math.floor(10000000 + Math.random() * 89999999) + \"1\");"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{baseUrl}}/api/proveedores",
-            "auth": {
-              "type": "basic",
-              "basic": [
-                {
-                  "key": "username",
-                  "value": "admin",
-                  "type": "string"
-                },
-                {
-                  "key": "password",
-                  "value": "{{pass_admin}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"razonSocial\": \"Distribuidora Sur SRL\",\n  \"cuit\": \"{{cuitNuevo}}\",\n  \"telefono\": \"1145559999\",\n  \"email\": \"ventas@distsur.example.com\",\n  \"categoria\": { \"nroCategoria\": 1 }\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "description": "El CUIT se genera solo: 11 digitos sin guiones."
-          }
-        },
-        {
-          "name": "GET - Ver el proveedor creado",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": "{{baseUrl}}/api/proveedores/{{nroProveedorNuevo}}",
-            "auth": {
-              "type": "basic",
-              "basic": [
-                {
-                  "key": "username",
-                  "value": "admin",
-                  "type": "string"
-                },
-                {
-                  "key": "password",
-                  "value": "{{pass_admin}}",
-                  "type": "string"
-                }
-              ]
-            }
-          }
-        },
-        {
-          "name": "PUT - Modificar el proveedor creado",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{baseUrl}}/api/proveedores/{{nroProveedorNuevo}}",
-            "auth": {
-              "type": "basic",
-              "basic": [
-                {
-                  "key": "username",
-                  "value": "admin",
-                  "type": "string"
-                },
-                {
-                  "key": "password",
-                  "value": "{{pass_admin}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"razonSocial\": \"Distribuidora Sur SRL\",\n  \"cuit\": \"{{cuitNuevo}}\",\n  \"telefono\": \"1145558888\",\n  \"email\": \"ventas@distsur.example.com\",\n  \"categoria\": { \"nroCategoria\": 1 }\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          }
-        },
-        {
-          "name": "DELETE - Eliminar el proveedor creado",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Status 204\", () => pm.response.to.have.status(204));"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "DELETE",
-            "header": [],
-            "url": "{{baseUrl}}/api/proveedores/{{nroProveedorNuevo}}",
-            "auth": {
-              "type": "basic",
-              "basic": [
-                {
-                  "key": "username",
-                  "value": "admin",
-                  "type": "string"
-                },
-                {
-                  "key": "password",
-                  "value": "{{pass_admin}}",
-                  "type": "string"
-                }
-              ]
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "11. Empleados y sectores (CRUD)",
-      "description": "",
-      "item": [
-        {
-          "name": "GET - Listar sectores",
+          "name": "GET - Ver sectores",
           "event": [
             {
               "listen": "test",
@@ -3043,184 +3482,7 @@
           }
         },
         {
-          "name": "POST - Crear sector (admin)",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
-                  "if (pm.response.code === 200) {",
-                  "  pm.collectionVariables.set(\"idSectorNuevo\", pm.response.json().idSector);",
-                  "}"
-                ]
-              }
-            },
-            {
-              "listen": "prerequest",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.collectionVariables.set(\"sufijo\", Date.now().toString().slice(-6));"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{baseUrl}}/api/sectores",
-            "auth": {
-              "type": "basic",
-              "basic": [
-                {
-                  "key": "username",
-                  "value": "admin",
-                  "type": "string"
-                },
-                {
-                  "key": "password",
-                  "value": "{{pass_admin}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"nombre\": \"DEPOSITO {{sufijo}}\",\n  \"activa\": true,\n  \"restaurante\": { \"nroRestaurante\": 1 }\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "description": "Un sector con nombre nuevo no tiene permisos propios (rol EMPLEADO)."
-          }
-        },
-        {
-          "name": "GET - Ver el sector creado",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": "{{baseUrl}}/api/sectores/{{idSectorNuevo}}",
-            "auth": {
-              "type": "basic",
-              "basic": [
-                {
-                  "key": "username",
-                  "value": "rrhh",
-                  "type": "string"
-                },
-                {
-                  "key": "password",
-                  "value": "{{pass_rrhh}}",
-                  "type": "string"
-                }
-              ]
-            }
-          }
-        },
-        {
-          "name": "PUT - Modificar el sector creado (admin)",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{baseUrl}}/api/sectores/{{idSectorNuevo}}",
-            "auth": {
-              "type": "basic",
-              "basic": [
-                {
-                  "key": "username",
-                  "value": "admin",
-                  "type": "string"
-                },
-                {
-                  "key": "password",
-                  "value": "{{pass_admin}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"nombre\": \"DEPOSITO {{sufijo}}\",\n  \"activa\": false,\n  \"restaurante\": { \"nroRestaurante\": 1 }\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          }
-        },
-        {
-          "name": "DELETE - Eliminar el sector creado (admin)",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Status 204\", () => pm.response.to.have.status(204));"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "DELETE",
-            "header": [],
-            "url": "{{baseUrl}}/api/sectores/{{idSectorNuevo}}",
-            "auth": {
-              "type": "basic",
-              "basic": [
-                {
-                  "key": "username",
-                  "value": "admin",
-                  "type": "string"
-                },
-                {
-                  "key": "password",
-                  "value": "{{pass_admin}}",
-                  "type": "string"
-                }
-              ]
-            }
-          }
-        },
-        {
-          "name": "GET - Listar empleados",
+          "name": "GET - Ver empleados",
           "event": [
             {
               "listen": "test",
@@ -3288,6 +3550,16 @@
               }
             ],
             "url": "{{baseUrl}}/api/empleados",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"{{$randomFirstName}}\",\n  \"apellido\": \"{{$randomLastName}}\",\n  \"celular\": \"1155557777\",\n  \"dni\": {{dniNuevo}},\n  \"username\": \"empleado{{sufijo}}\",\n  \"password\": \"empleado123\",\n  \"sector\": { \"idSector\": 2 }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Sectores: 1 ADMINISTRACION, 2 COCINA, 3 SALON, 4 BARRA, 5 CAJA, 6 REPARTIDOR, 7 RECEPCION, 8 RECURSOSHUMANOS. La clave del nuevo es empleado123.",
             "auth": {
               "type": "basic",
               "basic": [
@@ -3302,21 +3574,11 @@
                   "type": "string"
                 }
               ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"nombre\": \"{{$randomFirstName}}\",\n  \"apellido\": \"{{$randomLastName}}\",\n  \"celular\": \"1155557777\",\n  \"dni\": {{dniNuevo}},\n  \"username\": \"empleado{{sufijo}}\",\n  \"password\": \"empleado123\",\n  \"sector\": { \"idSector\": 2 }\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "description": "Sectores: 1 ADMINISTRACION, 2 COCINA, 3 SALON, 4 BARRA, 5 CAJA, 6 REPARTIDOR, 7 RECEPCION, 8 RECURSOSHUMANOS. La clave del nuevo es empleado123."
+            }
           }
         },
         {
-          "name": "GET - Ver el empleado creado",
+          "name": "GET - Ver el empleado",
           "event": [
             {
               "listen": "test",
@@ -3350,7 +3612,7 @@
           }
         },
         {
-          "name": "PUT - Modificar el empleado creado",
+          "name": "PUT - Modificar el empleado",
           "event": [
             {
               "listen": "test",
@@ -3371,6 +3633,15 @@
               }
             ],
             "url": "{{baseUrl}}/api/empleados/{{legajo}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"{{$randomFirstName}}\",\n  \"apellido\": \"{{$randomLastName}}\",\n  \"celular\": \"1155556666\",\n  \"dni\": {{dniNuevo}},\n  \"username\": \"empleado{{sufijo}}\",\n  \"password\": \"empleado123\",\n  \"sector\": { \"idSector\": 2 }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
             "auth": {
               "type": "basic",
               "basic": [
@@ -3385,21 +3656,11 @@
                   "type": "string"
                 }
               ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"nombre\": \"{{$randomFirstName}}\",\n  \"apellido\": \"{{$randomLastName}}\",\n  \"celular\": \"1155556666\",\n  \"dni\": {{dniNuevo}},\n  \"username\": \"empleado{{sufijo}}\",\n  \"password\": \"empleado123\",\n  \"sector\": { \"idSector\": 2 }\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "description": "Mismo usuario y DNI que en el alta."
+            }
           }
         },
         {
-          "name": "PUT - Cambiar de sector a SALON",
+          "name": "PUT - Cambiarlo a SALON",
           "event": [
             {
               "listen": "test",
@@ -3420,6 +3681,15 @@
               }
             ],
             "url": "{{baseUrl}}/api/empleados/{{legajo}}/cambiar-sector",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idSector\": 3\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
             "auth": {
               "type": "basic",
               "basic": [
@@ -3434,20 +3704,11 @@
                   "type": "string"
                 }
               ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"idSector\": 3\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
             }
           }
         },
         {
-          "name": "DELETE - Baja del empleado creado",
+          "name": "DELETE - Baja del empleado",
           "event": [
             {
               "listen": "test",
@@ -3479,136 +3740,73 @@
               ]
             }
           }
-        }
-      ]
-    },
-    {
-      "name": "12. Restaurante",
-      "description": "",
-      "item": [
+        },
         {
-          "name": "GET - Listar restaurantes",
+          "name": "POST - Intentar crear un admin da 403",
           "event": [
             {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                  "pm.test(\"Status 403\", () => pm.response.to.have.status(403));"
                 ]
               }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": "{{baseUrl}}/api/restaurantes",
-            "auth": {
-              "type": "noauth"
             },
-            "description": "Publico."
-          }
-        },
-        {
-          "name": "GET - Ver el restaurante",
-          "event": [
             {
-              "listen": "test",
+              "listen": "prerequest",
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                  "pm.collectionVariables.set(\"dniNuevo\", Math.floor(20000000 + Math.random() * 30000000));",
+                  "pm.collectionVariables.set(\"sufijo\", Date.now().toString().slice(-6));"
                 ]
               }
             }
           ],
           "request": {
-            "method": "GET",
-            "header": [],
-            "url": "{{baseUrl}}/api/restaurantes/1",
-            "auth": {
-              "type": "noauth"
-            }
-          }
-        },
-        {
-          "name": "GET - Esta abierto a las 21",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": "{{baseUrl}}/api/restaurantes/1/abierto?hora=21:00",
-            "auth": {
-              "type": "noauth"
-            }
-          }
-        },
-        {
-          "name": "PUT - Modificar el restaurante",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "PUT",
+            "method": "POST",
             "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
               }
             ],
-            "url": "{{baseUrl}}/api/restaurantes/1",
-            "auth": {
-              "type": "basic",
-              "basic": [
-                {
-                  "key": "username",
-                  "value": "admin",
-                  "type": "string"
-                },
-                {
-                  "key": "password",
-                  "value": "{{pass_admin}}",
-                  "type": "string"
-                }
-              ]
-            },
+            "url": "{{baseUrl}}/api/empleados",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"nombre\": \"La Pasta de la Nonna\",\n  \"direccion\": \"Av. Corrientes 1234, CABA\",\n  \"telefono\": \"1145551234\",\n  \"email\": \"contacto@lapastadelanonna.example.com\",\n  \"horarioApertura\": \"11:00:00\",\n  \"horarioCierre\": \"00:00:00\"\n}",
+              "raw": "{\n  \"nombre\": \"{{$randomFirstName}}\",\n  \"apellido\": \"{{$randomLastName}}\",\n  \"celular\": \"1155557777\",\n  \"dni\": {{dniNuevo}},\n  \"username\": \"empleado{{sufijo}}\",\n  \"password\": \"empleado123\",\n  \"sector\": { \"idSector\": 1 }\n}",
               "options": {
                 "raw": {
                   "language": "json"
                 }
               }
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "rrhh",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{pass_rrhh}}",
+                  "type": "string"
+                }
+              ]
             }
           }
         }
       ]
     },
     {
-      "name": "13. Casos de error",
-      "description": "Demuestran datos invalidos, recursos inexistentes y permisos.",
+      "name": "10. Casos de error",
+      "description": "Cada request con su propio usuario.",
       "item": [
         {
-          "name": "GET - Recurso inexistente -> 404",
+          "name": "GET - Recurso inexistente da 404",
           "event": [
             {
               "listen": "test",
@@ -3630,7 +3828,7 @@
           }
         },
         {
-          "name": "POST - Dato invalido (precio negativo) -> 400",
+          "name": "POST - Precio negativo da 400",
           "event": [
             {
               "listen": "test",
@@ -3678,7 +3876,56 @@
           }
         },
         {
-          "name": "POST - JSON mal armado -> 400",
+          "name": "POST - Delivery sin metodo de pago da 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/envios",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"direccionEntrega\": \"Av. Rivadavia 5000, CABA\",\n  \"pedidos\": [ { \"idMenu\": 1, \"cantidad\": 1 } ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "El metodo de pago es obligatorio.",
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{usuarioCliente}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{passCliente}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST - JSON mal armado da 400",
           "event": [
             {
               "listen": "test",
@@ -3714,7 +3961,7 @@
           }
         },
         {
-          "name": "DELETE - Registro en uso (zona con reservas) -> 409",
+          "name": "DELETE - Zona con reservas da 409",
           "event": [
             {
               "listen": "test",
@@ -3748,7 +3995,75 @@
           }
         },
         {
-          "name": "GET - Sin credenciales -> 401",
+          "name": "PUT - Pagar dos veces da 409",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 409\", () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": "{{baseUrl}}/api/facturaciones/{{nroFacturacion}}/confirmar-pago",
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "caja",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{pass_caja}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "PUT - Envio entregado vuelve a EN_CAMINO da 409",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 409\", () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": "{{baseUrl}}/api/envios/{{idEnvio}}/estado?estado=EN_CAMINO",
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "repartidor",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{pass_repartidor}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET - Sin credenciales da 401",
           "event": [
             {
               "listen": "test",
@@ -3770,7 +4085,7 @@
           }
         },
         {
-          "name": "GET - Cocina pide tickets -> 403",
+          "name": "GET - Cocina pide tickets da 403",
           "event": [
             {
               "listen": "test",
@@ -3804,33 +4119,33 @@
           }
         },
         {
-          "name": "PUT - Pagar dos veces -> 409",
+          "name": "GET - Cliente pide todas las reservas da 403",
           "event": [
             {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status 409\", () => pm.response.to.have.status(409));"
+                  "pm.test(\"Status 403\", () => pm.response.to.have.status(403));"
                 ]
               }
             }
           ],
           "request": {
-            "method": "PUT",
+            "method": "GET",
             "header": [],
-            "url": "{{baseUrl}}/api/facturaciones/{{nroFacturacion}}/confirmar-pago",
+            "url": "{{baseUrl}}/api/reservas",
             "auth": {
               "type": "basic",
               "basic": [
                 {
                   "key": "username",
-                  "value": "caja",
+                  "value": "{{usuarioCliente}}",
                   "type": "string"
                 },
                 {
                   "key": "password",
-                  "value": "{{pass_caja}}",
+                  "value": "{{passCliente}}",
                   "type": "string"
                 }
               ]
@@ -3842,8 +4157,12 @@
   ],
   "variable": [
     {
-      "key": "idCliente",
-      "value": "1"
+      "key": "usuarioCliente",
+      "value": "cliente"
+    },
+    {
+      "key": "passCliente",
+      "value": "cliente123"
     },
     {
       "key": "dniCliente",
@@ -3858,23 +4177,15 @@
       "value": "1"
     },
     {
+      "key": "idEnvio",
+      "value": ""
+    },
+    {
       "key": "legajo",
       "value": "9"
     },
     {
-      "key": "idClienteCrud",
-      "value": ""
-    },
-    {
-      "key": "dniClienteCrud",
-      "value": ""
-    },
-    {
       "key": "nroReservaWalkin",
-      "value": ""
-    },
-    {
-      "key": "nroTicketReserva",
       "value": ""
     },
     {
@@ -3887,10 +4198,6 @@
     },
     {
       "key": "idCierre",
-      "value": ""
-    },
-    {
-      "key": "idEnvio",
       "value": ""
     },
     {
@@ -3922,6 +4229,14 @@
       "value": ""
     },
     {
+      "key": "idClienteCrud",
+      "value": ""
+    },
+    {
+      "key": "dniClienteCrud",
+      "value": ""
+    },
+    {
       "key": "dniNuevo",
       "value": ""
     },
@@ -3935,6 +4250,10 @@
     },
     {
       "key": "cuitNuevo",
+      "value": ""
+    },
+    {
+      "key": "nroTicketEnvio",
       "value": ""
     }
   ]

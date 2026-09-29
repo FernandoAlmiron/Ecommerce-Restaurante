@@ -18,7 +18,9 @@ public class EnvioController {
     public EnvioController(EnvioService envioService) { this.envioService = envioService; }
 
     @PostMapping
-    public Envio crear(@RequestBody EnvioDTO dto) { return envioService.crearEnvioConPedido(dto); }
+    public Envio crear(@RequestBody EnvioDTO dto, Authentication authentication) {
+        return envioService.crearEnvioConPedido(dto, clienteLogueado(authentication));
+    }
 
     @GetMapping
     public List<Envio> listar() { return envioService.listarTodos(); }
@@ -43,5 +45,11 @@ public class EnvioController {
         boolean esAdmin = authentication.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
         return envioService.actualizarEstado(id, estado, authentication.getName(), esAdmin);
+    }
+
+    // usuario del cliente logueado, o null si pide sin cuenta
+    private String clienteLogueado(Authentication auth) {
+        return auth != null && auth.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_CLIENTE")) ? auth.getName() : null;
     }
 }

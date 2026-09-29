@@ -265,3 +265,6 @@ WHERE t.nroTicket = 4 GROUP BY t.nroTicket;
 INSERT INTO Envio (direccionEntrega, nombreReceptor, estado, idCliente, nroTicket, legajoRepartidor) VALUES
     ('Av. Santa Fe 2450, 5B, CABA', 'Sofia Martinez', 'PENDIENTE', 5, 3, NULL),
     ('Belgrano 890, Quilmes',       'Diego Lopez',    'ENTREGADO', 6, 4, (SELECT legajo FROM Empleados WHERE username = 'repartidor'));
+
+-- Cliente con cuenta de prueba: cliente / cliente123 (Maria Gonzalez)
+UPDATE Clientes SET username = 'cliente', password = '$2a$10$eo2PWdGbNiwkGCTeDOMDeuOlZNUdLxrUgupekLSL2qdrJ4gXZWELW' WHERE dni = 30111222;
