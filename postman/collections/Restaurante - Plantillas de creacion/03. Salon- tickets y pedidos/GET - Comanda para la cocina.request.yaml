@@ -1,13 +1,13 @@
 $kind: http-request
-url: "{{baseUrl}}/api/tarjetas"
+url: "{{baseUrl}}/api/tickets/{{nroTicket}}/comanda"
 method: GET
 auth:
   type: basic
   credentials:
-    username: caja
-    password: "{{pass_caja}}"
+    username: cocina
+    password: "{{pass_cocina}}"
 scripts:
   - type: afterResponse
     code: pm.test("Status 200", () => pm.response.to.have.status(200));
     language: text/javascript
-order: 12000
+order: 9000

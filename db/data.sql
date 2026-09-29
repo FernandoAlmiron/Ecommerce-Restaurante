@@ -30,15 +30,16 @@ INSERT INTO Zona (nombre, capacidadMaxima, activa, nroRestaurante) VALUES
     ('Patio',           16, FALSE, 1);
 
 -- ---------- Empleados (una cuenta por rol; las claves estan en el chat, aca solo van los hashes BCrypt) ----------
+-- Usuarios de prueba: la contraseña de cada uno es su usuario + 123 (admin -> admin123)
 INSERT INTO Empleados (nombre, apellido, celular, dni, username, password, idSector) VALUES
-    ('Laura', 'Benitez', '1155552001', 25111001, 'admin', '$2a$10$khWyXKHxYzDR24EXFNxPue/pho9VOY/VVC/O9pzqKlvnaC.KaMgKq', (SELECT idSector FROM Sector WHERE nombre = 'ADMINISTRACION')),
-    ('Camila', 'Suarez', '1155552002', 36111002, 'recepcion', '$2a$10$Pp4yBnwyDnvL9CDK8HQJie7s9UN6XD07JArJqsoLgkvSNkG6xTp6a', (SELECT idSector FROM Sector WHERE nombre = 'RECEPCION')),
-    ('Martin', 'Acosta', '1155552003', 34111003, 'mozo', '$2a$10$HxKxdDDlyBJ5BlfCg4Zsiue7wS9DpJ8t3i5ZY0LELEA6oUyrrWg5i', (SELECT idSector FROM Sector WHERE nombre = 'SALON')),
-    ('Julieta', 'Romero', '1155552004', 38111004, 'barra', '$2a$10$aHKX1QQV93ZVOVlIFQf06OsY9bxgT0yBLRZ8sATimP9diA8egvC6u', (SELECT idSector FROM Sector WHERE nombre = 'BARRA')),
-    ('Gustavo', 'Ferrari', '1155552005', 29111005, 'cocina', '$2a$10$SwuL5J0QHKmu111UVB5uz.1KmD4xpXpdF6q3F78BwATYEodDzaH1G', (SELECT idSector FROM Sector WHERE nombre = 'COCINA')),
-    ('Valeria', 'Molina', '1155552006', 33111006, 'caja', '$2a$10$iXnoVryY3D846UPUJkDOtuPm6foSHVmKowiVzvA/36HpDMRTKMs4m', (SELECT idSector FROM Sector WHERE nombre = 'CAJA')),
-    ('Nicolas', 'Vega', '1155552007', 37111007, 'repartidor', '$2a$10$MXeJfmBSlOdBpSpfXVIRZe1wHgq/E9QuoNnHQm9r/MS4pQI4UtjFW', (SELECT idSector FROM Sector WHERE nombre = 'REPARTIDOR')),
-    ('Patricia', 'Duarte', '1155552008', 31111008, 'rrhh', '$2a$10$VDQZITKYThvWUmSa7tz7uOkGTzXM2NbV.k0TDJFDBrxZ3KYzYg/Iq', (SELECT idSector FROM Sector WHERE nombre = 'RECURSOSHUMANOS'));
+    ('Laura', 'Benitez', '1155552001', 25111001, 'admin', '$2a$10$R4fbj9GMY.tjjVDUKjPnPuSPgGCTiwCN0UjsnPuqbEGm0iQ0lOdcu', (SELECT idSector FROM Sector WHERE nombre = 'ADMINISTRACION')),
+    ('Camila', 'Suarez', '1155552002', 36111002, 'recepcion', '$2a$10$XfCg3CJ4E1FKA/eXcizfre1ojKV7NaOdJTttegQtR.7c3CCdbm.by', (SELECT idSector FROM Sector WHERE nombre = 'RECEPCION')),
+    ('Martin', 'Acosta', '1155552003', 34111003, 'mozo', '$2a$10$40.Aem6P//57AR8V2ygV2.lQgCSL6FdNnQS8UXw7BCeahFkxBcGjq', (SELECT idSector FROM Sector WHERE nombre = 'SALON')),
+    ('Julieta', 'Romero', '1155552004', 38111004, 'barra', '$2a$10$AlH97WTnPimsSh6WQUgdkeAJeu3kNkfWq4Ix/Ab4TjYvBXPQeWRJ2', (SELECT idSector FROM Sector WHERE nombre = 'BARRA')),
+    ('Gustavo', 'Ferrari', '1155552005', 29111005, 'cocina', '$2a$10$s7Mze6cQYW5tLs2ZZu9jEOqrlfv6g1NDML/KqzMPJJvZWeh5TjG2K', (SELECT idSector FROM Sector WHERE nombre = 'COCINA')),
+    ('Valeria', 'Molina', '1155552006', 33111006, 'caja', '$2a$10$kVjWVOZDTQWtQTpi6UnFsORTDB3hacabEIBSiyxCQa2//lx/MIRya', (SELECT idSector FROM Sector WHERE nombre = 'CAJA')),
+    ('Nicolas', 'Vega', '1155552007', 37111007, 'repartidor', '$2a$10$6Yl9VMIZQ/5mCt9Uf9cv9e8nMBTjC2BtvGcw.1X9249CSLssRad6u', (SELECT idSector FROM Sector WHERE nombre = 'REPARTIDOR')),
+    ('Patricia', 'Duarte', '1155552008', 31111008, 'rrhh', '$2a$10$mz8A9vbSVSOpxL3td3J83ONX1UC3KTrsmU1/NbIoI4ny.OaA90Vdy', (SELECT idSector FROM Sector WHERE nombre = 'RECURSOSHUMANOS'));
 
 -- ---------- Categorias y proveedores ----------
 INSERT INTO Categoria (nombre, descripcion, activo) VALUES

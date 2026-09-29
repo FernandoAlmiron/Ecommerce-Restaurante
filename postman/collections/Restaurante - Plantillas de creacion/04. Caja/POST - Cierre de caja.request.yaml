@@ -24,4 +24,4 @@ scripts:
         pm.collectionVariables.set("idCierre", pm.response.json().idCierre);
       }
     language: text/javascript
-order: 7000
+order: 8000

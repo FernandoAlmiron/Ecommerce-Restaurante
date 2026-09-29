@@ -1,5 +1,5 @@
 $kind: http-request
-url: "{{baseUrl}}/api/tarjetas"
+url: "{{baseUrl}}/api/facturaciones/{{nroFacturacion}}/comprobante"
 method: GET
 auth:
   type: basic
@@ -10,4 +10,4 @@ scripts:
   - type: afterResponse
     code: pm.test("Status 200", () => pm.response.to.have.status(200));
     language: text/javascript
-order: 12000
+order: 6000

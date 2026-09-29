@@ -6,7 +6,7 @@ workspace:
 
 cloudResources:
   collections:
-    ../postman/collections/Restaurante - Plantillas de creacion: 2136a4e8-8709-4e34-b9a8-1cf1a13cf647
+    ../postman/collections/Restaurante - Plantillas de creacion: ba929c36-617b-473f-8c2b-791d2f53c705
 
 # All resources in the `postman/` folder are automatically registered in Local View.
 # Point to additional files outside the `postman/` folder to register them individually. Example:
