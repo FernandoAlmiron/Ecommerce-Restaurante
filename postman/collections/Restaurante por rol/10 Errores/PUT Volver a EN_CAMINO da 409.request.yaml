@@ -1,0 +1,15 @@
+$kind: http-request
+url: "{{baseUrl}}/api/envios/{{idEnvio}}/estado?estado=EN_CAMINO"
+method: PUT
+queryParams:
+  estado: EN_CAMINO
+auth:
+  type: basic
+  credentials:
+    username: repartidor
+    password: "{{pass_repartidor}}"
+scripts:
+  - type: afterResponse
+    code: pm.test("Status 409", () => pm.response.to.have.status(409));
+    language: text/javascript
+order: 7000

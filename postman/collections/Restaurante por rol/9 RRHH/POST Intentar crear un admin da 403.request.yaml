@@ -1,0 +1,32 @@
+$kind: http-request
+url: "{{baseUrl}}/api/empleados"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "nombre": "{{$randomFirstName}}",
+      "apellido": "{{$randomLastName}}",
+      "celular": "1155557777",
+      "dni": {{dniNuevo}},
+      "username": "empleado{{sufijo}}",
+      "password": "empleado123",
+      "sector": { "idSector": 1 }
+    }
+auth:
+  type: basic
+  credentials:
+    username: rrhh
+    password: "{{pass_rrhh}}"
+scripts:
+  - type: afterResponse
+    code: pm.test("Status 403", () => pm.response.to.have.status(403));
+    language: text/javascript
+  - type: beforeRequest
+    code: |-
+      pm.collectionVariables.set("dniNuevo", Math.floor(20000000 + Math.random() * 30000000));
+      pm.collectionVariables.set("sufijo", Date.now().toString().slice(-6));
+    language: text/javascript
+order: 8000

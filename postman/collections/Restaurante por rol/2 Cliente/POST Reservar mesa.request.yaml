@@ -1,0 +1,35 @@
+$kind: http-request
+description: "Fecha: dentro de 7 dias. Queda PENDIENTE con sena de 30000."
+url: "{{baseUrl}}/api/reservas"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "cantComensales": 4,
+      "fechaReserva": "{{fechaReserva}}",
+      "horaReserva": "21:00",
+      "zona": { "idZona": 1 },
+      "senia": { "tarjeta": { "titular": "TITULAR PRUEBA", "vencimiento": "2029-08" } }
+    }
+auth:
+  type: basic
+  credentials:
+    username: "{{usuarioCliente}}"
+    password: "{{passCliente}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Status 200", () => pm.response.to.have.status(200));
+      if (pm.response.code === 200) {
+        pm.collectionVariables.set("nroReserva", pm.response.json().nroReserva);
+      }
+    language: text/javascript
+  - type: beforeRequest
+    code: |-
+      const d = new Date(); d.setDate(d.getDate() + 7);
+      pm.collectionVariables.set("fechaReserva", d.toISOString().slice(0, 10));
+    language: text/javascript
+order: 4000

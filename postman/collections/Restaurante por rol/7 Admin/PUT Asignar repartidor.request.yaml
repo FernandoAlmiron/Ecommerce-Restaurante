@@ -1,0 +1,14 @@
+$kind: http-request
+description: 7 es el legajo del usuario repartidor. Va antes de la carpeta Repartidor.
+url: "{{baseUrl}}/api/envios/{{idEnvio}}/asignar-repartidor/7"
+method: PUT
+auth:
+  type: basic
+  credentials:
+    username: admin
+    password: "{{pass_admin}}"
+scripts:
+  - type: afterResponse
+    code: pm.test("Status 200", () => pm.response.to.have.status(200));
+    language: text/javascript
+order: 1000

@@ -1,0 +1,15 @@
+$kind: http-request
+url: "{{baseUrl}}/api/envios/{{idEnvio}}/estado?estado=ENTREGADO"
+method: PUT
+queryParams:
+  estado: ENTREGADO
+auth:
+  type: basic
+  credentials:
+    username: repartidor
+    password: "{{pass_repartidor}}"
+scripts:
+  - type: afterResponse
+    code: pm.test("Status 200", () => pm.response.to.have.status(200));
+    language: text/javascript
+order: 5000

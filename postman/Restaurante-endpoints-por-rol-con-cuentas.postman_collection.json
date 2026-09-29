@@ -1,16 +1,16 @@
 {
   "info": {
-    "name": "Restaurante - Endpoints por rol (con cuentas)",
+    "name": "Restaurante por rol",
     "description": "Una carpeta por rol, con sus endpoints en el orden en que los usa, igual que el documento 'Endpoints por rol'. Cada carpeta ya tiene el usuario del rol configurado: los requests heredan su Authorization.\nCorriendo las carpetas en orden, cada rol usa lo que creo el anterior: el cliente pide y reserva, recepcion confirma, el mozo abre la mesa, cocina prepara, caja cobra, el admin asigna el envio y el repartidor lo entrega.\nUsa el environment 'Restaurante local' (baseUrl y pass_*).",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
     {
-      "name": "1. Publico (sin usuario)",
+      "name": "1 Publico",
       "description": "Lo que cualquiera puede hacer sin usuario.",
       "item": [
         {
-          "name": "GET - Ver la carta",
+          "name": "GET Ver la carta",
           "event": [
             {
               "listen": "test",
@@ -32,7 +32,7 @@
           }
         },
         {
-          "name": "GET - Ver un plato",
+          "name": "GET Ver un plato",
           "event": [
             {
               "listen": "test",
@@ -54,7 +54,7 @@
           }
         },
         {
-          "name": "GET - Ver las zonas",
+          "name": "GET Ver las zonas",
           "event": [
             {
               "listen": "test",
@@ -76,7 +76,7 @@
           }
         },
         {
-          "name": "GET - Ver el restaurante",
+          "name": "GET Ver el restaurante",
           "event": [
             {
               "listen": "test",
@@ -98,7 +98,7 @@
           }
         },
         {
-          "name": "GET - Esta abierto a las 21",
+          "name": "GET Esta abierto a las 21",
           "event": [
             {
               "listen": "test",
@@ -120,7 +120,7 @@
           }
         },
         {
-          "name": "POST - Registrarse con cuenta",
+          "name": "POST Registrarse con cuenta",
           "event": [
             {
               "listen": "test",
@@ -173,11 +173,11 @@
       ]
     },
     {
-      "name": "2. Cliente",
+      "name": "2 Cliente",
       "description": "Con la cuenta del cliente (rol CLIENTE).",
       "item": [
         {
-          "name": "GET - Mis datos",
+          "name": "GET Mis datos",
           "event": [
             {
               "listen": "test",
@@ -211,7 +211,7 @@
           }
         },
         {
-          "name": "POST - Pedir delivery",
+          "name": "POST Pedir delivery",
           "event": [
             {
               "listen": "test",
@@ -264,7 +264,7 @@
           }
         },
         {
-          "name": "GET - Mis envios",
+          "name": "GET Mis envios",
           "event": [
             {
               "listen": "test",
@@ -298,7 +298,7 @@
           }
         },
         {
-          "name": "POST - Reservar mesa",
+          "name": "POST Reservar mesa",
           "event": [
             {
               "listen": "test",
@@ -360,7 +360,7 @@
           }
         },
         {
-          "name": "GET - Mis reservas",
+          "name": "GET Mis reservas",
           "event": [
             {
               "listen": "test",
@@ -394,7 +394,7 @@
           }
         },
         {
-          "name": "POST - Pedir delivery sin cuenta (con DNI)",
+          "name": "POST Delivery sin cuenta",
           "event": [
             {
               "listen": "test",
@@ -442,11 +442,11 @@
       ]
     },
     {
-      "name": "3. Recepcion",
+      "name": "3 Recepcion",
       "description": "Recibe al cliente en el local.",
       "item": [
         {
-          "name": "GET - Ver todas las reservas",
+          "name": "GET Ver todas las reservas",
           "event": [
             {
               "listen": "test",
@@ -480,7 +480,7 @@
           }
         },
         {
-          "name": "GET - Ver la reserva del cliente",
+          "name": "GET Ver la reserva",
           "event": [
             {
               "listen": "test",
@@ -514,7 +514,7 @@
           }
         },
         {
-          "name": "PUT - Confirmar la reserva",
+          "name": "PUT Confirmar la reserva",
           "event": [
             {
               "listen": "test",
@@ -548,7 +548,7 @@
           }
         },
         {
-          "name": "PUT - Marcar asistencia",
+          "name": "PUT Marcar asistencia",
           "event": [
             {
               "listen": "test",
@@ -582,7 +582,7 @@
           }
         },
         {
-          "name": "GET - Buscar clientes",
+          "name": "GET Buscar clientes",
           "event": [
             {
               "listen": "test",
@@ -616,7 +616,7 @@
           }
         },
         {
-          "name": "POST - Walk-in cliente nuevo",
+          "name": "POST Walk-in cliente nuevo",
           "event": [
             {
               "listen": "test",
@@ -677,7 +677,7 @@
           }
         },
         {
-          "name": "POST - Walk-in de un cliente que ya existe (DNI)",
+          "name": "POST Walk-in cliente existente",
           "event": [
             {
               "listen": "test",
@@ -725,7 +725,7 @@
           }
         },
         {
-          "name": "PUT - Cancelar el walk-in",
+          "name": "PUT Cancelar el walk-in",
           "event": [
             {
               "listen": "test",
@@ -761,11 +761,11 @@
       ]
     },
     {
-      "name": "4. Mozo",
+      "name": "4 Mozo",
       "description": "Atiende la mesa.",
       "item": [
         {
-          "name": "POST - Abrir la mesa con la reserva",
+          "name": "POST Abrir la mesa con la reserva",
           "event": [
             {
               "listen": "test",
@@ -816,7 +816,7 @@
           }
         },
         {
-          "name": "POST - Cargar pedido",
+          "name": "POST Cargar pedido",
           "event": [
             {
               "listen": "test",
@@ -867,7 +867,7 @@
           }
         },
         {
-          "name": "POST - Cargar otro pedido",
+          "name": "POST Cargar otro pedido",
           "event": [
             {
               "listen": "test",
@@ -915,7 +915,7 @@
           }
         },
         {
-          "name": "GET - Ver la mesa",
+          "name": "GET Ver la mesa",
           "event": [
             {
               "listen": "test",
@@ -949,7 +949,7 @@
           }
         },
         {
-          "name": "GET - Ver la comanda",
+          "name": "GET Ver la comanda",
           "event": [
             {
               "listen": "test",
@@ -983,7 +983,7 @@
           }
         },
         {
-          "name": "GET - Ver todas las mesas",
+          "name": "GET Ver todas las mesas",
           "event": [
             {
               "listen": "test",
@@ -1017,7 +1017,7 @@
           }
         },
         {
-          "name": "GET - Ver pedidos",
+          "name": "GET Ver pedidos",
           "event": [
             {
               "listen": "test",
@@ -1051,7 +1051,7 @@
           }
         },
         {
-          "name": "GET - Ver un pedido",
+          "name": "GET Ver un pedido",
           "event": [
             {
               "listen": "test",
@@ -1087,11 +1087,11 @@
       ]
     },
     {
-      "name": "5. Cocina",
+      "name": "5 Cocina",
       "description": "Prepara, controla el stock y arma las recetas.",
       "item": [
         {
-          "name": "GET - Comanda de la mesa",
+          "name": "GET Comanda de la mesa",
           "event": [
             {
               "listen": "test",
@@ -1126,7 +1126,7 @@
           }
         },
         {
-          "name": "GET - Pedidos",
+          "name": "GET Pedidos",
           "event": [
             {
               "listen": "test",
@@ -1160,7 +1160,7 @@
           }
         },
         {
-          "name": "GET - Stock",
+          "name": "GET Stock",
           "event": [
             {
               "listen": "test",
@@ -1195,7 +1195,7 @@
           }
         },
         {
-          "name": "GET - Stock bajo minimo",
+          "name": "GET Stock bajo minimo",
           "event": [
             {
               "listen": "test",
@@ -1229,7 +1229,7 @@
           }
         },
         {
-          "name": "PUT - Reponer insumo 1",
+          "name": "PUT Reponer insumo 1",
           "event": [
             {
               "listen": "test",
@@ -1263,7 +1263,7 @@
           }
         },
         {
-          "name": "POST - Alta de insumo",
+          "name": "POST Alta de insumo",
           "event": [
             {
               "listen": "test",
@@ -1323,7 +1323,7 @@
           }
         },
         {
-          "name": "GET - Ver el insumo",
+          "name": "GET Ver el insumo",
           "event": [
             {
               "listen": "test",
@@ -1357,7 +1357,7 @@
           }
         },
         {
-          "name": "PUT - Modificar el insumo",
+          "name": "PUT Modificar el insumo",
           "event": [
             {
               "listen": "test",
@@ -1405,7 +1405,7 @@
           }
         },
         {
-          "name": "PUT - Ajustar el insumo a 12",
+          "name": "PUT Ajustar el insumo a 12",
           "event": [
             {
               "listen": "test",
@@ -1439,7 +1439,7 @@
           }
         },
         {
-          "name": "POST - Crear plato",
+          "name": "POST Crear plato",
           "event": [
             {
               "listen": "test",
@@ -1490,7 +1490,7 @@
           }
         },
         {
-          "name": "PUT - Modificar el plato",
+          "name": "PUT Modificar el plato",
           "event": [
             {
               "listen": "test",
@@ -1538,7 +1538,7 @@
           }
         },
         {
-          "name": "GET - Ver recetas",
+          "name": "GET Ver recetas",
           "event": [
             {
               "listen": "test",
@@ -1572,7 +1572,7 @@
           }
         },
         {
-          "name": "POST - Agregar insumo a un plato",
+          "name": "POST Agregar insumo al plato",
           "event": [
             {
               "listen": "test",
@@ -1624,7 +1624,7 @@
           }
         },
         {
-          "name": "PUT - Cambiar la cantidad",
+          "name": "PUT Cambiar la cantidad",
           "event": [
             {
               "listen": "test",
@@ -1658,7 +1658,7 @@
           }
         },
         {
-          "name": "DELETE - Quitar el insumo del plato",
+          "name": "DELETE Quitar insumo del plato",
           "event": [
             {
               "listen": "test",
@@ -1694,11 +1694,11 @@
       ]
     },
     {
-      "name": "6. Caja",
+      "name": "6 Caja",
       "description": "Cobra y cierra la caja.",
       "item": [
         {
-          "name": "GET - Ver la mesa antes de cobrar",
+          "name": "GET Ver la mesa",
           "event": [
             {
               "listen": "test",
@@ -1732,7 +1732,7 @@
           }
         },
         {
-          "name": "POST - Facturar la mesa",
+          "name": "POST Facturar la mesa",
           "event": [
             {
               "listen": "test",
@@ -1784,7 +1784,7 @@
           }
         },
         {
-          "name": "PUT - Aplicar propina 10 por ciento",
+          "name": "PUT Propina 10 por ciento",
           "event": [
             {
               "listen": "test",
@@ -1818,7 +1818,7 @@
           }
         },
         {
-          "name": "PUT - Recalcular total",
+          "name": "PUT Recalcular total",
           "event": [
             {
               "listen": "test",
@@ -1852,7 +1852,7 @@
           }
         },
         {
-          "name": "PUT - Confirmar pago",
+          "name": "PUT Confirmar pago",
           "event": [
             {
               "listen": "test",
@@ -1886,7 +1886,7 @@
           }
         },
         {
-          "name": "GET - Comprobante",
+          "name": "GET Comprobante",
           "event": [
             {
               "listen": "test",
@@ -1920,7 +1920,7 @@
           }
         },
         {
-          "name": "POST - Facturar el delivery",
+          "name": "POST Facturar el delivery",
           "event": [
             {
               "listen": "test",
@@ -1969,7 +1969,7 @@
           }
         },
         {
-          "name": "GET - Ver facturas",
+          "name": "GET Ver facturas",
           "event": [
             {
               "listen": "test",
@@ -2003,7 +2003,7 @@
           }
         },
         {
-          "name": "GET - Reporte de delivery de hoy",
+          "name": "GET Reporte delivery",
           "event": [
             {
               "listen": "test",
@@ -2037,7 +2037,7 @@
           }
         },
         {
-          "name": "POST - Cierre de caja",
+          "name": "POST Cierre de caja",
           "event": [
             {
               "listen": "test",
@@ -2088,7 +2088,7 @@
           }
         },
         {
-          "name": "GET - Ver el cierre",
+          "name": "GET Ver el cierre",
           "event": [
             {
               "listen": "test",
@@ -2122,7 +2122,7 @@
           }
         },
         {
-          "name": "GET - Ver cierres",
+          "name": "GET Ver cierres",
           "event": [
             {
               "listen": "test",
@@ -2156,7 +2156,7 @@
           }
         },
         {
-          "name": "POST - Registrar tarjeta",
+          "name": "POST Registrar tarjeta",
           "event": [
             {
               "listen": "test",
@@ -2204,7 +2204,7 @@
           }
         },
         {
-          "name": "GET - Ver tarjetas",
+          "name": "GET Ver tarjetas",
           "event": [
             {
               "listen": "test",
@@ -2240,11 +2240,11 @@
       ]
     },
     {
-      "name": "7. Administrador",
+      "name": "7 Admin",
       "description": "Lo exclusivo del admin. Va antes de Repartidor porque el admin asigna el envio.",
       "item": [
         {
-          "name": "Operacion - PUT - Asignar repartidor al envio del cliente",
+          "name": "PUT Asignar repartidor",
           "event": [
             {
               "listen": "test",
@@ -2279,7 +2279,7 @@
           }
         },
         {
-          "name": "Operacion - GET - Ver senias",
+          "name": "GET Ver senias",
           "event": [
             {
               "listen": "test",
@@ -2313,7 +2313,7 @@
           }
         },
         {
-          "name": "Zonas - POST - Crear zona",
+          "name": "POST Crear zona",
           "event": [
             {
               "listen": "test",
@@ -2373,7 +2373,7 @@
           }
         },
         {
-          "name": "Zonas - PUT - Modificar la zona",
+          "name": "PUT Modificar la zona",
           "event": [
             {
               "listen": "test",
@@ -2421,7 +2421,7 @@
           }
         },
         {
-          "name": "Zonas - DELETE - Eliminar la zona",
+          "name": "DELETE Eliminar la zona",
           "event": [
             {
               "listen": "test",
@@ -2455,7 +2455,7 @@
           }
         },
         {
-          "name": "Carta y stock - DELETE - Eliminar el plato creado por cocina",
+          "name": "DELETE Eliminar plato de cocina",
           "event": [
             {
               "listen": "test",
@@ -2489,7 +2489,7 @@
           }
         },
         {
-          "name": "Carta y stock - DELETE - Eliminar el insumo creado por cocina",
+          "name": "DELETE Eliminar insumo de cocina",
           "event": [
             {
               "listen": "test",
@@ -2523,7 +2523,7 @@
           }
         },
         {
-          "name": "Categorias - GET - Ver categorias",
+          "name": "GET Ver categorias",
           "event": [
             {
               "listen": "test",
@@ -2557,7 +2557,7 @@
           }
         },
         {
-          "name": "Categorias - POST - Crear categoria",
+          "name": "POST Crear categoria",
           "event": [
             {
               "listen": "test",
@@ -2617,7 +2617,7 @@
           }
         },
         {
-          "name": "Categorias - GET - Ver la categoria",
+          "name": "GET Ver la categoria",
           "event": [
             {
               "listen": "test",
@@ -2651,7 +2651,7 @@
           }
         },
         {
-          "name": "Categorias - PUT - Modificar la categoria",
+          "name": "PUT Modificar la categoria",
           "event": [
             {
               "listen": "test",
@@ -2699,7 +2699,7 @@
           }
         },
         {
-          "name": "Categorias - DELETE - Eliminar la categoria",
+          "name": "DELETE Eliminar la categoria",
           "event": [
             {
               "listen": "test",
@@ -2733,7 +2733,7 @@
           }
         },
         {
-          "name": "Proveedores - GET - Ver proveedores",
+          "name": "GET Ver proveedores",
           "event": [
             {
               "listen": "test",
@@ -2767,7 +2767,7 @@
           }
         },
         {
-          "name": "Proveedores - POST - Crear proveedor",
+          "name": "POST Crear proveedor",
           "event": [
             {
               "listen": "test",
@@ -2828,7 +2828,7 @@
           }
         },
         {
-          "name": "Proveedores - GET - Ver el proveedor",
+          "name": "GET Ver el proveedor",
           "event": [
             {
               "listen": "test",
@@ -2862,7 +2862,7 @@
           }
         },
         {
-          "name": "Proveedores - PUT - Modificar el proveedor",
+          "name": "PUT Modificar el proveedor",
           "event": [
             {
               "listen": "test",
@@ -2910,7 +2910,7 @@
           }
         },
         {
-          "name": "Proveedores - DELETE - Eliminar el proveedor",
+          "name": "DELETE Eliminar el proveedor",
           "event": [
             {
               "listen": "test",
@@ -2944,7 +2944,7 @@
           }
         },
         {
-          "name": "Clientes - POST - Alta de un cliente de prueba (publico)",
+          "name": "POST Alta cliente de prueba",
           "event": [
             {
               "listen": "test",
@@ -2993,7 +2993,7 @@
           }
         },
         {
-          "name": "Clientes - PUT - Modificar el cliente",
+          "name": "PUT Modificar el cliente",
           "event": [
             {
               "listen": "test",
@@ -3041,7 +3041,7 @@
           }
         },
         {
-          "name": "Clientes - DELETE - Eliminar el cliente",
+          "name": "DELETE Eliminar el cliente",
           "event": [
             {
               "listen": "test",
@@ -3076,7 +3076,7 @@
           }
         },
         {
-          "name": "Restaurante y sectores - PUT - Modificar el restaurante",
+          "name": "PUT Modificar el restaurante",
           "event": [
             {
               "listen": "test",
@@ -3124,7 +3124,7 @@
           }
         },
         {
-          "name": "Restaurante y sectores - POST - Crear sector",
+          "name": "POST Crear sector",
           "event": [
             {
               "listen": "test",
@@ -3184,7 +3184,7 @@
           }
         },
         {
-          "name": "Restaurante y sectores - PUT - Modificar el sector",
+          "name": "PUT Modificar el sector",
           "event": [
             {
               "listen": "test",
@@ -3232,7 +3232,7 @@
           }
         },
         {
-          "name": "Restaurante y sectores - DELETE - Eliminar el sector",
+          "name": "DELETE Eliminar el sector",
           "event": [
             {
               "listen": "test",
@@ -3268,11 +3268,11 @@
       ]
     },
     {
-      "name": "8. Repartidor",
+      "name": "8 Repartidor",
       "description": "Lleva el envio que pidio el cliente en la carpeta 2.",
       "item": [
         {
-          "name": "GET - Ver envios",
+          "name": "GET Ver envios",
           "event": [
             {
               "listen": "test",
@@ -3306,7 +3306,7 @@
           }
         },
         {
-          "name": "GET - Ver el envio",
+          "name": "GET Ver el envio",
           "event": [
             {
               "listen": "test",
@@ -3340,7 +3340,7 @@
           }
         },
         {
-          "name": "GET - Remito",
+          "name": "GET Remito",
           "event": [
             {
               "listen": "test",
@@ -3374,7 +3374,7 @@
           }
         },
         {
-          "name": "PUT - Salir a entregar",
+          "name": "PUT Salir a entregar",
           "event": [
             {
               "listen": "test",
@@ -3408,7 +3408,7 @@
           }
         },
         {
-          "name": "PUT - Entregado",
+          "name": "PUT Entregado",
           "event": [
             {
               "listen": "test",
@@ -3444,11 +3444,11 @@
       ]
     },
     {
-      "name": "9. Recursos Humanos",
+      "name": "9 RRHH",
       "description": "Gestiona al personal.",
       "item": [
         {
-          "name": "GET - Ver sectores",
+          "name": "GET Ver sectores",
           "event": [
             {
               "listen": "test",
@@ -3482,7 +3482,7 @@
           }
         },
         {
-          "name": "GET - Ver empleados",
+          "name": "GET Ver empleados",
           "event": [
             {
               "listen": "test",
@@ -3516,7 +3516,7 @@
           }
         },
         {
-          "name": "POST - Alta de empleado",
+          "name": "POST Alta de empleado",
           "event": [
             {
               "listen": "test",
@@ -3578,7 +3578,7 @@
           }
         },
         {
-          "name": "GET - Ver el empleado",
+          "name": "GET Ver el empleado",
           "event": [
             {
               "listen": "test",
@@ -3612,7 +3612,7 @@
           }
         },
         {
-          "name": "PUT - Modificar el empleado",
+          "name": "PUT Modificar el empleado",
           "event": [
             {
               "listen": "test",
@@ -3660,7 +3660,7 @@
           }
         },
         {
-          "name": "PUT - Cambiarlo a SALON",
+          "name": "PUT Cambiarlo a SALON",
           "event": [
             {
               "listen": "test",
@@ -3708,7 +3708,7 @@
           }
         },
         {
-          "name": "DELETE - Baja del empleado",
+          "name": "DELETE Baja del empleado",
           "event": [
             {
               "listen": "test",
@@ -3742,7 +3742,7 @@
           }
         },
         {
-          "name": "POST - Intentar crear un admin da 403",
+          "name": "POST Intentar crear un admin da 403",
           "event": [
             {
               "listen": "test",
@@ -3802,11 +3802,11 @@
       ]
     },
     {
-      "name": "10. Casos de error",
+      "name": "10 Errores",
       "description": "Cada request con su propio usuario.",
       "item": [
         {
-          "name": "GET - Recurso inexistente da 404",
+          "name": "GET Recurso inexistente da 404",
           "event": [
             {
               "listen": "test",
@@ -3828,7 +3828,7 @@
           }
         },
         {
-          "name": "POST - Precio negativo da 400",
+          "name": "POST Precio negativo da 400",
           "event": [
             {
               "listen": "test",
@@ -3876,7 +3876,7 @@
           }
         },
         {
-          "name": "POST - Delivery sin metodo de pago da 400",
+          "name": "POST Delivery sin pago da 400",
           "event": [
             {
               "listen": "test",
@@ -3925,7 +3925,7 @@
           }
         },
         {
-          "name": "POST - JSON mal armado da 400",
+          "name": "POST JSON mal armado da 400",
           "event": [
             {
               "listen": "test",
@@ -3961,7 +3961,7 @@
           }
         },
         {
-          "name": "DELETE - Zona con reservas da 409",
+          "name": "DELETE Zona con reservas da 409",
           "event": [
             {
               "listen": "test",
@@ -3995,7 +3995,7 @@
           }
         },
         {
-          "name": "PUT - Pagar dos veces da 409",
+          "name": "PUT Pagar dos veces da 409",
           "event": [
             {
               "listen": "test",
@@ -4029,7 +4029,7 @@
           }
         },
         {
-          "name": "PUT - Envio entregado vuelve a EN_CAMINO da 409",
+          "name": "PUT Volver a EN_CAMINO da 409",
           "event": [
             {
               "listen": "test",
@@ -4063,7 +4063,7 @@
           }
         },
         {
-          "name": "GET - Sin credenciales da 401",
+          "name": "GET Sin credenciales da 401",
           "event": [
             {
               "listen": "test",
@@ -4085,7 +4085,7 @@
           }
         },
         {
-          "name": "GET - Cocina pide tickets da 403",
+          "name": "GET Cocina pide tickets da 403",
           "event": [
             {
               "listen": "test",
@@ -4119,7 +4119,7 @@
           }
         },
         {
-          "name": "GET - Cliente pide todas las reservas da 403",
+          "name": "GET Cliente ve reservas da 403",
           "event": [
             {
               "listen": "test",

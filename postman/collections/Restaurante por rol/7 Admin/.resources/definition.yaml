@@ -1,0 +1,3 @@
+$kind: collection
+description: Lo exclusivo del admin. Va antes de Repartidor porque el admin asigna el envio.
+order: 7000

@@ -1,0 +1,15 @@
+$kind: http-request
+url: "{{baseUrl}}/api/stocks/{{idStockNuevo}}/ajustar?nuevaCantidad=12"
+method: PUT
+queryParams:
+  nuevaCantidad: "12"
+auth:
+  type: basic
+  credentials:
+    username: cocina
+    password: "{{pass_cocina}}"
+scripts:
+  - type: afterResponse
+    code: pm.test("Status 200", () => pm.response.to.have.status(200));
+    language: text/javascript
+order: 9000

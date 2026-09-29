@@ -1,0 +1,29 @@
+$kind: http-request
+description: "Alternativa sin cuenta: el cliente se identifica con su DNI."
+url: "{{baseUrl}}/api/envios"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "dni": {{dniNuevo}},
+      "nombre": "{{$randomFirstName}}",
+      "apellido": "{{$randomLastName}}",
+      "celular": "1155554444",
+      "nroRestaurante": 1,
+      "direccionEntrega": "Av. Corrientes 3000, CABA",
+      "metodoPago": "QR",
+      "pedidos": [ { "idMenu": 2, "cantidad": 1 } ]
+    }
+auth:
+  type: noauth
+scripts:
+  - type: afterResponse
+    code: pm.test("Status 200", () => pm.response.to.have.status(200));
+    language: text/javascript
+  - type: beforeRequest
+    code: pm.collectionVariables.set("dniNuevo", Math.floor(20000000 + Math.random() * 30000000));
+    language: text/javascript
+order: 6000

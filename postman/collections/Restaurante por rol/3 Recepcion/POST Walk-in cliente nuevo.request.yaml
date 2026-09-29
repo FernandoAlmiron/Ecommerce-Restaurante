@@ -1,0 +1,35 @@
+$kind: http-request
+description: Solo en horario del local (11 a 00). Queda CONFIRMADA y sin sena.
+url: "{{baseUrl}}/api/reservas/walkin"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "nombre": "{{$randomFirstName}}",
+      "apellido": "{{$randomLastName}}",
+      "dni": {{dniNuevo}},
+      "celular": "1155550009",
+      "nroRestaurante": 1,
+      "idZona": 1,
+      "cantComensales": 2
+    }
+auth:
+  type: basic
+  credentials:
+    username: recepcion
+    password: "{{pass_recepcion}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Status 200", () => pm.response.to.have.status(200));
+      if (pm.response.code === 200) {
+        pm.collectionVariables.set("nroReservaWalkin", pm.response.json().nroReserva);
+      }
+    language: text/javascript
+  - type: beforeRequest
+    code: pm.collectionVariables.set("dniNuevo", Math.floor(20000000 + Math.random() * 30000000));
+    language: text/javascript
+order: 6000

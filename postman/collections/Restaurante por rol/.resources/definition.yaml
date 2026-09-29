@@ -1,0 +1,31 @@
+$kind: collection
+description: |-
+  Una carpeta por rol, con sus endpoints en el orden en que los usa, igual que el documento 'Endpoints por rol'. Cada carpeta ya tiene el usuario del rol configurado: los requests heredan su Authorization.
+  Corriendo las carpetas en orden, cada rol usa lo que creo el anterior: el cliente pide y reserva, recepcion confirma, el mozo abre la mesa, cocina prepara, caja cobra, el admin asigna el envio y el repartidor lo entrega.
+  Usa el environment 'Restaurante local' (baseUrl y pass_*).
+variables:
+  usuarioCliente: cliente
+  passCliente: cliente123
+  dniCliente: "30111222"
+  nroReserva: "1"
+  nroTicket: "1"
+  idEnvio: ""
+  legajo: "9"
+  nroReservaWalkin: ""
+  idPedido: ""
+  nroFacturacion: ""
+  idCierre: ""
+  idZona: ""
+  idMenuNuevo: ""
+  idMenuIngrediente: ""
+  idStockNuevo: ""
+  nroCategoriaNueva: ""
+  nroProveedorNuevo: ""
+  idSectorNuevo: ""
+  idClienteCrud: ""
+  dniClienteCrud: ""
+  dniNuevo: ""
+  fechaReserva: ""
+  sufijo: ""
+  cuitNuevo: ""
+  nroTicketEnvio: ""

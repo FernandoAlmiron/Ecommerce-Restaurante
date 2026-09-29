@@ -1,0 +1,12 @@
+$kind: http-request
+url: "{{baseUrl}}/api/restaurantes/1/abierto?hora=21:00"
+method: GET
+queryParams:
+  hora: 21:00
+auth:
+  type: noauth
+scripts:
+  - type: afterResponse
+    code: pm.test("Status 200", () => pm.response.to.have.status(200));
+    language: text/javascript
+order: 5000

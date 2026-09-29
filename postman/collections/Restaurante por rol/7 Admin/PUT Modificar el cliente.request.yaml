@@ -1,0 +1,26 @@
+$kind: http-request
+url: "{{baseUrl}}/api/clientes/{{idClienteCrud}}"
+method: PUT
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "nombre": "{{$randomFirstName}}",
+      "apellido": "{{$randomLastName}}",
+      "celular": "1155551234",
+      "dni": {{dniClienteCrud}},
+      "email": "{{$randomEmail}}",
+      "restaurante": { "nroRestaurante": 1 }
+    }
+auth:
+  type: basic
+  credentials:
+    username: admin
+    password: "{{pass_admin}}"
+scripts:
+  - type: afterResponse
+    code: pm.test("Status 200", () => pm.response.to.have.status(200));
+    language: text/javascript
+order: 19000

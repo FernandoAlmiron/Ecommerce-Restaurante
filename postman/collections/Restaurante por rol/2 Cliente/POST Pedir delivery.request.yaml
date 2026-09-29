@@ -1,0 +1,32 @@
+$kind: http-request
+description: "Solo la direccion, el metodo de pago (EFECTIVO, TARJETA o QR) y la comida: el cliente sale del login."
+url: "{{baseUrl}}/api/envios"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "direccionEntrega": "Av. Rivadavia 5000, CABA",
+      "metodoPago": "EFECTIVO",
+      "pedidos": [
+        { "idMenu": 1, "cantidad": 2, "observaciones": "sin queso" },
+        { "idMenu": 3, "cantidad": 1 }
+      ]
+    }
+auth:
+  type: basic
+  credentials:
+    username: "{{usuarioCliente}}"
+    password: "{{passCliente}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Status 200", () => pm.response.to.have.status(200));
+      if (pm.response.code === 200) {
+        pm.collectionVariables.set("idEnvio", pm.response.json().idEnvio);
+        pm.collectionVariables.set("nroTicketEnvio", pm.response.json().ticket.nroTicket);
+      }
+    language: text/javascript
+order: 2000

@@ -1,0 +1,23 @@
+$kind: http-request
+description: El metodo de pago es obligatorio.
+url: "{{baseUrl}}/api/envios"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "direccionEntrega": "Av. Rivadavia 5000, CABA",
+      "pedidos": [ { "idMenu": 1, "cantidad": 1 } ]
+    }
+auth:
+  type: basic
+  credentials:
+    username: "{{usuarioCliente}}"
+    password: "{{passCliente}}"
+scripts:
+  - type: afterResponse
+    code: pm.test("Status 400", () => pm.response.to.have.status(400));
+    language: text/javascript
+order: 3000
