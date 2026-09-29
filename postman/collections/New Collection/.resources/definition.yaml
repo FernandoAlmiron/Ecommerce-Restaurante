@@ -1,0 +1,5 @@
+$kind: collection
+auth:
+  - id: 9527914f-c40f-40a1-9728-00793ac5f95b
+    type: basic
+    name: Basic Auth

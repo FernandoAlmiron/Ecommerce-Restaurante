@@ -2,6 +2,7 @@ package org.example.controller.facturacion;
 
 import org.example.Modelo.facturacion.Ticket;
 import org.example.service.facturacion.TicketService;
+import org.example.dto.ComandaDTO;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,6 +25,12 @@ public class TicketController {
     @GetMapping("/{id}")
     public Ticket buscarPorId(@PathVariable int id) {
         return ticketService.buscarPorId(id);
+    }
+
+    // comanda para la cocina: solo los platos a preparar
+    @GetMapping("/{id}/comanda")
+    public ComandaDTO comanda(@PathVariable int id) {
+        return ComandaDTO.desde(ticketService.buscarPorId(id));
     }
 
     @PostMapping

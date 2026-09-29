@@ -56,6 +56,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/pedidos").hasAnyRole("ADMIN", "MOZO")
                         .requestMatchers(HttpMethod.GET, "/api/pedidos/**").hasAnyRole("ADMIN", "MOZO", "CAJA", "COCINA")
                         .requestMatchers(HttpMethod.POST, "/api/tickets").hasAnyRole("ADMIN", "MOZO", "CAJA")
+                        // la comanda la ve tambien la cocina (sin precios)
+                        .requestMatchers(HttpMethod.GET, "/api/tickets/*/comanda").hasAnyRole("ADMIN", "MOZO", "COCINA")
                         .requestMatchers(HttpMethod.GET, "/api/tickets/**").hasAnyRole("ADMIN", "MOZO", "CAJA")
 
                         // repartidor: ve los envios y cambia su estado; asignar repartidor es del admin

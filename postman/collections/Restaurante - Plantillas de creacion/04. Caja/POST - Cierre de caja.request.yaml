@@ -1,0 +1,27 @@
+$kind: http-request
+url: "{{baseUrl}}/api/cierres-caja"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "nroRestaurante": 1,
+      "montoContado": 50000,
+      "observaciones": ""
+    }
+auth:
+  type: basic
+  credentials:
+    username: caja
+    password: "{{pass_caja}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Status 200", () => pm.response.to.have.status(200));
+      if (pm.response.code === 200) {
+        pm.collectionVariables.set("idCierre", pm.response.json().idCierre);
+      }
+    language: text/javascript
+order: 7000

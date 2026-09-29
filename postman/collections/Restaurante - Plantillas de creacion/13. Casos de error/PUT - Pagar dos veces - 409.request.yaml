@@ -1,0 +1,14 @@
+$kind: http-request
+name: PUT - Pagar dos veces -> 409
+url: "{{baseUrl}}/api/facturaciones/{{nroFacturacion}}/confirmar-pago"
+method: PUT
+auth:
+  type: basic
+  credentials:
+    username: caja
+    password: "{{pass_caja}}"
+scripts:
+  - type: afterResponse
+    code: pm.test("Status 409", () => pm.response.to.have.status(409));
+    language: text/javascript
+order: 7000

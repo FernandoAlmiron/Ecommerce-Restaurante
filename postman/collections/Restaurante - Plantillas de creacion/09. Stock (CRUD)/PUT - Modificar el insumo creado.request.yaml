@@ -1,0 +1,27 @@
+$kind: http-request
+url: "{{baseUrl}}/api/stocks/{{idStockNuevo}}"
+method: PUT
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "nombre": "Espinaca {{sufijo}}",
+      "unidadMedida": "kg",
+      "cantidadActual": 10,
+      "stockMinimo": 3,
+      "stockMinimoActivo": true,
+      "restaurante": { "nroRestaurante": 1 },
+      "categoria": { "nroCategoria": 1 }
+    }
+auth:
+  type: basic
+  credentials:
+    username: cocina
+    password: "{{pass_cocina}}"
+scripts:
+  - type: afterResponse
+    code: pm.test("Status 200", () => pm.response.to.have.status(200));
+    language: text/javascript
+order: 5000

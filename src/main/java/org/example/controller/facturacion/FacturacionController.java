@@ -2,6 +2,7 @@ package org.example.controller.facturacion;
 
 import org.example.Modelo.facturacion.Facturacion;
 import org.example.service.facturacion.FacturacionService;
+import org.example.dto.ComprobanteDTO;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -27,6 +28,12 @@ public class FacturacionController {
     @GetMapping("/{id}")
     public Facturacion buscarPorId(@PathVariable int id) {
         return facturacionService.buscarPorId(id);
+    }
+
+    // ticket de facturacion: detalle con precios, propina y total
+    @GetMapping("/{id}/comprobante")
+    public ComprobanteDTO comprobante(@PathVariable int id) {
+        return ComprobanteDTO.desde(facturacionService.buscarPorId(id));
     }
 
     @PostMapping

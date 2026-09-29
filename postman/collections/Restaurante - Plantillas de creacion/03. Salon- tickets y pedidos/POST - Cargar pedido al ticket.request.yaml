@@ -1,0 +1,28 @@
+$kind: http-request
+url: "{{baseUrl}}/api/pedidos"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "menu": { "idMenu": 1 },
+      "ticket": { "nroTicket": {{nroTicket}} },
+      "cantidad": 2,
+      "observaciones": ""
+    }
+auth:
+  type: basic
+  credentials:
+    username: mozo
+    password: "{{pass_mozo}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Status 200", () => pm.response.to.have.status(200));
+      if (pm.response.code === 200) {
+        pm.collectionVariables.set("idPedido", pm.response.json().idPedido);
+      }
+    language: text/javascript
+order: 4000

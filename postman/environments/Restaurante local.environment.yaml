@@ -1,0 +1,18 @@
+name: Restaurante local
+values:
+  - key: baseUrl
+    value: 'http://localhost:8080'
+  - key: pass_admin
+    value: ''
+  - key: pass_recepcion
+    value: ''
+  - key: pass_mozo
+    value: ''
+  - key: pass_cocina
+    value: ''
+  - key: pass_caja
+    value: ''
+  - key: pass_repartidor
+    value: ''
+  - key: pass_rrhh
+    value: ''

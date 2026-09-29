@@ -1,0 +1,28 @@
+$kind: http-request
+description: Mismo usuario y DNI que en el alta.
+url: "{{baseUrl}}/api/empleados/{{legajo}}"
+method: PUT
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "nombre": "{{$randomFirstName}}",
+      "apellido": "{{$randomLastName}}",
+      "celular": "1155556666",
+      "dni": {{dniNuevo}},
+      "username": "empleado{{sufijo}}",
+      "password": "empleado123",
+      "sector": { "idSector": 2 }
+    }
+auth:
+  type: basic
+  credentials:
+    username: rrhh
+    password: "{{pass_rrhh}}"
+scripts:
+  - type: afterResponse
+    code: pm.test("Status 200", () => pm.response.to.have.status(200));
+    language: text/javascript
+order: 9000

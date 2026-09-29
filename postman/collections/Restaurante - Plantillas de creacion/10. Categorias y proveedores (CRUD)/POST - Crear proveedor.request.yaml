@@ -1,0 +1,33 @@
+$kind: http-request
+description: "El CUIT se genera solo: 11 digitos sin guiones."
+url: "{{baseUrl}}/api/proveedores"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "razonSocial": "Distribuidora Sur SRL",
+      "cuit": "{{cuitNuevo}}",
+      "telefono": "1145559999",
+      "email": "ventas@distsur.example.com",
+      "categoria": { "nroCategoria": 1 }
+    }
+auth:
+  type: basic
+  credentials:
+    username: admin
+    password: "{{pass_admin}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Status 200", () => pm.response.to.have.status(200));
+      if (pm.response.code === 200) {
+        pm.collectionVariables.set("nroProveedorNuevo", pm.response.json().nroProveedor);
+      }
+    language: text/javascript
+  - type: beforeRequest
+    code: pm.collectionVariables.set("cuitNuevo", "30" + Math.floor(10000000 + Math.random() * 89999999) + "1");
+    language: text/javascript
+order: 7000

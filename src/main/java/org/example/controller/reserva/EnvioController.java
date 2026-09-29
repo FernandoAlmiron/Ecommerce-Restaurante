@@ -4,6 +4,7 @@ import org.example.Modelo.reserva.Envio;
 import org.example.Modelo.enums.EstadoEnvio;
 import org.example.service.reserva.EnvioService;
 import org.example.dto.EnvioDTO;
+import org.example.dto.RemitoDTO;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,6 +25,12 @@ public class EnvioController {
 
     @GetMapping("/{id}")
     public Envio buscar(@PathVariable int id) { return envioService.buscarPorId(id); }
+
+    // ticket de envio: lo que se entrega al cliente, con sus datos
+    @GetMapping("/{id}/remito")
+    public RemitoDTO remito(@PathVariable int id) {
+        return RemitoDTO.desde(envioService.buscarPorId(id));
+    }
 
     @PutMapping("/{id}/asignar-repartidor/{legajo}")
     public Envio asignar(@PathVariable int id, @PathVariable int legajo) {
