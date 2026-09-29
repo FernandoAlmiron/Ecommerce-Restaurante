@@ -1,0 +1,13 @@
+$kind: http-request
+url: "{{baseUrl}}/api/facturaciones/{{nroFacturacion}}/comprobante"
+method: GET
+auth:
+  type: basic
+  credentials:
+    username: caja
+    password: "{{pass_caja}}"
+scripts:
+  - type: afterResponse
+    code: pm.test("Status 200", () => pm.response.to.have.status(200));
+    language: text/javascript
+order: 6000

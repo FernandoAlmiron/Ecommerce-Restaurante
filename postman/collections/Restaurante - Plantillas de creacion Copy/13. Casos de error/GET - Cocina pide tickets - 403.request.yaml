@@ -1,0 +1,14 @@
+$kind: http-request
+name: GET - Cocina pide tickets -> 403
+url: "{{baseUrl}}/api/tickets"
+method: GET
+auth:
+  type: basic
+  credentials:
+    username: cocina
+    password: "{{pass_cocina}}"
+scripts:
+  - type: afterResponse
+    code: pm.test("Status 403", () => pm.response.to.have.status(403));
+    language: text/javascript
+order: 6000

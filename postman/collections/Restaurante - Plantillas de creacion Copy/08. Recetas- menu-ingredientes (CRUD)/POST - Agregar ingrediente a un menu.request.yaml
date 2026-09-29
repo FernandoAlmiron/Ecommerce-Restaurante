@@ -1,0 +1,32 @@
+$kind: http-request
+description: Si el par menu-insumo ya existe da 409. Si da error porque el menu llega vacio, es el @JsonBackReference de MenuIngrediente.menu.
+url: "{{baseUrl}}/api/menu-ingredientes"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "menu": {
+        "idMenu": 1
+      },
+      "stock": {
+        "idStock": 1
+      },
+      "cantidadNecesaria": 0.2
+    }
+auth:
+  type: basic
+  credentials:
+    username: cocina
+    password: "{{pass_cocina}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Status 200", () => pm.response.to.have.status(200));
+      if (pm.response.code === 200) {
+        pm.collectionVariables.set("idMenuIngrediente", pm.response.json().idMenuIngrediente);
+      }
+    language: text/javascript
+order: 2000

@@ -1,12 +1,12 @@
 # Use this workspace to collaborate
 workspace:
-  id: 217830b0-125d-456b-8e7d-59ac9c56955a
+  id: ""
 
 # Each entry here maps a local resource to one or more corresponding objects in Postman Cloud
 
 cloudResources:
   collections:
-    ../postman/collections/Restaurante por rol: 08c2aa9a-3e43-410e-bb63-d0b8272ed3db
+    ../postman/collections/Restaurante por rol: bee5e048-9dd6-4101-9e03-ab7992b99b00
 
 # All resources in the `postman/` folder are automatically registered in Local View.
 # Point to additional files outside the `postman/` folder to register them individually. Example:

@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class ClienteService {
@@ -23,6 +24,7 @@ public class ClienteService {
         this.passwordEncoder = passwordEncoder;
     }
 
+    // Registro publico. Con usuario y clave queda una cuenta para pedir sin repetir datos.
     // Registro publico. Con usuario y clave queda una cuenta para pedir sin repetir datos.
     public Cliente guardar(Cliente cliente) {
         if (cliente.getNombre() == null || cliente.getNombre().isBlank()
@@ -42,10 +44,11 @@ public class ClienteService {
             throw new IllegalStateException("Ese nombre de usuario ya existe");
         }
         // si ya habia comprado sin cuenta, se le agrega la cuenta a su registro en lugar de duplicarlo
-        Cliente destino = clienteRepository.findFirstByDni(cliente.getDni()).orElse(cliente);
-        if (destino.getUsername() != null) {
+        Optional<Cliente> existente = clienteRepository.findFirstByDni(cliente.getDni());
+        if (existente.isPresent() && existente.get().getUsername() != null) {
             throw new IllegalStateException("Ese DNI ya tiene una cuenta");
         }
+        Cliente destino = existente.orElse(cliente);
         destino.setNombre(cliente.getNombre());
         destino.setApellido(cliente.getApellido());
         destino.setCelular(cliente.getCelular());

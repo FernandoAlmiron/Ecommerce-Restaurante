@@ -1,0 +1,27 @@
+$kind: http-request
+url: "{{baseUrl}}/api/tickets"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "restaurante": {
+        "nroRestaurante": 1
+      }
+    }
+auth:
+  type: basic
+  credentials:
+    username: mozo
+    password: "{{pass_mozo}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Status 200", () => pm.response.to.have.status(200));
+      if (pm.response.code === 200) {
+        pm.collectionVariables.set("nroTicket", pm.response.json().nroTicket);
+      }
+    language: text/javascript
+order: 1000

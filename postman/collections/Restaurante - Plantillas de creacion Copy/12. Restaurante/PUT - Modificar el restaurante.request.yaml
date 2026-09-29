@@ -1,0 +1,26 @@
+$kind: http-request
+url: "{{baseUrl}}/api/restaurantes/1"
+method: PUT
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "nombre": "La Pasta de la Nonna",
+      "direccion": "Av. Corrientes 1234, CABA",
+      "telefono": "1145551234",
+      "email": "contacto@lapastadelanonna.example.com",
+      "horarioApertura": "11:00:00",
+      "horarioCierre": "00:00:00"
+    }
+auth:
+  type: basic
+  credentials:
+    username: admin
+    password: "{{pass_admin}}"
+scripts:
+  - type: afterResponse
+    code: pm.test("Status 200", () => pm.response.to.have.status(200));
+    language: text/javascript
+order: 4000
