@@ -20,10 +20,6 @@ public class Empleado extends Persona{
     @ManyToOne
     @JoinColumn(name = "idSector")
     private Sector sector;
-    public Empleado(String nombre,String apellido,String celular,int dni,int legajo){
-        super(nombre,apellido,celular,dni);
-        this.legajo=legajo;
-    }
     public void cambiarSector(Sector nuevoSector){
         sector=nuevoSector;
     }

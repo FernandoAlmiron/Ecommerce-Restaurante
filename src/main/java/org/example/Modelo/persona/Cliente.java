@@ -24,8 +24,4 @@ public class Cliente extends Persona{
     @ManyToOne
     @JoinColumn(name = "nroRestaurante")
     private Restaurante restaurante;
-    public Cliente(String nombre,String apellido,String celular,int dni,String email){
-        super(nombre,apellido,celular,dni);
-        this.email=email;
-    }
 }
