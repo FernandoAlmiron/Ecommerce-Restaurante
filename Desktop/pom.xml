@@ -4,36 +4,25 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>org.example</groupId>
+    <groupId>com.restaurante</groupId>
     <artifactId>restaurante-escritorio</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>Restaurante - App de escritorio (Swing)</name>
+    <name>restaurante-escritorio</name>
+    <description>App de escritorio (Swing) para el personal del restaurante</description>
 
     <properties>
         <maven.compiler.release>17</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <jackson.version>2.18.2</jackson.version>
     </properties>
 
     <dependencies>
-        <!-- JSON: convierte lo que manda el servidor en DTOs y al reves -->
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <version>${jackson.version}</version>
-        </dependency>
-        <!-- para leer LocalDate y LocalTime -->
-        <dependency>
-            <groupId>com.fasterxml.jackson.datatype</groupId>
-            <artifactId>jackson-datatype-jsr310</artifactId>
-            <version>${jackson.version}</version>
-        </dependency>
-        <!-- aspecto moderno para Swing (opcional: si no esta, se usa el del sistema) -->
+        <!-- aspecto moderno para Swing (si no esta, se usa el del sistema) -->
         <dependency>
             <groupId>com.formdev</groupId>
             <artifactId>flatlaf</artifactId>
             <version>3.5.4</version>
         </dependency>
+        <!-- Cuando se separe el backend, aca se agrega restaurante-core -->
     </dependencies>
 
     <build>

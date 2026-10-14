@@ -23,7 +23,7 @@
 
     <modules>
         <module>backend</module>
-        <!-- <module>swing</module> -->
+        <module>Desktop</module>
         <!-- <module>htmx</module> -->
     </modules>
 </project>
