@@ -1,10 +1,10 @@
 # Ecommerce Restaurante – Back-end (Etapa 1)
 
-API REST en Java 17 y Spring Boot 4.1 para un restaurante: reservas con seña, salón, delivery, stock, facturación y cierre de caja, con acceso por rol.
+API REST en Java 25 y Spring Boot 4.1 para un restaurante: reservas con seña, salón, delivery, stock, facturación y cierre de caja, con acceso por rol.
 
 ## Requisitos
 
-- JDK 17 (IntelliJ lo puede descargar)
+- JDK 25 (IntelliJ lo puede descargar)
 - MySQL 8 y MySQL Workbench
 - Postman
 
