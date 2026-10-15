@@ -4,6 +4,7 @@ import org.example.escritorio.sesion.Sesion;
 import org.example.escritorio.vista.comun.Dialogos;
 import org.example.escritorio.vista.comun.PanelPendiente;
 import org.example.escritorio.vista.recepcion.ReservasPanel;
+import org.example.escritorio.vista.salon.TicketsPanel;
 
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
@@ -60,7 +61,8 @@ public class PrincipalFrame extends JFrame {
     protected JComponent crearPanel(Area area) {
         return switch (area) {
             case RECEPCION -> new ReservasPanel();
-            case SALON, COCINA, CAJA, REPARTO, RRHH, ADMINISTRACION -> new PanelPendiente(area);
+            case SALON -> new TicketsPanel();
+            case COCINA, CAJA, REPARTO, RRHH, ADMINISTRACION -> new PanelPendiente(area);
         };
     }
 
