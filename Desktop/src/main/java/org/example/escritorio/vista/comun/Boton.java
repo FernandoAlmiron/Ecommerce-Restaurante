@@ -35,6 +35,8 @@ public class Boton extends JButton {
         }
     }
 
+    private static final float OPACIDAD_DESHABILITADO = 0.5f;
+
     private final Tipo tipo;
     private int arco = 14;
 
@@ -58,6 +60,8 @@ public class Boton extends JButton {
         setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         // FlatLaf no tiene que pintar nada propio sobre este botón
         putClientProperty("JButton.buttonType", "borderless");
+        // deshabilitado se ve igual pero transparente (ver paintComponent), no con el texto gris de FlatLaf
+        Estilo.flat(this, String.format("disabledText: #%06X", tipo.texto.getRGB() & 0xFFFFFF));
     }
 
     public Boton conArco(int arco) {
@@ -69,7 +73,7 @@ public class Boton extends JButton {
     protected void paintComponent(Graphics g) {
         Graphics2D g2 = Estilo.suave(g);
         if (!isEnabled()) {
-            g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.45f));
+            g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, OPACIDAD_DESHABILITADO));
         }
         boolean encima = isEnabled() && (getModel().isRollover() || getModel().isPressed());
         g2.setColor(encima ? tipo.fondoHover : tipo.fondo);
@@ -79,7 +83,12 @@ public class Boton extends JButton {
             g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, arco, arco);
         }
         g2.dispose();
-        // el texto y el ícono los pinta Swing (deshabilitado, en gris)
-        super.paintComponent(g);
+        // el texto y el ícono los pinta Swing, con la misma transparencia que el fondo
+        Graphics2D gTexto = (Graphics2D) g.create();
+        if (!isEnabled()) {
+            gTexto.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, OPACIDAD_DESHABILITADO));
+        }
+        super.paintComponent(gTexto);
+        gTexto.dispose();
     }
 }

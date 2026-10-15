@@ -171,6 +171,36 @@ public final class Estilo {
         return textos;
     }
 
+    /** La rayita decorativa del logo: un palo fino con un rodillo blanco en el medio. */
+    public static class Rodillo extends JComponent {
+        private final int largoPalo;
+        private final int largoRodillo;
+        private final int grosor;
+
+        public Rodillo(int largoPalo, int largoRodillo, int grosor) {
+            this.largoPalo = largoPalo;
+            this.largoRodillo = largoRodillo;
+            this.grosor = grosor;
+            java.awt.Dimension tam = new java.awt.Dimension(largoPalo, grosor + 6);
+            setPreferredSize(tam);
+            setMaximumSize(tam);
+            setAlignmentX(java.awt.Component.CENTER_ALIGNMENT);
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = suave(g);
+            int cx = getWidth() / 2;
+            int cy = getHeight() / 2;
+            g2.setColor(new Color(255, 255, 255, 200));
+            g2.setStroke(new BasicStroke(Math.max(2f, grosor / 4f), BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+            g2.drawLine(cx - largoPalo / 2 + 2, cy, cx + largoPalo / 2 - 2, cy);
+            g2.setColor(Color.WHITE);
+            g2.fillRoundRect(cx - largoRodillo / 2, cy - grosor / 2, largoRodillo, grosor, grosor, grosor);
+            g2.dispose();
+        }
+    }
+
     /** Le pone al componente el estilo de FlatLaf (si FlatLaf no está, se ignora). */
     public static void flat(JComponent c, String estilo) {
         c.putClientProperty("FlatLaf.style", estilo);

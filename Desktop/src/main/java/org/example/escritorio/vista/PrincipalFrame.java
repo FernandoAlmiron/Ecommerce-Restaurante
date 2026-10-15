@@ -19,7 +19,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JToggleButton;
 import javax.swing.SwingConstants;
-import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Color;
@@ -150,24 +149,7 @@ public class PrincipalFrame extends JFrame {
         bajada.setForeground(new Color(255, 255, 255, 225));
         bajada.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        JComponent raya = new JComponent() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2 = Estilo.suave(g);
-                int cx = getWidth() / 2;
-                int cy = getHeight() / 2;
-                g2.setColor(new Color(255, 255, 255, 200));
-                g2.setStroke(new BasicStroke(2f));
-                g2.drawLine(cx - 56, cy, cx + 56, cy);
-                g2.setColor(Color.WHITE);
-                g2.fillRoundRect(cx - 38, cy - 5, 76, 10, 10, 10);
-                g2.dispose();
-            }
-        };
-        Dimension tamRaya = new Dimension(ANCHO_MENU - 36, 16);
-        raya.setPreferredSize(tamRaya);
-        raya.setMaximumSize(tamRaya);
-        raya.setAlignmentX(Component.CENTER_ALIGNMENT);
+        JComponent raya = new Estilo.Rodillo(116, 76, 10);
 
         JPanel logo = Estilo.transparente(null);
         logo.setLayout(new BoxLayout(logo, BoxLayout.Y_AXIS));

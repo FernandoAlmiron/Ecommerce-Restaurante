@@ -1,34 +1,51 @@
 package org.example.escritorio.vista;
 
 import org.example.escritorio.controlador.LoginControlador;
+import org.example.escritorio.vista.comun.Boton;
 import org.example.escritorio.vista.comun.Dialogos;
+import org.example.escritorio.vista.comun.Estilo;
+import org.example.escritorio.vista.comun.Icono;
 
-import javax.swing.*;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JPasswordField;
+import javax.swing.JTextField;
+import javax.swing.SwingConstants;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import java.awt.*;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
-import java.awt.event.FocusAdapter;
-import java.awt.event.FocusEvent;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.GridBagLayout;
+import java.awt.GridLayout;
 
-/** Pantalla de inicio de sesión del personal. */
+/** Pantalla de inicio de sesión del personal: el logo a la izquierda y el formulario a la derecha. */
 public class LoginFrame extends JFrame {
+
+    private static final int ANCHO_FORMULARIO = 420;
+    private static final String ESTILO_CAMPO = "arc: 16; focusWidth: 4; innerFocusWidth: 0;"
+            + " focusColor: #EFE7DF; borderColor: #E0D6CC; focusedBorderColor: #8C5E35;"
+            + " margin: 12,14,12,14; iconTextGap: 12";
 
     private final JTextField txtUsuario = new JTextField(22);
     private final JPasswordField txtClave = new JPasswordField(22);
-    private final JButton btnIngresar = new JButton("Ingresar");
+    private final JButton btnIngresar = new Boton("Ingresar", Boton.Tipo.PRIMARIO);
     private final LoginControlador controlador;
-    private static final Color GRIS_PLACEHOLDER = new Color(185, 185, 185);
-    private static final Color NEGRO_PLACEHOLDER = new Color(0, 0, 0);
     private boolean mostrarPass = false;
 
     public LoginFrame() {
-        super("Restaurante - Iniciar sesión");
+        super("La Nona - Iniciar sesión");
         controlador = new LoginControlador(this);
 
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setResizable(false);
         setContentPane(armarContenido());
 
         // Enter en cualquier campo equivale a apretar Ingresar
@@ -40,119 +57,144 @@ public class LoginFrame extends JFrame {
             @Override public void changedUpdate(DocumentEvent e) { actualizarBoton(); }
         };
         txtUsuario.getDocument().addDocumentListener(alEscribir);
-        String placeholderUsuario = "Ingrese su nombre del usuario";
-        txtUsuario.setText(placeholderUsuario);
-        txtUsuario.addFocusListener(new FocusAdapter() {
-            @Override
-            public void focusGained(FocusEvent e) {
-                if (txtUsuario.getText().equals(placeholderUsuario)) {
-                    txtUsuario.setForeground(NEGRO_PLACEHOLDER);
-                    txtUsuario.setText("");
-                }
-            }
-            @Override
-            public void focusLost(FocusEvent e) {
-                if (txtUsuario.getText().isEmpty()) {
-                    txtUsuario.setText(placeholderUsuario);
-                    txtUsuario.setForeground(GRIS_PLACEHOLDER);
-                }
-            }
-        });
         txtClave.getDocument().addDocumentListener(alEscribir);
-        String placeholderPass = "Ingrese su contraseña";
-        char puntito = txtClave.getEchoChar();
-
-        txtClave.setText(placeholderPass);
-        txtClave.setForeground(GRIS_PLACEHOLDER);
-        txtClave.setEchoChar((char) 0);
-
-        txtClave.addFocusListener(new FocusAdapter() {
-            @Override
-            public void focusGained(FocusEvent e) {
-                if (new String(txtClave.getPassword()).equals(placeholderPass)) {
-                    txtClave.setText("");
-                    txtClave.setForeground(NEGRO_PLACEHOLDER);
-                    txtClave.setEchoChar(mostrarPass ? (char) 0 : puntito);
-                }
-            }
-
-            @Override
-            public void focusLost(FocusEvent e) {
-                if (txtClave.getPassword().length == 0) {
-                    txtClave.setText(placeholderPass);
-                    txtClave.setForeground(GRIS_PLACEHOLDER);
-                    txtClave.setEchoChar((char) 0);
-                }
-            }
-        });
-
-        // ===== OJITO PARA VER LA CONTRASEÑA =====
-        IconoOjo icono = new IconoOjo();
-        JButton ojo = new JButton(icono);
-        ojo.setContentAreaFilled(false);
-        ojo.setBorderPainted(false);
-        ojo.setFocusPainted(false);
-        ojo.setFocusable(false);
-        ojo.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-
-        ojo.addActionListener(e -> {
-            mostrarPass = !mostrarPass;
-            icono.tachado = mostrarPass;
-            if (!new String(txtClave.getPassword()).equals(placeholderPass)) {
-                txtClave.setEchoChar(mostrarPass ? (char) 0 : puntito);
-            }
-            ojo.repaint();
-        });
-
-        txtClave.add(ojo);
-        txtClave.addComponentListener(new ComponentAdapter() {
-            @Override
-            public void componentResized(ComponentEvent e) {
-                ojo.setBounds(txtClave.getWidth() - 30, 2, 28, txtClave.getHeight() - 4);
-            }
-        });
-        txtClave.setBorder(BorderFactory.createCompoundBorder(
-                txtClave.getBorder(),
-                BorderFactory.createEmptyBorder(0, 0, 0, 26)));
 
         btnIngresar.addActionListener(e -> controlador.ingresar(txtUsuario.getText(), txtClave.getPassword()));
 
-        pack();
+        setSize(1100, 690);
+        setMinimumSize(new Dimension(900, 600));
         setLocationRelativeTo(null);
     }
 
     private JPanel armarContenido() {
-        JPanel panel = new JPanel(new GridBagLayout());
-        panel.setBorder(BorderFactory.createEmptyBorder(28, 32, 28, 32));
+        JPanel raiz = new JPanel(new GridLayout(1, 2));
+        raiz.add(armarMarca());
+        raiz.add(armarFormulario());
+        return raiz;
+    }
 
-        GridBagConstraints c = new GridBagConstraints();
-        c.gridx = 0;
-        c.fill = GridBagConstraints.HORIZONTAL;
-        c.weightx = 1;
+    /** Mitad café: "La Nona", "pastas caseras", el rodillo y abajo de todo para quién es el sistema. */
+    private JComponent armarMarca() {
+        JLabel nombre = new JLabel("La Nona", SwingConstants.CENTER);
+        nombre.setFont(Estilo.fuenteLogo(76f));
+        nombre.setForeground(Color.WHITE);
+        nombre.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        JLabel titulo = new JLabel("Restaurante", SwingConstants.CENTER);
-        titulo.setFont(titulo.getFont().deriveFont(Font.BOLD, 22f));
-        c.insets = new Insets(0, 0, 4, 0);
-        panel.add(titulo, c);
+        JLabel bajada = new JLabel("pastas caseras", SwingConstants.CENTER);
+        bajada.setFont(Estilo.fuenteSerif(30f));
+        bajada.setForeground(Color.WHITE);
+        bajada.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        JLabel subtitulo = new JLabel("Sistema interno del personal", SwingConstants.CENTER);
-        c.insets = new Insets(0, 0, 20, 0);
-        panel.add(subtitulo, c);
+        JPanel logo = Estilo.transparente(null);
+        logo.setLayout(new BoxLayout(logo, BoxLayout.Y_AXIS));
+        logo.add(nombre);
+        logo.add(bajada);
+        logo.add(Box.createVerticalStrut(28));
+        logo.add(new Estilo.Rodillo(170, 116, 16));
 
-        c.insets = new Insets(0, 0, 4, 0);
-        panel.add(new JLabel("Usuario"), c);
-        c.insets = new Insets(0, 0, 12, 0);
-        panel.add(txtUsuario, c);
+        JLabel pie = new JLabel("Sistema interno del personal", SwingConstants.CENTER);
+        pie.setFont(Estilo.fuente(Font.PLAIN, 16f));
+        pie.setForeground(new Color(255, 255, 255, 215));
 
-        c.insets = new Insets(0, 0, 4, 0);
-        panel.add(new JLabel("Contraseña"), c);
-        c.insets = new Insets(0, 0, 20, 0);
-        panel.add(txtClave, c);
+        JPanel centrado = Estilo.transparente(new GridBagLayout());
+        centrado.add(logo);
 
-        c.insets = new Insets(0, 0, 0, 0);
-        panel.add(btnIngresar, c);
+        JPanel marca = new JPanel(new BorderLayout());
+        marca.setBackground(Estilo.CAFE);
+        marca.setBorder(Estilo.relleno(24, 24, 36, 24));
+        marca.add(centrado, BorderLayout.CENTER);
+        marca.add(pie, BorderLayout.SOUTH);
+        return marca;
+    }
 
-        return panel;
+    /** Mitad blanca con el formulario centrado. */
+    private JComponent armarFormulario() {
+        JLabel titulo = new JLabel("Iniciar sesión");
+        titulo.setFont(Estilo.fuente(Font.BOLD, 34f));
+        titulo.setForeground(Estilo.TEXTO);
+
+        JLabel subtitulo = new JLabel("Ingresá con tu usuario del restaurante");
+        subtitulo.setFont(Estilo.fuente(Font.PLAIN, 17f));
+        subtitulo.setForeground(Estilo.TEXTO_SUAVE);
+
+        prepararCampo(txtUsuario, "Ingresá tu usuario", Icono.Tipo.USUARIO);
+        prepararCampo(txtClave, "Ingresá tu contraseña", Icono.Tipo.CANDADO);
+        // el ojito va en un panel con margen para que no quede pegado al borde del campo
+        JPanel conMargen = Estilo.transparente(new BorderLayout());
+        conMargen.setBorder(Estilo.relleno(0, 0, 0, 8));
+        conMargen.add(armarOjo());
+        txtClave.putClientProperty("JTextField.trailingComponent", conMargen);
+
+        btnIngresar.setFont(Estilo.fuente(Font.BOLD, 19f));
+        btnIngresar.setBorder(Estilo.relleno(16, 22, 16, 22));
+        ((Boton) btnIngresar).conArco(18);
+
+        JLabel ayuda = new JLabel("<html><body style='width:" + (ANCHO_FORMULARIO - 80) + "px'><center>¿Olvidaste tu contraseña? "
+                + "Pedile a Administración que la restablezca.</center></body></html>", SwingConstants.CENTER);
+        ayuda.setFont(Estilo.fuente(Font.PLAIN, 15f));
+        ayuda.setForeground(Estilo.TEXTO_SUAVE);
+
+        JPanel formulario = Estilo.transparente(null);
+        formulario.setLayout(new BoxLayout(formulario, BoxLayout.Y_AXIS));
+        agregar(formulario, titulo, 6);
+        agregar(formulario, subtitulo, 30);
+        agregar(formulario, etiqueta("Usuario"), 8);
+        agregar(formulario, txtUsuario, 22);
+        agregar(formulario, etiqueta("Contraseña"), 8);
+        agregar(formulario, txtClave, 30);
+        agregar(formulario, btnIngresar, 24);
+        agregar(formulario, ayuda, 0);
+        formulario.setPreferredSize(new Dimension(ANCHO_FORMULARIO, formulario.getPreferredSize().height));
+
+        JPanel lado = new JPanel(new GridBagLayout());
+        lado.setBackground(Estilo.BLANCO);
+        lado.add(formulario);
+        return lado;
+    }
+
+    private static void agregar(JPanel panel, JComponent componente, int espacioDespues) {
+        componente.setAlignmentX(Component.LEFT_ALIGNMENT);
+        componente.setMaximumSize(new Dimension(ANCHO_FORMULARIO, componente.getPreferredSize().height));
+        panel.add(componente);
+        if (espacioDespues > 0) {
+            panel.add(Box.createVerticalStrut(espacioDespues));
+        }
+    }
+
+    private static JLabel etiqueta(String texto) {
+        JLabel l = new JLabel(texto);
+        l.setFont(Estilo.fuente(Font.BOLD, 16f));
+        l.setForeground(Estilo.TEXTO);
+        return l;
+    }
+
+    private static void prepararCampo(JTextField campo, String placeholder, Icono.Tipo icono) {
+        campo.setFont(Estilo.fuente(Font.PLAIN, 17f));
+        campo.setForeground(Estilo.TEXTO);
+        campo.putClientProperty("JTextField.placeholderText", placeholder);
+        campo.putClientProperty("JTextField.leadingIcon", new Icono(icono, 22, Estilo.CAFE));
+        Estilo.flat(campo, ESTILO_CAMPO);
+    }
+
+    /** Botón del ojito: muestra u oculta la contraseña. */
+    private JButton armarOjo() {
+        char puntito = txtClave.getEchoChar();
+        JButton ojo = new JButton(new Icono(Icono.Tipo.OJO, 22, Estilo.TEXTO_SUAVE));
+        ojo.setContentAreaFilled(false);
+        ojo.setBorderPainted(false);
+        ojo.setFocusPainted(false);
+        ojo.setFocusable(false);
+        ojo.setOpaque(false);
+        ojo.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        ojo.setToolTipText("Mostrar contraseña");
+        ojo.putClientProperty("JButton.buttonType", "toolBarButton");
+        ojo.addActionListener(e -> {
+            mostrarPass = !mostrarPass;
+            txtClave.setEchoChar(mostrarPass ? (char) 0 : puntito);
+            ojo.setIcon(new Icono(mostrarPass ? Icono.Tipo.OJO_TACHADO : Icono.Tipo.OJO, 22, Estilo.TEXTO_SUAVE));
+            ojo.setToolTipText(mostrarPass ? "Ocultar contraseña" : "Mostrar contraseña");
+        });
+        return ojo;
     }
 
     private void actualizarBoton() {
@@ -175,27 +217,5 @@ public class LoginFrame extends JFrame {
     public void irAPantallaPrincipal() {
         dispose();
         new PrincipalFrame().setVisible(true);
-    }
-
-    // ===== ÍCONO DEL OJO (tachado = contraseña visible) =====
-    private static class IconoOjo implements Icon {
-        boolean tachado = false;
-
-        @Override public int getIconWidth()  { return 20; }
-        @Override public int getIconHeight() { return 14; }
-
-        @Override
-        public void paintIcon(Component c, Graphics g, int x, int y) {
-            Graphics2D g2 = (Graphics2D) g.create();
-            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            g2.setColor(new Color(120, 120, 120));
-            g2.setStroke(new BasicStroke(1.5f));
-            g2.drawOval(x + 1, y + 2, 18, 10);
-            g2.fillOval(x + 7, y + 4, 6, 6);
-            if (tachado) {
-                g2.drawLine(x + 2, y + 13, x + 18, y + 1);
-            }
-            g2.dispose();
-        }
     }
 }

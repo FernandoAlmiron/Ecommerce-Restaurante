@@ -17,7 +17,7 @@ public class Icono implements Icon {
 
     public enum Tipo {
         CALENDARIO, MAS_CIRCULO, OLLA, BILLETE, BICI, PERSONAS, ENGRANAJE,
-        SALIR, LUPA, ACTUALIZAR, MAS
+        SALIR, LUPA, ACTUALIZAR, MAS, USUARIO, CANDADO, OJO, OJO_TACHADO
     }
 
     private final Tipo tipo;
@@ -121,6 +121,27 @@ public class Icono implements Icon {
             case MAS -> {
                 g2.drawLine(10, 3, 10, 17);
                 g2.drawLine(3, 10, 17, 10);
+            }
+            case USUARIO -> {
+                g2.drawOval(6, 2, 8, 8);
+                g2.draw(new Arc2D.Float(3, 12, 14, 12, 0, 180, Arc2D.OPEN));
+            }
+            case CANDADO -> {
+                g2.drawRoundRect(3, 9, 14, 9, 3, 3);
+                g2.draw(new Arc2D.Float(6, 3, 8, 10, 0, 180, Arc2D.OPEN));
+                g2.drawLine(6, 8, 6, 9);
+                g2.drawLine(14, 8, 14, 9);
+            }
+            case OJO, OJO_TACHADO -> {
+                Path2D ojo = new Path2D.Float();
+                ojo.moveTo(1.5, 10);
+                ojo.quadTo(10, 1, 18.5, 10);
+                ojo.quadTo(10, 19, 1.5, 10);
+                g2.draw(ojo);
+                g2.drawOval(7, 7, 6, 6);
+                if (tipo == Tipo.OJO_TACHADO) {
+                    g2.drawLine(3, 17, 17, 3);
+                }
             }
         }
         g2.dispose();
