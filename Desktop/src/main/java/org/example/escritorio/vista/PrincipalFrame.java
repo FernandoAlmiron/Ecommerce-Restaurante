@@ -8,6 +8,8 @@ import org.example.escritorio.vista.comun.PanelPendiente;
 import org.example.escritorio.vista.recepcion.ReservasPanel;
 import org.example.escritorio.vista.salon.TicketsPanel;
 import org.example.escritorio.vista.cocina.CocinaPanel;
+import org.example.escritorio.vista.caja.CajaPanel;
+import org.example.escritorio.vista.reparto.RepartoPanel;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -79,7 +81,9 @@ public class PrincipalFrame extends JFrame {
             case RECEPCION -> new ReservasPanel();
             case SALON -> new TicketsPanel();
             case COCINA -> new CocinaPanel();
-            case CAJA, REPARTO, RRHH, ADMINISTRACION -> new PanelPendiente(area);
+            case CAJA -> new CajaPanel();
+            case REPARTO -> new RepartoPanel();
+            case RRHH, ADMINISTRACION -> new PanelPendiente(area);
         };
     }
 
