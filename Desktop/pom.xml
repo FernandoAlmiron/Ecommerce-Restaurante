@@ -4,33 +4,41 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.restaurante</groupId>
+    <!-- mismo padre que el backend: misma versión de Spring Boot y de Java -->
+    <parent>
+        <groupId>com.restaurante</groupId>
+        <artifactId>restaurante</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
     <artifactId>restaurante-escritorio</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
     <name>restaurante-escritorio</name>
     <description>App de escritorio (Swing) para el personal del restaurante</description>
 
-    <properties>
-        <maven.compiler.release>17</maven.compiler.release>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
-
     <dependencies>
-        <!-- aspecto moderno para Swing (si no esta, se usa el del sistema) -->
+        <!-- El backend: entidades, repositorios, services y DTOs. Trae JPA, Security y el driver de MySQL -->
+        <dependency>
+            <groupId>com.restaurante</groupId>
+            <artifactId>backend</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!-- aspecto moderno para Swing -->
         <dependency>
             <groupId>com.formdev</groupId>
             <artifactId>flatlaf</artifactId>
             <version>3.5.4</version>
         </dependency>
-        <!-- Cuando se separe el backend, aca se agrega restaurante-core -->
     </dependencies>
 
     <build>
         <plugins>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.13.0</version>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <mainClass>org.example.AppEscritorio</mainClass>
+                </configuration>
             </plugin>
         </plugins>
     </build>

@@ -1,7 +1,7 @@
 package org.example.escritorio.controlador;
 
 import org.example.escritorio.Contexto;
-import org.example.escritorio.sesion.ServicioLogin;
+import org.example.escritorio.sesion.AutenticacionService;
 import org.example.escritorio.sesion.Sesion;
 import org.example.escritorio.vista.LoginFrame;
 import org.example.escritorio.vista.comun.Tarea;
@@ -9,17 +9,17 @@ import org.example.escritorio.vista.comun.Tarea;
 import java.util.Arrays;
 
 /**
- * Lógica de la pantalla de login: valida que haya datos, le pide al servicio que verifique
- * usuario y clave, y según el resultado abre la ventana principal o muestra el error.
+ * Lógica de la pantalla de login: valida que haya datos, verifica usuario y clave con el backend
+ * y según el resultado abre la ventana principal o muestra el error.
  */
 public class LoginControlador {
 
     private final LoginFrame vista;
-    private final ServicioLogin servicioLogin;
+    private final AutenticacionService autenticacion;
 
     public LoginControlador(LoginFrame vista) {
         this.vista = vista;
-        this.servicioLogin = Contexto.get(ServicioLogin.class);
+        this.autenticacion = Contexto.get(AutenticacionService.class);
     }
 
     public void ingresar(String usuario, char[] clave) {
@@ -33,7 +33,7 @@ public class LoginControlador {
         Tarea.ejecutar(vista.getBotonIngresar(),
                 () -> {
                     try {
-                        servicioLogin.ingresar(usuarioLimpio, clave);
+                        autenticacion.ingresar(usuarioLimpio, clave);
                         return null;
                     } finally {
                         Arrays.fill(clave, '\0'); // la clave no queda en memoria

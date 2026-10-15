@@ -1,10 +1,15 @@
 package org.example.escritorio.vista.comun;
 
+import org.springframework.dao.DataAccessResourceFailureException;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.transaction.CannotCreateTransactionException;
+
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Window;
+import java.util.NoSuchElementException;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
@@ -74,14 +79,29 @@ public final class Tarea {
     }
 
     /**
-     * Los services avisan los problemas con IllegalArgumentException (dato inválido)
-     * o IllegalStateException (regla de negocio): su mensaje ya está pensado para el usuario.
-     * Cuando se separe el backend, esto lo resuelve MensajeError del core.
+     * Traduce lo que lanzan los services del backend a un mensaje para el usuario,
+     * con el mismo criterio que el ManejadorErrores de la API:
+     * IllegalArgumentException (dato inválido), IllegalStateException (regla de negocio) y
+     * NoSuchElementException (no existe) traen un mensaje ya pensado para mostrar.
      */
     private static String mensajePara(Throwable error) {
+        if (error instanceof NoSuchElementException) {
+            // orElseThrow() sin mensaje trae "No value present": no le sirve a nadie
+            return error.getMessage() == null || error.getMessage().equals("No value present")
+                    ? "No se encontró el registro pedido."
+                    : error.getMessage();
+        }
         if ((error instanceof IllegalArgumentException || error instanceof IllegalStateException)
                 && error.getMessage() != null) {
             return error.getMessage();
+        }
+        if (error instanceof DataIntegrityViolationException) {
+            // el mensaje real de MySQL muestra tablas y columnas: no se muestra
+            return "Ya existe un registro con esos datos, o falta un dato obligatorio.";
+        }
+        if (error instanceof DataAccessResourceFailureException || error instanceof CannotCreateTransactionException) {
+            error.printStackTrace();
+            return "No se puede conectar con la base de datos. Verificá que MySQL esté encendido.";
         }
         // no es un error esperable: es un bug, el detalle queda en consola
         error.printStackTrace();

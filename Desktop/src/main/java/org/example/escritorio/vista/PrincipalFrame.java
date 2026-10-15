@@ -2,6 +2,8 @@ package org.example.escritorio.vista;
 
 import org.example.escritorio.sesion.Sesion;
 import org.example.escritorio.vista.comun.Dialogos;
+import org.example.escritorio.vista.comun.PanelPendiente;
+import org.example.escritorio.vista.recepcion.ReservasPanel;
 
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
@@ -53,12 +55,12 @@ public class PrincipalFrame extends JFrame {
     }
 
     /**
-     * Crea el panel de cada área. En cada fase se reemplaza el PanelPendiente por la pantalla real, por ejemplo:
-     *   case RECEPCION -> new ReservasPanel();
+     * Crea el panel de cada área. En cada fase se reemplaza el PanelPendiente por la pantalla real.
      */
     protected JComponent crearPanel(Area area) {
         return switch (area) {
-            case RECEPCION, SALON, COCINA, CAJA, REPARTO, RRHH, ADMINISTRACION -> new org.example.escritorio.vista.comun.PanelPendiente(area);
+            case RECEPCION -> new ReservasPanel();
+            case SALON, COCINA, CAJA, REPARTO, RRHH, ADMINISTRACION -> new PanelPendiente(area);
         };
     }
 
