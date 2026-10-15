@@ -1,6 +1,7 @@
 package org.example.escritorio.vista.comun;
 
 import javax.swing.BorderFactory;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -96,6 +97,27 @@ public final class Tablas {
         return formato.format(monto);
     }
 
+    /** 12,5 / 3 (sin decimales si no tiene). */
+    public static String numero(double valor) {
+        NumberFormat formato = NumberFormat.getNumberInstance(ARGENTINA);
+        formato.setMaximumFractionDigits(2);
+        return formato.format(valor);
+    }
+
+    /** Barra de abajo de una pantalla: a la izquierda un resumen, a la derecha los botones. */
+    public static JPanel barraAcciones(JComponent resumen, JComponent... botones) {
+        JPanel derecha = Estilo.transparente(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 12, 0));
+        for (JComponent b : botones) {
+            derecha.add(b);
+        }
+        JPanel izquierda = Estilo.transparente(new GridBagLayout()); // centrado en alto con los botones
+        izquierda.add(resumen);
+        JPanel barra = Estilo.transparente(new java.awt.BorderLayout());
+        barra.add(izquierda, java.awt.BorderLayout.WEST);
+        barra.add(derecha, java.awt.BorderLayout.EAST);
+        return barra;
+    }
+
     /** Relleno de la celda; la primera columna de la fila elegida lleva una rayita café a la izquierda. */
     private static Border bordeCelda(JTable tabla, boolean seleccionada, int columnaVista, boolean derecha) {
         int izquierda = derecha ? 8 : RELLENO_CELDA;
@@ -171,6 +193,7 @@ public final class Tablas {
         public static Insignia verde(String texto) { return new Insignia(texto, Estilo.VERDE_FONDO, Estilo.VERDE_TEXTO); }
         public static Insignia amarilla(String texto) { return new Insignia(texto, Estilo.AMARILLO_FONDO, Estilo.AMARILLO_TEXTO); }
         public static Insignia violeta(String texto) { return new Insignia(texto, Estilo.VIOLETA_FONDO, Estilo.VIOLETA_TEXTO); }
+        public static Insignia roja(String texto) { return new Insignia(texto, Estilo.ROJO_FONDO, Estilo.ROJO_TEXTO); }
         public static Insignia gris(String texto) { return new Insignia(texto, Estilo.GRIS_FONDO, Estilo.GRIS_TEXTO); }
     }
 

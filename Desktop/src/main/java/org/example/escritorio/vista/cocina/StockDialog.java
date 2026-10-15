@@ -3,28 +3,19 @@ package org.example.escritorio.vista.cocina;
 import org.example.Modelo.inventario.Categoria;
 import org.example.Modelo.inventario.Stock;
 import org.example.escritorio.controlador.cocina.StockEdicionControlador;
-import org.example.escritorio.vista.comun.Dialogos;
+import org.example.escritorio.vista.comun.DialogoFormulario;
+import org.example.escritorio.vista.comun.Formulario;
 
-import javax.swing.BorderFactory;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
-import javax.swing.JDialog;
-import javax.swing.JLabel;
 import javax.swing.JList;
-import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
-import java.awt.BorderLayout;
 import java.awt.Component;
-import java.awt.FlowLayout;
-import java.awt.Font;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
 import java.awt.Window;
 import java.text.ParseException;
 import java.util.List;
@@ -34,7 +25,7 @@ import java.util.Optional;
  * Alta o modificación de un insumo (RF-30). Con insumo null es un alta.
  * La cantidad actual solo se carga en el alta: después se cambia con Reponer o Ajustar.
  */
-public class StockDialog extends JDialog {
+public class StockDialog extends DialogoFormulario {
 
     private final Stock insumo;
 
@@ -44,16 +35,16 @@ public class StockDialog extends JDialog {
     private final JSpinner spnCantidad = new JSpinner(new SpinnerNumberModel(0d, 0d, 1_000_000d, 1d));
     private final JSpinner spnMinimo = new JSpinner(new SpinnerNumberModel(0d, 0d, 1_000_000d, 1d));
     private final JCheckBox chkAlerta = new JCheckBox("Avisar cuando llegue al mínimo", true);
-    private final JButton btnGuardar = new JButton("Guardar");
-    private final JButton btnCancelar = new JButton("Cancelar");
 
     private final StockEdicionControlador controlador;
     private Stock guardado;
 
     public StockDialog(Window padre, Stock insumo) {
-        super(padre, insumo == null ? "Nuevo insumo" : "Modificar insumo", ModalityType.APPLICATION_MODAL);
+        super(padre, "Cocina · Stock",
+                insumo == null ? "Nuevo insumo" : "Modificar insumo",
+                insumo == null ? "Completá los datos del insumo para controlar su stock." : insumo.getNombre(),
+                "Guardar");
         this.insumo = insumo;
-        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
         spnCantidad.setEditor(new JSpinner.NumberEditor(spnCantidad, "0.###"));
         spnMinimo.setEditor(new JSpinner.NumberEditor(spnMinimo, "0.###"));
@@ -69,12 +60,6 @@ public class StockDialog extends JDialog {
             }
         });
 
-        JPanel raiz = new JPanel(new BorderLayout(0, 16));
-        raiz.setBorder(BorderFactory.createEmptyBorder(20, 24, 20, 24));
-        raiz.add(armarFormulario(), BorderLayout.CENTER);
-        raiz.add(armarBotones(), BorderLayout.SOUTH);
-        setContentPane(raiz);
-
         if (insumo != null) {
             txtNombre.setText(insumo.getNombre());
             txtUnidad.setText(insumo.getUnidadMedida());
@@ -85,51 +70,29 @@ public class StockDialog extends JDialog {
         }
 
         controlador = new StockEdicionControlador(this);
-        btnGuardar.addActionListener(e -> controlador.guardar());
-        btnCancelar.addActionListener(e -> dispose());
+        btnPrincipal.addActionListener(e -> controlador.guardar());
         controlador.cargarCategorias();
 
-        pack();
-        setResizable(false);
-        setLocationRelativeTo(padre);
+        armar();
     }
 
-    private JPanel armarFormulario() {
-        JPanel panel = new JPanel(new GridBagLayout());
-        GridBagConstraints c = new GridBagConstraints();
-        c.anchor = GridBagConstraints.WEST;
-        c.fill = GridBagConstraints.HORIZONTAL;
-        c.insets = new Insets(4, 0, 4, 12);
-
-        JLabel titulo = new JLabel(insumo == null ? "Nuevo insumo" : insumo.getNombre());
-        titulo.setFont(titulo.getFont().deriveFont(Font.BOLD, 16f));
-        c.gridx = 0; c.gridy = 0; c.gridwidth = 2;
-        panel.add(titulo, c);
-        c.gridwidth = 1;
-
-        fila(panel, c, 1, "Nombre", txtNombre);
-        fila(panel, c, 2, "Unidad (kg, lt, unidad)", txtUnidad);
-        fila(panel, c, 3, "Categoría", cmbCategoria);
-        fila(panel, c, 4, insumo == null ? "Cantidad inicial" : "Cantidad actual", spnCantidad);
-        fila(panel, c, 5, "Stock mínimo", spnMinimo);
-        c.gridx = 1; c.gridy = 6;
-        panel.add(chkAlerta, c);
-        return panel;
-    }
-
-    private void fila(JPanel panel, GridBagConstraints c, int y, String etiqueta, JComponent campo) {
-        c.gridx = 0; c.gridy = y; c.weightx = 0;
-        panel.add(new JLabel(etiqueta), c);
-        c.gridx = 1; c.weightx = 1;
-        panel.add(campo, c);
-    }
-
-    private JPanel armarBotones() {
-        JPanel botones = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
-        botones.add(btnCancelar);
-        botones.add(btnGuardar);
-        getRootPane().setDefaultButton(btnGuardar);
-        return botones;
+    @Override
+    protected JComponent armarCuerpo() {
+        Formulario.estilizar(txtNombre, "Ej.: Harina 000");
+        Formulario.estilizar(txtUnidad, "kg, lt, unidad");
+        Formulario.estilizar(cmbCategoria);
+        Formulario.estilizar(spnCantidad);
+        Formulario.estilizar(spnMinimo);
+        return Formulario.cuerpo(
+                Formulario.campo("Nombre", txtNombre, null),
+                Formulario.enFila(
+                        Formulario.campo("Categoría", cmbCategoria, null),
+                        Formulario.campo("Unidad", txtUnidad, null)),
+                Formulario.enFila(
+                        Formulario.campo(insumo == null ? "Cantidad inicial" : "Cantidad actual", spnCantidad,
+                                insumo == null ? null : "Se cambia con Reponer o Ajustar."),
+                        Formulario.campo("Stock mínimo", spnMinimo, null)),
+                Formulario.opcion(chkAlerta, "El insumo se marca en rojo cuando llega al mínimo."));
     }
 
     // ---------- lo que usa el controlador ----------
@@ -145,7 +108,7 @@ public class StockDialog extends JDialog {
     public Double getCantidad() { return leer(spnCantidad); }
     public Double getMinimo() { return leer(spnMinimo); }
 
-    public JButton getBotonGuardar() { return btnGuardar; }
+    public JButton getBotonGuardar() { return btnPrincipal; }
     public JComboBox<Categoria> getComboCategoria() { return cmbCategoria; }
 
     /** Carga las categorías y deja elegida la del insumo, si es una modificación. */
@@ -159,10 +122,6 @@ public class StockDialog extends JDialog {
                 }
             }
         }
-    }
-
-    public void mostrarError(String mensaje) {
-        Dialogos.error(this, mensaje);
     }
 
     public void cerrarCon(Stock insumoGuardado) {

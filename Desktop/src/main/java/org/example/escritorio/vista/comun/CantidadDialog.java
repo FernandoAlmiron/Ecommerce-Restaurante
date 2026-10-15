@@ -1,8 +1,6 @@
 package org.example.escritorio.vista.comun;
 
-import javax.swing.BorderFactory;
-import javax.swing.JButton;
-import javax.swing.JDialog;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
@@ -10,7 +8,6 @@ import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingUtilities;
 import java.awt.BorderLayout;
 import java.awt.Component;
-import java.awt.FlowLayout;
 import java.awt.Window;
 import java.text.DecimalFormat;
 import java.text.ParseException;
@@ -22,45 +19,46 @@ import java.util.OptionalDouble;
  *
  *   OptionalDouble cantidad = CantidadDialog.pedir(panel, "Reponer", "Cantidad recibida", "kg", 1, 0.001);
  */
-public final class CantidadDialog extends JDialog {
+public final class CantidadDialog extends DialogoFormulario {
 
+    private final String etiqueta;
+    private final String unidad;
     private final JSpinner spnCantidad;
     private final double minimo;
     private Double resultado;
 
     private CantidadDialog(Window padre, String titulo, String etiqueta, String unidad,
                            double inicial, double minimo) {
-        super(padre, titulo, ModalityType.APPLICATION_MODAL);
-        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        super(padre, "", titulo, null, "Aceptar");
+        this.etiqueta = etiqueta;
+        this.unidad = unidad;
         this.minimo = minimo;
 
         spnCantidad = new JSpinner(new SpinnerNumberModel(Math.max(inicial, minimo), minimo, 1_000_000d, 1d));
         spnCantidad.setEditor(new JSpinner.NumberEditor(spnCantidad, "0.###"));
-        ((JSpinner.DefaultEditor) spnCantidad.getEditor()).getTextField().setColumns(8);
 
-        JPanel fila = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
-        fila.add(new JLabel(etiqueta));
-        fila.add(spnCantidad);
-        fila.add(new JLabel(unidad == null ? "" : unidad));
+        btnPrincipal.addActionListener(e -> aceptar());
 
-        JButton btnAceptar = new JButton("Aceptar");
-        JButton btnCancelar = new JButton("Cancelar");
-        btnAceptar.addActionListener(e -> aceptar());
-        btnCancelar.addActionListener(e -> dispose());
-        JPanel botones = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
-        botones.add(btnCancelar);
-        botones.add(btnAceptar);
-        getRootPane().setDefaultButton(btnAceptar);
+        armar();
+    }
 
-        JPanel raiz = new JPanel(new BorderLayout(0, 16));
-        raiz.setBorder(BorderFactory.createEmptyBorder(20, 24, 20, 24));
-        raiz.add(fila, BorderLayout.CENTER);
-        raiz.add(botones, BorderLayout.SOUTH);
-        setContentPane(raiz);
+    @Override
+    protected JComponent armarCuerpo() {
+        Formulario.estilizar(spnCantidad);
+        // la etiqueta viene como "Cantidad recibida:"; en el formulario va sin los dos puntos
+        String texto = etiqueta.endsWith(":") ? etiqueta.substring(0, etiqueta.length() - 1) : etiqueta;
 
-        pack();
-        setResizable(false);
-        setLocationRelativeTo(padre);
+        JPanel cantidad = Estilo.transparente(new BorderLayout(12, 0));
+        cantidad.add(spnCantidad, BorderLayout.CENTER);
+        if (unidad != null && !unidad.isBlank()) {
+            cantidad.add(Formulario.nota(new JLabel(unidad)), BorderLayout.EAST);
+        }
+        return Formulario.cuerpo(Formulario.campo(texto, cantidad, null));
+    }
+
+    @Override
+    protected int anchoMinimo() {
+        return 440;
     }
 
     /** Abre la ventana y devuelve la cantidad, o vacío si se canceló. */
@@ -76,7 +74,7 @@ public final class CantidadDialog extends JDialog {
         try {
             spnCantidad.commitEdit(); // toma lo que se escribió aunque no se haya salido del campo
         } catch (ParseException e) {
-            Dialogos.error(this, "Escribí un número válido, desde " + new DecimalFormat("0.###").format(minimo) + ".");
+            mostrarError("Escribí un número válido, desde " + new DecimalFormat("0.###").format(minimo) + ".");
             return;
         }
         resultado = ((Number) spnCantidad.getValue()).doubleValue();

@@ -43,6 +43,8 @@ public final class Estilo {
     public static final Color VERDE_TEXTO = new Color(0x2E7D32);
     public static final Color AMARILLO_FONDO = new Color(0xFDF0CC);
     public static final Color AMARILLO_TEXTO = new Color(0x97600A);
+    public static final Color ROJO_FONDO = new Color(0xFBE3E0);
+    public static final Color ROJO_TEXTO = new Color(0xB3261E);
     public static final Color VIOLETA_FONDO = new Color(0xECE8FA);
     public static final Color VIOLETA_TEXTO = new Color(0x5B45A8);
     public static final Color GRIS_FONDO = new Color(0xEDE8E4);
@@ -169,6 +171,36 @@ public final class Estilo {
         textos.add(javax.swing.Box.createVerticalStrut(4));
         textos.add(grande);
         return textos;
+    }
+
+    /** Texto sobre un fondo redondeado (cantidades, observaciones, contadores). */
+    public static class Pildora extends javax.swing.JLabel {
+        private Color fondo;
+        private final int arco;
+
+        public Pildora(String texto, Color fondo, Color color, Font fuente, int arco) {
+            super(texto);
+            this.fondo = fondo;
+            this.arco = arco;
+            setForeground(color);
+            setFont(fuente);
+            setBorder(relleno(4, 10, 4, 10));
+        }
+
+        public void setFondo(Color fondo) {
+            this.fondo = fondo;
+            repaint();
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = suave(g);
+            g2.setColor(fondo);
+            int a = arco < 0 ? getHeight() : arco;
+            g2.fillRoundRect(0, 0, getWidth(), getHeight(), a, a);
+            g2.dispose();
+            super.paintComponent(g);
+        }
     }
 
     /** La rayita decorativa del logo: un palo fino con un rodillo blanco en el medio. */

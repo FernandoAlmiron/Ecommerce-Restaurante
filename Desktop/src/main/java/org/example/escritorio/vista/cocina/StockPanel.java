@@ -3,67 +3,69 @@ package org.example.escritorio.vista.cocina;
 import org.example.Modelo.inventario.Stock;
 import org.example.escritorio.controlador.cocina.StockControlador;
 import org.example.escritorio.sesion.Sesion;
+import org.example.escritorio.vista.comun.Boton;
 import org.example.escritorio.vista.comun.Dialogos;
+import org.example.escritorio.vista.comun.Estilo;
+import org.example.escritorio.vista.comun.Icono;
+import org.example.escritorio.vista.comun.Tablas;
 
-import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.RowFilter;
 import javax.swing.RowSorter;
 import javax.swing.SortOrder;
-import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableRowSorter;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Cursor;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.GridBagLayout;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Stock de insumos (RF-30, RF-31): alta, modificación, reponer y ajustar.
- * Los insumos bajo mínimo (con la alerta activa) se ven en rojo; eliminar es solo para ADMIN (RF-32).
+ * Los insumos bajo mínimo se marcan en rojo; eliminar es solo para ADMIN (RF-32).
  */
 public class StockPanel extends JPanel {
 
-    private static final Color ROJO = new Color(0xC62828);
+    /** Propiedad que avisa cuántos insumos están bajo mínimo (la usa la solapa). */
+    public static final String PROP_BAJO_MINIMO = "insumosBajoMinimo";
+
+    private static final int ALTO_FILA = 58;
 
     private final StockTableModel modelo = new StockTableModel();
-    private final JTable tabla = new JTable(modelo) {
-        /** Pinta en rojo la fila completa de los insumos bajo mínimo. */
-        @Override
-        public Component prepareRenderer(TableCellRenderer renderer, int fila, int columna) {
-            Component celda = super.prepareRenderer(renderer, fila, columna);
-            if (!isRowSelected(fila)) {
-                boolean bajo = modelo.getFila(convertRowIndexToModel(fila)).alcanzoStockMinimo();
-                celda.setForeground(bajo ? ROJO : getForeground());
-                celda.setFont(bajo ? celda.getFont().deriveFont(Font.BOLD) : celda.getFont());
-            }
-            return celda;
-        }
-    };
+    private final JTable tabla = new JTable(modelo);
     private final TableRowSorter<StockTableModel> orden = new TableRowSorter<>(modelo);
 
     private final JCheckBox chkSoloBajoMinimo = new JCheckBox("Solo bajo mínimo");
-    private final JButton btnActualizar = new JButton("Actualizar");
-    private final JButton btnNuevo = new JButton("Nuevo insumo");
-    private final JButton btnModificar = new JButton("Modificar");
-    private final JButton btnReponer = new JButton("Reponer");
-    private final JButton btnAjustar = new JButton("Ajustar");
-    private final JButton btnEliminar = new JButton("Eliminar");
+    private final JButton btnActualizar = new Boton(null, new Icono(Icono.Tipo.ACTUALIZAR, 20, Estilo.TEXTO),
+            Boton.Tipo.CONTORNO);
+    private final JButton btnNuevo = new Boton("Nuevo insumo", new Icono(Icono.Tipo.MAS, 16, Color.WHITE),
+            Boton.Tipo.PRIMARIO);
+    private final JButton btnModificar = new Boton("Modificar", Boton.Tipo.CONTORNO);
+    private final JButton btnReponer = new Boton("Reponer", Boton.Tipo.OSCURO);
+    private final JButton btnAjustar = new Boton("Ajustar", Boton.Tipo.CONTORNO);
+    private final JButton btnEliminar = new Boton("Eliminar", Boton.Tipo.CONTORNO_CAFE);
     private final JLabel lblResumen = new JLabel(" ");
+    private final JLabel lblResumenDetalle = new JLabel(" ");
 
     private final StockControlador controlador;
 
     public StockPanel() {
-        super(new BorderLayout(0, 8));
-        setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
+        super(new BorderLayout(0, 22));
+        setOpaque(false);
+        setBorder(Estilo.relleno(4, 0, 0, 0));
 
         add(armarEncabezado(), BorderLayout.NORTH);
         add(armarTabla(), BorderLayout.CENTER);
@@ -88,45 +90,94 @@ public class StockPanel extends JPanel {
         controlador.cargar();
     }
 
-    private JPanel armarEncabezado() {
-        JPanel izquierda = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
-        izquierda.add(chkSoloBajoMinimo);
-        izquierda.add(btnActualizar);
-        JPanel derecha = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
+    private JComponent armarEncabezado() {
+        lblResumen.setFont(Estilo.fuente(Font.BOLD, 16f));
+        lblResumen.setForeground(Estilo.TEXTO);
+        lblResumenDetalle.setFont(Estilo.fuente(Font.PLAIN, 16f));
+        lblResumenDetalle.setForeground(Estilo.TEXTO_SUAVE);
+        JPanel resumen = Estilo.transparente(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        resumen.add(lblResumen);
+        resumen.add(lblResumenDetalle);
+        JPanel resumenCentrado = Estilo.transparente(new GridBagLayout());
+        resumenCentrado.add(resumen);
+
+        chkSoloBajoMinimo.setFont(Estilo.fuente(Font.PLAIN, 16f));
+        chkSoloBajoMinimo.setForeground(Estilo.TEXTO);
+        chkSoloBajoMinimo.setOpaque(false);
+        chkSoloBajoMinimo.setIconTextGap(10);
+        chkSoloBajoMinimo.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        Estilo.flat(chkSoloBajoMinimo, "icon.selectedBackground: #8C5E35; icon.selectedBorderColor: #8C5E35;"
+                + " icon.checkmarkColor: #FFFFFF; icon.focusWidth: 0");
+        Estilo.Tarjeta cajaFiltro = new Estilo.Tarjeta(new GridBagLayout(), 14);
+        cajaFiltro.setBorder(Estilo.relleno(9, 16, 9, 18));
+        cajaFiltro.add(chkSoloBajoMinimo);
+
+        btnActualizar.setToolTipText("Actualizar");
+        btnActualizar.setBorder(Estilo.relleno(12, 12, 12, 12));
+
+        JPanel derecha = Estilo.transparente(new FlowLayout(FlowLayout.RIGHT, 0, 0));
+        derecha.add(cajaFiltro);
+        derecha.add(Box.createHorizontalStrut(14));
+        derecha.add(btnActualizar);
+        derecha.add(Box.createHorizontalStrut(14));
         derecha.add(btnNuevo);
 
-        JPanel encabezado = new JPanel(new BorderLayout());
-        encabezado.add(izquierda, BorderLayout.WEST);
+        JPanel encabezado = Estilo.transparente(new BorderLayout());
+        encabezado.add(resumenCentrado, BorderLayout.WEST);
         encabezado.add(derecha, BorderLayout.EAST);
         return encabezado;
     }
 
-    private JScrollPane armarTabla() {
+    private JComponent armarTabla() {
         orden.setSortKeys(List.of(new RowSorter.SortKey(StockTableModel.COL_INSUMO, SortOrder.ASCENDING)));
         tabla.setRowSorter(orden);
         tabla.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        tabla.setFillsViewportHeight(true);
-        tabla.setRowHeight(26);
-        int[] anchos = {220, 160, 80, 100, 100, 70};
-        for (int i = 0; i < anchos.length; i++) {
-            tabla.getColumnModel().getColumn(i).setPreferredWidth(anchos[i]);
-        }
-        return new JScrollPane(tabla);
+        Tablas.estilizar(tabla, ALTO_FILA, Set.of(3, 4));
+
+        Font normal = Estilo.fuente(Font.PLAIN, 16f);
+        Font negrita = Estilo.fuente(Font.BOLD, 16f);
+        Tablas.renderer(tabla, 0, new Tablas.RendererTexto(negrita, Estilo.TEXTO, String::valueOf));
+        Tablas.renderer(tabla, 1, new Tablas.RendererTexto(normal, Estilo.TEXTO,
+                v -> v.toString().isBlank() ? "—" : v.toString()));
+        Tablas.renderer(tabla, 2, new Tablas.RendererTexto(normal, Estilo.TEXTO_SUAVE, String::valueOf));
+        Tablas.renderer(tabla, 3, new RendererCantidad(negrita));
+        Tablas.renderer(tabla, 4, new Tablas.RendererTexto(normal, Estilo.TEXTO_SUAVE,
+                v -> Tablas.numero(((Number) v).doubleValue()), true));
+        Tablas.renderer(tabla, 5, new Tablas.RendererInsignia(v -> null) {
+            @Override
+            protected Tablas.Insignia insigniaPara(JTable t, Object valor, int filaVista) {
+                Stock s = modelo.getFila(t.convertRowIndexToModel(filaVista));
+                if (s.alcanzoStockMinimo()) {
+                    return Tablas.Insignia.roja("Bajo mínimo");
+                }
+                return s.isStockMinimoActivo() ? Tablas.Insignia.verde("Alerta activa")
+                        : Tablas.Insignia.gris("Sin alerta");
+            }
+        });
+        Tablas.anchos(tabla, 260, 200, 120, 150, 130, 180);
+
+        Estilo.Tarjeta tarjeta = new Estilo.Tarjeta(new BorderLayout(), 22);
+        tarjeta.setBorder(Estilo.relleno(1, 1, 1, 1));
+        tarjeta.add(Tablas.scroll(tabla), BorderLayout.CENTER);
+
+        // la tarjeta mide lo que ocupan las filas (como mucho, el alto disponible)
+        JPanel contenedor = Estilo.transparente(new Tablas.Apilado(0, () -> Tablas.altoContenido(tabla)));
+        contenedor.add(tarjeta);
+        return contenedor;
     }
 
-    private JPanel armarAcciones() {
-        JPanel botones = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+    private JComponent armarAcciones() {
+        List<JComponent> botones = new ArrayList<>();
         if (Sesion.esAdmin()) {
             botones.add(btnEliminar);
         }
         botones.add(btnModificar);
         botones.add(btnAjustar);
         botones.add(btnReponer);
-
-        JPanel acciones = new JPanel(new BorderLayout());
-        acciones.add(lblResumen, BorderLayout.WEST);
-        acciones.add(botones, BorderLayout.EAST);
-        return acciones;
+        JLabel ayuda = new JLabel("Reponer suma lo que llegó; Ajustar corrige la cantidad");
+        ayuda.setFont(Estilo.fuente(Font.PLAIN, 15f));
+        ayuda.setForeground(Estilo.TEXTO_SUAVE);
+        return Tablas.barraAcciones(ayuda, botones.toArray(new JComponent[0]));
     }
 
     // ---------- lo que usa el controlador ----------
@@ -191,9 +242,29 @@ public class StockPanel extends JPanel {
                 bajoMinimo++;
             }
         }
-        lblResumen.setForeground(bajoMinimo > 0 ? ROJO : getForeground());
-        lblResumen.setText(modelo.getRowCount() + " insumos · "
-                + (bajoMinimo == 0 ? "ninguno bajo mínimo" : bajoMinimo + " bajo mínimo"));
+        lblResumen.setText(modelo.getRowCount() + (modelo.getRowCount() == 1 ? " insumo" : " insumos"));
+        lblResumenDetalle.setForeground(bajoMinimo > 0 ? Estilo.ROJO_TEXTO : Estilo.TEXTO_SUAVE);
+        lblResumenDetalle.setText(" · " + (bajoMinimo == 0 ? "ninguno bajo mínimo" : bajoMinimo + " bajo mínimo"));
         habilitarAcciones(insumoSeleccionado().isPresent());
+        firePropertyChange(PROP_BAJO_MINIMO, -1, bajoMinimo);
+        revalidate();
+        repaint();
+    }
+
+    /** Cantidad actual: en rojo si el insumo está bajo mínimo. */
+    private class RendererCantidad extends Tablas.RendererTexto {
+        RendererCantidad(Font fuente) {
+            super(fuente, Estilo.TEXTO, v -> Tablas.numero(((Number) v).doubleValue()), true);
+        }
+
+        @Override
+        public Component getTableCellRendererComponent(JTable t, Object valor, boolean seleccionada,
+                                                       boolean foco, int fila, int columna) {
+            super.getTableCellRendererComponent(t, valor, seleccionada, foco, fila, columna);
+            if (modelo.getFila(t.convertRowIndexToModel(fila)).alcanzoStockMinimo()) {
+                setForeground(Estilo.ROJO_TEXTO);
+            }
+            return this;
+        }
     }
 }

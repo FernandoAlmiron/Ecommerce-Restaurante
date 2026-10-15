@@ -4,17 +4,21 @@ import org.example.Modelo.inventario.Stock;
 import org.example.Modelo.menu.Menu;
 import org.example.Modelo.menu.MenuIngrediente;
 import org.example.escritorio.controlador.cocina.RecetaControlador;
+import org.example.escritorio.vista.comun.Boton;
+import org.example.escritorio.vista.comun.DialogoFormulario;
 import org.example.escritorio.vista.comun.Dialogos;
+import org.example.escritorio.vista.comun.Estilo;
+import org.example.escritorio.vista.comun.Formulario;
+import org.example.escritorio.vista.comun.Tablas;
 
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
-import javax.swing.JDialog;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
@@ -24,16 +28,23 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.Window;
 import java.text.ParseException;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Receta de un plato (RF-28): qué insumos lleva y cuánto por porción.
  * Es lo que PedidoService usa para descontar stock cuando se carga un pedido (RF-29).
+ * La acción principal es agregar un insumo; la ventana queda abierta hasta tocar Cerrar.
  */
-public class RecetaDialog extends JDialog {
+public class RecetaDialog extends DialogoFormulario {
+
+    private static final int ALTO_FILA = 48;
 
     private final Menu plato;
 
@@ -42,43 +53,18 @@ public class RecetaDialog extends JDialog {
 
     private final JComboBox<Stock> cmbInsumo = new JComboBox<>();
     private final JSpinner spnCantidad = new JSpinner(new SpinnerNumberModel(0.1, 0.001, 100_000d, 0.1));
-    private final JLabel lblUnidad = new JLabel(" ");
-    private final JButton btnAgregar = new JButton("Agregar");
-    private final JButton btnCambiarCantidad = new JButton("Cambiar cantidad");
-    private final JButton btnQuitar = new JButton("Quitar");
-    private final JButton btnCerrar = new JButton("Cerrar");
+    private final JLabel lblUnidad = Formulario.nota(new JLabel(" "));
+    private final JButton btnCambiarCantidad = new Boton("Cambiar cantidad", Boton.Tipo.CONTORNO);
+    private final JButton btnQuitar = new Boton("Quitar", Boton.Tipo.CONTORNO_CAFE);
 
     private final RecetaControlador controlador;
 
     public RecetaDialog(Window padre, Menu plato) {
-        super(padre, "Receta — " + plato.getNombre(), ModalityType.APPLICATION_MODAL);
+        super(padre, "Cocina · Receta", plato.getNombre(),
+                "Cantidades por porción: al cargar un pedido se descuenta cantidad × unidades pedidas.",
+                "Agregar insumo");
         this.plato = plato;
-        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-
-        JLabel titulo = new JLabel("Receta de " + plato.getNombre());
-        titulo.setFont(titulo.getFont().deriveFont(Font.BOLD, 16f));
-        JLabel ayuda = new JLabel("Cantidades por porción. Al cargar un pedido se descuenta cantidad × unidades pedidas.");
-
-        JPanel encabezado = new JPanel(new BorderLayout(0, 4));
-        encabezado.add(titulo, BorderLayout.NORTH);
-        encabezado.add(ayuda, BorderLayout.CENTER);
-
-        tabla.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        tabla.setFillsViewportHeight(true);
-        tabla.setRowHeight(26);
-        JScrollPane scroll = new JScrollPane(tabla);
-        scroll.setPreferredSize(new Dimension(600, 260));
-
-        JPanel centro = new JPanel(new BorderLayout(0, 8));
-        centro.add(scroll, BorderLayout.CENTER);
-        centro.add(armarAccionesFila(), BorderLayout.SOUTH);
-
-        JPanel raiz = new JPanel(new BorderLayout(0, 12));
-        raiz.setBorder(BorderFactory.createEmptyBorder(20, 24, 20, 24));
-        raiz.add(encabezado, BorderLayout.NORTH);
-        raiz.add(centro, BorderLayout.CENTER);
-        raiz.add(armarAgregar(), BorderLayout.SOUTH);
-        setContentPane(raiz);
+        btnCancelar.setText("Cerrar");
 
         spnCantidad.setEditor(new JSpinner.NumberEditor(spnCantidad, "0.###"));
         cmbInsumo.setRenderer(new DefaultListCellRenderer() {
@@ -104,41 +90,84 @@ public class RecetaDialog extends JDialog {
                 habilitarAccionesFila(ingredienteSeleccionado().isPresent());
             }
         });
-        btnAgregar.addActionListener(e -> controlador.agregar());
+        btnPrincipal.addActionListener(e -> controlador.agregar());
         btnCambiarCantidad.addActionListener(e -> controlador.cambiarCantidad());
         btnQuitar.addActionListener(e -> controlador.quitar());
-        btnCerrar.addActionListener(e -> dispose());
 
         habilitarAccionesFila(false);
         controlador.cargar();
 
-        pack();
-        setLocationRelativeTo(padre);
+        armar();
     }
 
-    private JPanel armarAccionesFila() {
-        JPanel botones = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+    @Override
+    protected JComponent armarCuerpo() {
+        return Formulario.cuerpo(armarTabla(), armarAgregar());
+    }
+
+    /** La receta actual en una tarjeta, con Quitar y Cambiar cantidad arriba a la derecha. */
+    private JComponent armarTabla() {
+        tabla.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        Tablas.estilizar(tabla, ALTO_FILA, Set.of(1, 3));
+        Font normal = Estilo.fuente(Font.PLAIN, 15f);
+        Font negrita = Estilo.fuente(Font.BOLD, 15f);
+        Tablas.renderer(tabla, 0, new Tablas.RendererTexto(negrita, Estilo.TEXTO, String::valueOf));
+        Tablas.renderer(tabla, 1, new Tablas.RendererTexto(normal, Estilo.TEXTO,
+                v -> Tablas.numero(((Number) v).doubleValue()), true));
+        Tablas.renderer(tabla, 2, new Tablas.RendererTexto(normal, Estilo.TEXTO_SUAVE, String::valueOf));
+        Tablas.renderer(tabla, 3, new Tablas.RendererTexto(normal, Estilo.TEXTO_SUAVE,
+                v -> Tablas.numero(((Number) v).doubleValue()), true));
+        Tablas.anchos(tabla, 170, 240, 100, 140);
+
+        Estilo.Tarjeta tarjeta = new Estilo.Tarjeta(new BorderLayout(), 18);
+        tarjeta.setBorder(Estilo.relleno(1, 1, 1, 1));
+        tarjeta.add(Tablas.scroll(tabla), BorderLayout.CENTER);
+        tarjeta.setPreferredSize(new Dimension(650, 260));
+
+        JLabel titulo = new JLabel("Insumos de la receta");
+        titulo.setFont(Estilo.fuente(Font.BOLD, 15f));
+        titulo.setForeground(Estilo.TEXTO);
+        btnQuitar.setBorder(Estilo.relleno(8, 16, 8, 16));
+        btnCambiarCantidad.setBorder(Estilo.relleno(8, 16, 8, 16));
+        JPanel botones = Estilo.transparente(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         botones.add(btnQuitar);
         botones.add(btnCambiarCantidad);
-        return botones;
+        JPanel arriba = Estilo.transparente(new BorderLayout());
+        arriba.add(titulo, BorderLayout.WEST);
+        arriba.add(botones, BorderLayout.EAST);
+
+        JPanel panel = Estilo.transparente(new BorderLayout(0, 10));
+        panel.add(arriba, BorderLayout.NORTH);
+        panel.add(tarjeta, BorderLayout.CENTER);
+        return panel;
     }
 
-    private JPanel armarAgregar() {
-        JPanel agregar = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
-        agregar.setBorder(BorderFactory.createTitledBorder("Agregar insumo"));
-        agregar.add(cmbInsumo);
-        agregar.add(new JLabel("Cantidad"));
-        agregar.add(spnCantidad);
-        agregar.add(lblUnidad);
-        agregar.add(btnAgregar);
+    /** Insumo y cantidad para sumar a la receta; se agrega con el botón principal. */
+    private JComponent armarAgregar() {
+        Formulario.estilizar(cmbInsumo);
+        Formulario.estilizar(spnCantidad);
 
-        JPanel cerrar = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
-        cerrar.add(btnCerrar);
+        JPanel cantidad = Estilo.transparente(new BorderLayout(10, 0));
+        cantidad.add(spnCantidad, BorderLayout.CENTER);
+        cantidad.add(lblUnidad, BorderLayout.EAST);
 
-        JPanel pie = new JPanel(new BorderLayout(0, 12));
-        pie.add(agregar, BorderLayout.CENTER);
-        pie.add(cerrar, BorderLayout.SOUTH);
-        return pie;
+        JPanel fila = Estilo.transparente(new GridBagLayout());
+        GridBagConstraints c = new GridBagConstraints();
+        c.fill = GridBagConstraints.HORIZONTAL;
+        c.anchor = GridBagConstraints.NORTH;
+        c.weightx = 0.65;
+        c.insets = new Insets(0, 0, 0, 16);
+        fila.add(Formulario.campo("Insumo a agregar", cmbInsumo, null), c);
+        c.weightx = 0.35;
+        c.insets = new Insets(0, 0, 0, 0);
+        fila.add(Formulario.campo("Cantidad por porción", cantidad, null), c);
+
+        JPanel caja = Estilo.transparente(new BorderLayout());
+        caja.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createMatteBorder(1, 0, 0, 0, Estilo.BORDE),
+                Estilo.relleno(18, 0, 0, 0)));
+        caja.add(fila, BorderLayout.CENTER);
+        return caja;
     }
 
     // ---------- lo que usa el controlador ----------
@@ -156,7 +185,7 @@ public class RecetaDialog extends JDialog {
         return ((Number) spnCantidad.getValue()).doubleValue();
     }
 
-    public JButton getBotonAgregar() { return btnAgregar; }
+    public JButton getBotonAgregar() { return btnPrincipal; }
     public JButton getBotonCambiarCantidad() { return btnCambiarCantidad; }
     public JButton getBotonQuitar() { return btnQuitar; }
     public JTable getTabla() { return tabla; }
@@ -166,7 +195,7 @@ public class RecetaDialog extends JDialog {
         modelo.setFilas(ingredientes);
         cmbInsumo.removeAllItems();
         insumosParaAgregar.forEach(cmbInsumo::addItem);
-        btnAgregar.setEnabled(!insumosParaAgregar.isEmpty());
+        btnPrincipal.setEnabled(!insumosParaAgregar.isEmpty());
         spnCantidad.setValue(0.1);
         habilitarAccionesFila(ingredienteSeleccionado().isPresent());
     }
@@ -179,10 +208,6 @@ public class RecetaDialog extends JDialog {
     public void habilitarAccionesFila(boolean hayIngrediente) {
         btnCambiarCantidad.setEnabled(hayIngrediente);
         btnQuitar.setEnabled(hayIngrediente);
-    }
-
-    public void mostrarError(String mensaje) {
-        Dialogos.error(this, mensaje);
     }
 
     public boolean confirmar(String pregunta) {

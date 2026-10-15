@@ -3,25 +3,34 @@ package org.example.escritorio.vista.cocina;
 import org.example.Modelo.menu.Menu;
 import org.example.escritorio.controlador.cocina.MenuControlador;
 import org.example.escritorio.sesion.Sesion;
+import org.example.escritorio.vista.comun.Boton;
 import org.example.escritorio.vista.comun.Dialogos;
-import org.example.escritorio.vista.comun.Formatos;
+import org.example.escritorio.vista.comun.Estilo;
+import org.example.escritorio.vista.comun.Icono;
+import org.example.escritorio.vista.comun.Tablas;
 
-import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.RowSorter;
 import javax.swing.SortOrder;
 import javax.swing.table.TableRowSorter;
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.GridBagLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * La carta del restaurante (RF-26 a RF-28): alta y modificación de platos y su receta.
@@ -29,21 +38,27 @@ import java.util.Optional;
  */
 public class MenuPanel extends JPanel {
 
+    private static final int ALTO_FILA = 58;
+
     private final MenuTableModel modelo = new MenuTableModel();
     private final JTable tabla = new JTable(modelo);
 
-    private final JButton btnActualizar = new JButton("Actualizar");
-    private final JButton btnNuevo = new JButton("Nuevo plato");
-    private final JButton btnModificar = new JButton("Modificar");
-    private final JButton btnReceta = new JButton("Receta");
-    private final JButton btnEliminar = new JButton("Eliminar");
+    private final JButton btnActualizar = new Boton(null, new Icono(Icono.Tipo.ACTUALIZAR, 20, Estilo.TEXTO),
+            Boton.Tipo.CONTORNO);
+    private final JButton btnNuevo = new Boton("Nuevo plato", new Icono(Icono.Tipo.MAS, 16, Color.WHITE),
+            Boton.Tipo.PRIMARIO);
+    private final JButton btnModificar = new Boton("Modificar", Boton.Tipo.OSCURO);
+    private final JButton btnReceta = new Boton("Receta", Boton.Tipo.CONTORNO);
+    private final JButton btnEliminar = new Boton("Eliminar", Boton.Tipo.CONTORNO_CAFE);
     private final JLabel lblResumen = new JLabel(" ");
+    private final JLabel lblResumenDetalle = new JLabel(" ");
 
     private final MenuControlador controlador;
 
     public MenuPanel() {
-        super(new BorderLayout(0, 8));
-        setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
+        super(new BorderLayout(0, 22));
+        setOpaque(false);
+        setBorder(Estilo.relleno(4, 0, 0, 0));
 
         add(armarEncabezado(), BorderLayout.NORTH);
         add(armarTabla(), BorderLayout.CENTER);
@@ -74,45 +89,70 @@ public class MenuPanel extends JPanel {
         controlador.cargar();
     }
 
-    private JPanel armarEncabezado() {
-        JPanel izquierda = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        izquierda.add(btnActualizar);
-        JPanel derecha = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
+    private JComponent armarEncabezado() {
+        lblResumen.setFont(Estilo.fuente(Font.BOLD, 16f));
+        lblResumen.setForeground(Estilo.TEXTO);
+        lblResumenDetalle.setFont(Estilo.fuente(Font.PLAIN, 16f));
+        lblResumenDetalle.setForeground(Estilo.TEXTO_SUAVE);
+        JPanel resumen = Estilo.transparente(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        resumen.add(lblResumen);
+        resumen.add(lblResumenDetalle);
+        JPanel resumenCentrado = Estilo.transparente(new GridBagLayout());
+        resumenCentrado.add(resumen);
+
+        btnActualizar.setToolTipText("Actualizar");
+        btnActualizar.setBorder(Estilo.relleno(12, 12, 12, 12));
+
+        JPanel derecha = Estilo.transparente(new FlowLayout(FlowLayout.RIGHT, 0, 0));
+        derecha.add(btnActualizar);
+        derecha.add(Box.createHorizontalStrut(14));
         derecha.add(btnNuevo);
 
-        JPanel encabezado = new JPanel(new BorderLayout());
-        encabezado.add(izquierda, BorderLayout.WEST);
+        JPanel encabezado = Estilo.transparente(new BorderLayout());
+        encabezado.add(resumenCentrado, BorderLayout.WEST);
         encabezado.add(derecha, BorderLayout.EAST);
         return encabezado;
     }
 
-    private JScrollPane armarTabla() {
+    private JComponent armarTabla() {
         TableRowSorter<MenuTableModel> orden = new TableRowSorter<>(modelo);
         orden.setSortKeys(List.of(new RowSorter.SortKey(MenuTableModel.COL_NOMBRE, SortOrder.ASCENDING)));
         tabla.setRowSorter(orden);
         tabla.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        tabla.setFillsViewportHeight(true);
-        tabla.setRowHeight(26);
-        Formatos.aplicarA(tabla);
-        int[] anchos = {240, 320, 110, 80};
-        for (int i = 0; i < anchos.length; i++) {
-            tabla.getColumnModel().getColumn(i).setPreferredWidth(anchos[i]);
-        }
-        return new JScrollPane(tabla);
+        Tablas.estilizar(tabla, ALTO_FILA, Set.of(2));
+
+        Font normal = Estilo.fuente(Font.PLAIN, 16f);
+        Font negrita = Estilo.fuente(Font.BOLD, 16f);
+        Tablas.renderer(tabla, 0, new Tablas.RendererTexto(negrita, Estilo.TEXTO, String::valueOf));
+        Tablas.renderer(tabla, 1, new Tablas.RendererTexto(normal, Estilo.TEXTO_SUAVE,
+                v -> v.toString().isBlank() ? "—" : v.toString()));
+        Tablas.renderer(tabla, 2, new Tablas.RendererTexto(normal, Estilo.TEXTO,
+                v -> Tablas.pesosCortos((BigDecimal) v), true));
+        Tablas.renderer(tabla, 3, new Tablas.RendererInsignia(v -> Boolean.TRUE.equals(v)
+                ? Tablas.Insignia.verde("Disponible") : Tablas.Insignia.gris("No disponible")));
+        Tablas.anchos(tabla, 260, 420, 140, 170);
+
+        Estilo.Tarjeta tarjeta = new Estilo.Tarjeta(new BorderLayout(), 22);
+        tarjeta.setBorder(Estilo.relleno(1, 1, 1, 1));
+        tarjeta.add(Tablas.scroll(tabla), BorderLayout.CENTER);
+
+        // la tarjeta mide lo que ocupan las filas (como mucho, el alto disponible)
+        JPanel contenedor = Estilo.transparente(new Tablas.Apilado(0, () -> Tablas.altoContenido(tabla)));
+        contenedor.add(tarjeta);
+        return contenedor;
     }
 
-    private JPanel armarAcciones() {
-        JPanel botones = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+    private JComponent armarAcciones() {
+        List<JComponent> botones = new ArrayList<>();
         if (Sesion.esAdmin()) {
             botones.add(btnEliminar);
         }
         botones.add(btnReceta);
         botones.add(btnModificar);
-
-        JPanel acciones = new JPanel(new BorderLayout());
-        acciones.add(lblResumen, BorderLayout.WEST);
-        acciones.add(botones, BorderLayout.EAST);
-        return acciones;
+        JLabel ayuda = new JLabel("Doble clic en un plato para modificarlo");
+        ayuda.setFont(Estilo.fuente(Font.PLAIN, 15f));
+        ayuda.setForeground(Estilo.TEXTO_SUAVE);
+        return Tablas.barraAcciones(ayuda, botones.toArray(new JComponent[0]));
     }
 
     // ---------- lo que usa el controlador ----------
@@ -120,8 +160,11 @@ public class MenuPanel extends JPanel {
     public void mostrarPlatos(List<Menu> platos) {
         modelo.setFilas(platos);
         long disponibles = platos.stream().filter(Menu::isDisponible).count();
-        lblResumen.setText(platos.size() + " platos · " + disponibles + " disponibles");
+        lblResumen.setText(platos.size() + (platos.size() == 1 ? " plato" : " platos"));
+        lblResumenDetalle.setText(" · " + disponibles + (disponibles == 1 ? " disponible" : " disponibles"));
         habilitarAcciones(platoSeleccionado().isPresent());
+        revalidate();
+        repaint();
     }
 
     public Optional<Menu> platoSeleccionado() {
