@@ -8,8 +8,8 @@ import org.example.escritorio.vista.comun.Dialogos;
 import org.example.escritorio.vista.comun.Estilo;
 import org.example.escritorio.vista.comun.Formatos;
 import org.example.escritorio.vista.comun.Icono;
+import org.example.escritorio.vista.comun.Tablas;
 
-import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
@@ -18,7 +18,6 @@ import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.JToggleButton;
@@ -26,37 +25,27 @@ import javax.swing.ListSelectionModel;
 import javax.swing.RowFilter;
 import javax.swing.RowSorter;
 import javax.swing.SortOrder;
-import javax.swing.SwingConstants;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.JTableHeader;
-import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableRowSorter;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Container;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-import java.awt.LayoutManager;
 import java.math.BigDecimal;
-import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Locale;
 import java.util.Optional;
-import java.util.function.Function;
+import java.util.Set;
 
 /**
  * Pantalla de Recepción: lista de reservas con filtros y las acciones de cada reserva.
@@ -64,10 +53,7 @@ import java.util.function.Function;
  */
 public class ReservasPanel extends JPanel {
 
-    private static final Locale ARGENTINA = Locale.forLanguageTag("es-AR");
-    private static final DateTimeFormatter DIA = DateTimeFormatter.ofPattern("EEEE d 'de' MMMM", ARGENTINA);
     private static final int ALTO_FILA = 58;
-    private static final int RELLENO_CELDA = 24;
 
     private final ReservaTableModel modelo = new ReservaTableModel();
     private final JTable tabla = new JTable(modelo);
@@ -132,20 +118,7 @@ public class ReservasPanel extends JPanel {
     // ---------- armado ----------
 
     private JComponent armarEncabezado() {
-        String dia = DIA.format(LocalDate.now());
-        JLabel miga = new JLabel("Recepción · " + Character.toUpperCase(dia.charAt(0)) + dia.substring(1));
-        miga.setFont(Estilo.fuente(Font.PLAIN, 15f));
-        miga.setForeground(Estilo.TEXTO_SUAVE);
-
-        JLabel titulo = new JLabel("Reservas");
-        titulo.setFont(Estilo.fuente(Font.BOLD, 34f));
-        titulo.setForeground(Estilo.TEXTO);
-
-        JPanel textos = Estilo.transparente(null);
-        textos.setLayout(new BoxLayout(textos, BoxLayout.Y_AXIS));
-        textos.add(miga);
-        textos.add(Box.createVerticalStrut(4));
-        textos.add(titulo);
+        JPanel textos = Estilo.tituloPantalla("Recepción", "Reservas");
 
         JPanel derecha = Estilo.transparente(new GridBagLayout());
         derecha.add(btnWalkIn);
@@ -236,64 +209,34 @@ public class ReservasPanel extends JPanel {
                 new RowSorter.SortKey(ReservaTableModel.COL_FECHA, SortOrder.ASCENDING),
                 new RowSorter.SortKey(ReservaTableModel.COL_HORA, SortOrder.ASCENDING)));
         tabla.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        tabla.setFillsViewportHeight(true);
-        tabla.setRowHeight(ALTO_FILA);
-        tabla.setShowVerticalLines(false);
-        tabla.setShowHorizontalLines(true);
-        tabla.setGridColor(Estilo.BORDE);
-        tabla.setIntercellSpacing(new Dimension(0, 1));
-        tabla.setBackground(Estilo.BLANCO);
-        tabla.setForeground(Estilo.TEXTO);
-        tabla.setSelectionBackground(Estilo.FILA_SELECCIONADA);
-        tabla.setSelectionForeground(Estilo.TEXTO);
-        tabla.setFont(Estilo.fuente(Font.PLAIN, 16f));
-        tabla.setFocusable(false);
-        Formatos.aplicarA(tabla);
-
-        JTableHeader encabezado = tabla.getTableHeader();
-        encabezado.setReorderingAllowed(false);
-        encabezado.setResizingAllowed(false);
-        encabezado.setDefaultRenderer(new RendererEncabezado());
-        encabezado.setBackground(Estilo.ENCABEZADO_TABLA);
+        Tablas.estilizar(tabla, ALTO_FILA, Set.of());
 
         Font normal = Estilo.fuente(Font.PLAIN, 16f);
         Font negrita = Estilo.fuente(Font.BOLD, 16f);
-        renderer(0, normal, Estilo.TEXTO_SUAVE, v -> "#" + v);
-        renderer(1, normal, Estilo.TEXTO, v -> Formatos.fecha((LocalDate) v));
-        renderer(2, negrita, Estilo.TEXTO, v -> Formatos.hora((LocalTime) v));
-        renderer(3, normal, Estilo.TEXTO, String::valueOf);
-        renderer(4, normal, Estilo.TEXTO, String::valueOf);
-        renderer(5, normal, Estilo.TEXTO, String::valueOf);
-        tabla.getColumnModel().getColumn(6).setCellRenderer(new RendererEstado());
-        tabla.getColumnModel().getColumn(7).setCellRenderer(new RendererSenia());
-        renderer(8, normal, Estilo.TEXTO, String::valueOf);
-
-        int[] anchos = {110, 120, 100, 220, 130, 140, 170, 140, 110};
-        for (int i = 0; i < anchos.length; i++) {
-            tabla.getColumnModel().getColumn(i).setPreferredWidth(anchos[i]);
-        }
+        Tablas.renderer(tabla, 0, new Tablas.RendererTexto(normal, Estilo.TEXTO_SUAVE, v -> "#" + v));
+        Tablas.renderer(tabla, 1, new Tablas.RendererTexto(normal, Estilo.TEXTO, v -> Formatos.fecha((LocalDate) v)));
+        Tablas.renderer(tabla, 2, new Tablas.RendererTexto(negrita, Estilo.TEXTO, v -> Formatos.hora((LocalTime) v)));
+        Tablas.renderer(tabla, 3, new Tablas.RendererTexto(normal, Estilo.TEXTO, String::valueOf));
+        Tablas.renderer(tabla, 4, new Tablas.RendererTexto(normal, Estilo.TEXTO, String::valueOf));
+        Tablas.renderer(tabla, 5, new Tablas.RendererTexto(normal, Estilo.TEXTO, String::valueOf));
+        Tablas.renderer(tabla, 6, new Tablas.RendererInsignia(v -> switch ((EstadoReserva) v) {
+            case CONFIRMADA -> Tablas.Insignia.verde("Confirmada");
+            case PENDIENTE -> Tablas.Insignia.amarilla("Pendiente");
+            default -> Tablas.Insignia.gris("Cancelada");
+        }));
+        Tablas.renderer(tabla, 7, new RendererSenia());
+        Tablas.renderer(tabla, 8, new Tablas.RendererTexto(normal, Estilo.TEXTO, String::valueOf));
+        Tablas.anchos(tabla, 110, 120, 100, 220, 130, 140, 170, 140, 110);
         columnaFecha = tabla.getColumnModel().getColumn(ReservaTableModel.COL_FECHA);
-
-        JScrollPane scroll = new JScrollPane(tabla);
-        scroll.setBorder(BorderFactory.createEmptyBorder());
-        scroll.setViewportBorder(null);
-        scroll.getViewport().setBackground(Estilo.BLANCO);
-        scroll.setBackground(Estilo.BLANCO);
-        scroll.setOpaque(false);
 
         Estilo.Tarjeta tarjeta = new Estilo.Tarjeta(new BorderLayout(), 22);
         tarjeta.setBorder(Estilo.relleno(1, 1, 1, 1));
-        tarjeta.add(scroll, BorderLayout.CENTER);
+        tarjeta.add(Tablas.scroll(tabla), BorderLayout.CENTER);
 
         // la tarjeta mide lo que ocupan las filas (como mucho, el alto disponible)
-        JPanel contenedor = Estilo.transparente(new AjustarAlContenido(() ->
-                encabezado.getPreferredSize().height + tabla.getRowCount() * ALTO_FILA + 3));
+        JPanel contenedor = Estilo.transparente(new Tablas.Apilado(0, () -> Tablas.altoContenido(tabla)));
         contenedor.add(tarjeta);
         return contenedor;
-    }
-
-    private void renderer(int columna, Font fuente, Color color, Function<Object, String> texto) {
-        tabla.getColumnModel().getColumn(columna).setCellRenderer(new RendererTexto(fuente, color, texto));
     }
 
     private JComponent armarAcciones() {
@@ -412,13 +355,6 @@ public class ReservasPanel extends JPanel {
                 + (tabla.getSelectedRow() >= 0 ? " · 1 seleccionada" : ""));
     }
 
-    /** $ 8.000 (sin centavos si no tiene). */
-    private static String pesosCortos(BigDecimal monto) {
-        NumberFormat formato = NumberFormat.getCurrencyInstance(ARGENTINA);
-        formato.setMinimumFractionDigits(monto.stripTrailingZeros().scale() > 0 ? 2 : 0);
-        return formato.format(monto);
-    }
-
     // ---------- piezas visuales ----------
 
     /** Pestaña del selector de estado: blanca y en negrita cuando está elegida. */
@@ -463,56 +399,10 @@ public class ReservasPanel extends JPanel {
         }
     }
 
-    /** Títulos de columna: mayúsculas chiquitas, grises y con letras separadas. */
-    private static class RendererEncabezado extends DefaultTableCellRenderer {
-        RendererEncabezado() {
-            setFont(Estilo.conEspaciado(Estilo.fuente(Font.BOLD, 13f), 0.08f));
-            setForeground(Estilo.TEXTO_SUAVE);
-            setBackground(Estilo.ENCABEZADO_TABLA);
-            setOpaque(true);
-            setHorizontalAlignment(SwingConstants.LEFT);
-            setBorder(BorderFactory.createCompoundBorder(
-                    BorderFactory.createMatteBorder(0, 0, 1, 0, Estilo.BORDE),
-                    Estilo.relleno(20, RELLENO_CELDA, 20, 8)));
-        }
-
-        @Override
-        public Component getTableCellRendererComponent(JTable tabla, Object valor, boolean seleccionada,
-                                                       boolean foco, int fila, int columna) {
-            setText(valor == null ? "" : valor.toString().toUpperCase(ARGENTINA));
-            return this;
-        }
-    }
-
-    /** Celda de texto con relleno a la izquierda y su propia fuente y color. */
-    private static class RendererTexto extends DefaultTableCellRenderer {
-        private final Font fuente;
-        private final Color color;
-        private final Function<Object, String> texto;
-
-        RendererTexto(Font fuente, Color color, Function<Object, String> texto) {
-            this.fuente = fuente;
-            this.color = color;
-            this.texto = texto;
-            setHorizontalAlignment(SwingConstants.LEFT);
-        }
-
-        @Override
-        public Component getTableCellRendererComponent(JTable tabla, Object valor, boolean seleccionada,
-                                                       boolean foco, int fila, int columna) {
-            super.getTableCellRendererComponent(tabla, valor, seleccionada, false, fila, columna);
-            setText(valor == null ? "—" : texto.apply(valor));
-            setFont(fuente);
-            setForeground(color);
-            setBorder(Estilo.relleno(0, RELLENO_CELDA, 0, 8));
-            return this;
-        }
-    }
-
     /** Seña: el monto, o "Sin seña" en gris. En las canceladas el monto va en gris. */
-    private static class RendererSenia extends RendererTexto {
+    private static class RendererSenia extends Tablas.RendererTexto {
         RendererSenia() {
-            super(Estilo.fuente(Font.PLAIN, 16f), Estilo.TEXTO, v -> pesosCortos((BigDecimal) v));
+            super(Estilo.fuente(Font.PLAIN, 16f), Estilo.TEXTO, v -> Tablas.pesosCortos((BigDecimal) v));
         }
 
         @Override
@@ -528,95 +418,6 @@ public class ReservasPanel extends JPanel {
                 setForeground(Estilo.TEXTO_SUAVE);
             }
             return this;
-        }
-    }
-
-    /** Estado como etiqueta redondeada: verde confirmada, amarilla pendiente, gris cancelada. */
-    private static class RendererEstado implements TableCellRenderer {
-        private final JPanel celda = new JPanel(new GridBagLayout());
-        private final Etiqueta etiqueta = new Etiqueta();
-
-        RendererEstado() {
-            GridBagConstraints c = new GridBagConstraints();
-            c.anchor = GridBagConstraints.WEST;
-            c.weightx = 1;
-            c.insets = new Insets(0, RELLENO_CELDA, 0, 0);
-            celda.add(etiqueta, c);
-        }
-
-        @Override
-        public Component getTableCellRendererComponent(JTable tabla, Object valor, boolean seleccionada,
-                                                       boolean foco, int fila, int columna) {
-            celda.setBackground(seleccionada ? tabla.getSelectionBackground() : tabla.getBackground());
-            EstadoReserva estado = (EstadoReserva) valor;
-            if (estado == null) {
-                etiqueta.mostrar("", Estilo.BLANCO, Estilo.TEXTO);
-            } else {
-                switch (estado) {
-                    case CONFIRMADA -> etiqueta.mostrar("Confirmada", Estilo.VERDE_FONDO, Estilo.VERDE_TEXTO);
-                    case PENDIENTE -> etiqueta.mostrar("Pendiente", Estilo.AMARILLO_FONDO, Estilo.AMARILLO_TEXTO);
-                    default -> etiqueta.mostrar("Cancelada", Estilo.GRIS_FONDO, Estilo.GRIS_TEXTO);
-                }
-            }
-            return celda;
-        }
-    }
-
-    private static class Etiqueta extends JLabel {
-        private Color fondo = Estilo.GRIS_FONDO;
-
-        Etiqueta() {
-            setFont(Estilo.fuente(Font.BOLD, 14f));
-            setBorder(Estilo.relleno(5, 14, 5, 14));
-        }
-
-        void mostrar(String texto, Color fondo, Color color) {
-            setText(texto);
-            this.fondo = fondo;
-            setForeground(color);
-        }
-
-        @Override
-        protected void paintComponent(Graphics g) {
-            Graphics2D g2 = Estilo.suave(g);
-            g2.setColor(fondo);
-            g2.fillRoundRect(0, 0, getWidth(), getHeight(), getHeight(), getHeight());
-            g2.dispose();
-            super.paintComponent(g);
-        }
-    }
-
-    /**
-     * Ubica un único hijo arriba, con el alto que pide el contenido pero sin pasarse del lugar disponible
-     * (si hay muchas filas, aparece la barra de desplazamiento de la tabla).
-     */
-    private static class AjustarAlContenido implements LayoutManager {
-        private final java.util.function.IntSupplier altoDeseado;
-
-        AjustarAlContenido(java.util.function.IntSupplier altoDeseado) {
-            this.altoDeseado = altoDeseado;
-        }
-
-        @Override public void addLayoutComponent(String nombre, Component c) { }
-        @Override public void removeLayoutComponent(Component c) { }
-
-        @Override
-        public Dimension preferredLayoutSize(Container padre) {
-            return new Dimension(0, altoDeseado.getAsInt());
-        }
-
-        @Override
-        public Dimension minimumLayoutSize(Container padre) {
-            return new Dimension(0, 0);
-        }
-
-        @Override
-        public void layoutContainer(Container padre) {
-            if (padre.getComponentCount() == 0) {
-                return;
-            }
-            int alto = Math.min(altoDeseado.getAsInt(), padre.getHeight());
-            padre.getComponent(0).setBounds(0, 0, padre.getWidth(), alto);
         }
     }
 }

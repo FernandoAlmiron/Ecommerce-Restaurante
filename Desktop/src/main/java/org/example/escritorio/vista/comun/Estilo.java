@@ -43,6 +43,8 @@ public final class Estilo {
     public static final Color VERDE_TEXTO = new Color(0x2E7D32);
     public static final Color AMARILLO_FONDO = new Color(0xFDF0CC);
     public static final Color AMARILLO_TEXTO = new Color(0x97600A);
+    public static final Color VIOLETA_FONDO = new Color(0xECE8FA);
+    public static final Color VIOLETA_TEXTO = new Color(0x5B45A8);
     public static final Color GRIS_FONDO = new Color(0xEDE8E4);
     public static final Color GRIS_TEXTO = new Color(0x6E625A);
 
@@ -145,6 +147,28 @@ public final class Estilo {
             g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, arco, arco);
             g2.dispose();
         }
+    }
+
+    /** Miga ("Recepción · Jueves 15 de octubre") y título grande de una pantalla. */
+    public static JPanel tituloPantalla(String area, String titulo) {
+        String dia = java.time.format.DateTimeFormatter
+                .ofPattern("EEEE d 'de' MMMM", java.util.Locale.forLanguageTag("es-AR"))
+                .format(java.time.LocalDate.now());
+        javax.swing.JLabel miga = new javax.swing.JLabel(
+                area + " · " + Character.toUpperCase(dia.charAt(0)) + dia.substring(1));
+        miga.setFont(fuente(Font.PLAIN, 15f));
+        miga.setForeground(TEXTO_SUAVE);
+
+        javax.swing.JLabel grande = new javax.swing.JLabel(titulo);
+        grande.setFont(fuente(Font.BOLD, 34f));
+        grande.setForeground(TEXTO);
+
+        JPanel textos = transparente(null);
+        textos.setLayout(new javax.swing.BoxLayout(textos, javax.swing.BoxLayout.Y_AXIS));
+        textos.add(miga);
+        textos.add(javax.swing.Box.createVerticalStrut(4));
+        textos.add(grande);
+        return textos;
     }
 
     /** Le pone al componente el estilo de FlatLaf (si FlatLaf no está, se ignora). */
