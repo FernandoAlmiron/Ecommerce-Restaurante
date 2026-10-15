@@ -77,7 +77,7 @@ public final class Formulario {
         casilla.setOpaque(false);
         casilla.setIconTextGap(12);
         casilla.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        estilizarCasilla(casilla);
+        Estilo.casilla(casilla);
 
         // BorderLayout (y no BoxLayout) para que la explicación tenga todo el ancho de la caja
         JPanel textos = Estilo.transparente(new BorderLayout());
@@ -133,8 +133,4 @@ public final class Formulario {
         return combo;
     }
 
-    public static void estilizarCasilla(JCheckBox casilla) {
-        Estilo.flat(casilla, "icon.selectedBackground: #8C5E35; icon.selectedBorderColor: #8C5E35;"
-                + " icon.checkmarkColor: #FFFFFF; icon.focusWidth: 0");
-    }
 }

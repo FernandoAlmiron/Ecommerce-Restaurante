@@ -9,7 +9,10 @@ import org.example.repository.menu.PedidoRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class PedidoService {
@@ -50,6 +53,7 @@ public class PedidoService {
         }
 
         pedido.setIdPedido(0);
+        pedido.setListo(false);                       // todo pedido nuevo entra pendiente para la cocina
         pedido.setMenu(menu);
         pedido.setTicket(ticket);
         pedido.setPrecioUnitario(menu.getPrecio());   // el precio lo pone el menu, no el cliente
@@ -57,6 +61,36 @@ public class PedidoService {
         Pedido guardado = pedidoRepository.save(pedido);
         menuIngredienteService.descontarStockPorPedido(menu, pedido.getCantidad());
         return guardado;
+    }
+
+    /**
+     * La cocina termino algunos platos de la comanda: marca como listos esos pedidos del ticket.
+     * Los que no se pasan siguen pendientes y la comanda sigue apareciendo con ellos.
+     * Con idsPedido null o vacio se marcan todos los pendientes (la comanda entera).
+     * Si despues se cargan mas pedidos al mismo ticket, esos vuelven a aparecer en la comanda.
+     * Devuelve cuantos pedidos se marcaron.
+     */
+    @Transactional
+    public int marcarListos(int nroTicket, Collection<Integer> idsPedido) {
+        Ticket ticket = ticketRepository.findById(nroTicket)
+                .orElseThrow(() -> new java.util.NoSuchElementException("Ticket no encontrado"));
+        List<Pedido> pendientes = ticket.getPedidos() == null ? List.of()
+                : ticket.getPedidos().stream().filter(p -> !p.isListo()).toList();
+
+        List<Pedido> aMarcar = pendientes;
+        if (idsPedido != null && !idsPedido.isEmpty()) {
+            Set<Integer> pendientesIds = pendientes.stream().map(Pedido::getIdPedido).collect(Collectors.toSet());
+            if (!pendientesIds.containsAll(idsPedido)) {
+                throw new IllegalStateException("Hay pedidos que no son de este ticket o que ya estaban listos");
+            }
+            aMarcar = pendientes.stream().filter(p -> idsPedido.contains(p.getIdPedido())).toList();
+        }
+        if (aMarcar.isEmpty()) {
+            throw new IllegalStateException("La comanda no tiene platos pendientes");
+        }
+        aMarcar.forEach(p -> p.setListo(true));
+        pedidoRepository.saveAll(aMarcar);
+        return aMarcar.size();
     }
 
     public Pedido buscarPorId(int id) {

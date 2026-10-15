@@ -106,8 +106,7 @@ public class StockPanel extends JPanel {
         chkSoloBajoMinimo.setOpaque(false);
         chkSoloBajoMinimo.setIconTextGap(10);
         chkSoloBajoMinimo.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        Estilo.flat(chkSoloBajoMinimo, "icon.selectedBackground: #8C5E35; icon.selectedBorderColor: #8C5E35;"
-                + " icon.checkmarkColor: #FFFFFF; icon.focusWidth: 0");
+        Estilo.casilla(chkSoloBajoMinimo);
         Estilo.Tarjeta cajaFiltro = new Estilo.Tarjeta(new GridBagLayout(), 14);
         cajaFiltro.setBorder(Estilo.relleno(9, 16, 9, 18));
         cajaFiltro.add(chkSoloBajoMinimo);

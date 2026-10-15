@@ -7,6 +7,9 @@ import org.example.escritorio.sesion.Sesion;
 import org.example.escritorio.vista.cocina.ComandasPanel;
 import org.example.escritorio.vista.comun.Tarea;
 import org.example.service.facturacion.TicketService;
+import org.example.service.menu.PedidoService;
+
+import java.util.List;
 
 /**
  * Lógica de las comandas. Usa TicketService y el ComandaDTO del backend (el mismo de la API).
@@ -16,6 +19,7 @@ public class ComandasControlador {
 
     private final ComandasPanel vista;
     private final TicketService ticketService;
+    private final PedidoService pedidoService;
 
     /** true mientras hay una consulta en curso, para que el refresco automático no las encime. */
     private boolean cargando;
@@ -23,6 +27,7 @@ public class ComandasControlador {
     public ComandasControlador(ComandasPanel vista) {
         this.vista = vista;
         this.ticketService = Contexto.get(TicketService.class);
+        this.pedidoService = Contexto.get(PedidoService.class);
     }
 
     /**
@@ -57,6 +62,26 @@ public class ComandasControlador {
                         vista.mostrarError(mensaje);
                     }
                 });
+    }
+
+    /**
+     * Guarda como listos solo los platos tildados de la comanda elegida. Los que faltan siguen en la comanda;
+     * si estaban todos tildados, la comanda sale de la lista.
+     */
+    public void marcarLista() {
+        vista.comandaSeleccionada().ifPresent(comanda -> {
+            List<Integer> tildados = vista.pedidosTildadosDeLaComanda();
+            if (tildados.isEmpty()) {
+                return; // el botón está deshabilitado en ese caso; por las dudas no se manda nada
+            }
+            int nro = comanda.nroTicket();
+            Tarea.ejecutar(vista.getBotonComandaLista(),
+                    () -> pedidoService.marcarListos(nro, tildados),
+                    marcados -> {
+                        vista.platosEnviados(tildados);
+                        cargar(true);
+                    });
+        });
     }
 
     /** El detalle ya vino con la lista: no hace falta volver a la base. */

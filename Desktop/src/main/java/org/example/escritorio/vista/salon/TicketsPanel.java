@@ -109,8 +109,7 @@ public class TicketsPanel extends JPanel {
         chkSoloAbiertas.setOpaque(false);
         chkSoloAbiertas.setIconTextGap(10);
         chkSoloAbiertas.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        Estilo.flat(chkSoloAbiertas, "icon.selectedBackground: #8C5E35; icon.selectedBorderColor: #8C5E35;"
-                + " icon.checkmarkColor: #FFFFFF; icon.focusWidth: 0");
+        Estilo.casilla(chkSoloAbiertas);
 
         // el checkbox va dentro de una cajita blanca con borde, como los botones
         Estilo.Tarjeta cajaFiltro = new Estilo.Tarjeta(new GridBagLayout(), 14);

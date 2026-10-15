@@ -147,8 +147,7 @@ public class ReservasPanel extends JPanel {
         chkSoloHoy.setOpaque(false);
         chkSoloHoy.setIconTextGap(10);
         chkSoloHoy.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        Estilo.flat(chkSoloHoy, "icon.selectedBackground: #8C5E35; icon.selectedBorderColor: #8C5E35;"
-                + " icon.checkmarkColor: #FFFFFF; icon.focusWidth: 0");
+        Estilo.casilla(chkSoloHoy);
 
         btnActualizar.setToolTipText("Actualizar");
         btnActualizar.setBorder(Estilo.relleno(12, 12, 12, 12));

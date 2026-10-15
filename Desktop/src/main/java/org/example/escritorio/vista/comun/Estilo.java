@@ -233,6 +233,25 @@ public final class Estilo {
         }
     }
 
+    /**
+     * Casilla café con tilde blanco. Se fijan los colores de todos los estados (con foco, con el mouse
+     * encima, apretada): si no, FlatLaf usa los suyos y con foco el tilde blanco queda sobre fondo blanco,
+     * invisible hasta pasar el mouse.
+     */
+    public static void casilla(javax.swing.JCheckBox casilla) {
+        String cafe = "#8C5E35";
+        String cafeOscuro = "#7A5029";
+        flat(casilla, "icon.focusWidth: 0;"
+                + " icon.checkmarkColor: #FFFFFF; icon.focusedCheckmarkColor: #FFFFFF;"
+                + " icon.hoverCheckmarkColor: #FFFFFF; icon.pressedCheckmarkColor: #FFFFFF;"
+                + " icon.selectedBackground: " + cafe + "; icon.selectedBorderColor: " + cafe + ";"
+                + " icon.focusedSelectedBackground: " + cafe + "; icon.focusedSelectedBorderColor: " + cafe + ";"
+                + " icon.hoverSelectedBackground: " + cafeOscuro + "; icon.hoverSelectedBorderColor: " + cafeOscuro + ";"
+                + " icon.pressedSelectedBackground: " + cafeOscuro + "; icon.pressedSelectedBorderColor: " + cafeOscuro + ";"
+                + " icon.focusedBackground: #FFFFFF; icon.focusedBorderColor: " + cafe + ";"
+                + " icon.hoverBorderColor: " + cafe);
+    }
+
     /** Le pone al componente el estilo de FlatLaf (si FlatLaf no está, se ignora). */
     public static void flat(JComponent c, String estilo) {
         c.putClientProperty("FlatLaf.style", estilo);

@@ -5,7 +5,7 @@ import org.example.Modelo.facturacion.Ticket;
 import org.example.Modelo.menu.Pedido;
 import java.util.List;
 
-// Ticket para la cocina: solo lo que hay que preparar, sin precios
+// Ticket para la cocina: solo lo que hay que preparar (los pedidos que no estan listos), sin precios
 public record ComandaDTO(
         int nroTicket,
         OrigenTicket origen,
@@ -14,7 +14,8 @@ public record ComandaDTO(
         Integer comensales,
         List<Item> pedidos
 ) {
-    public record Item(String plato, int cantidad, String observaciones) {}
+    // idPedido: para marcar como listos solo los platos que la cocina ya termino
+    public record Item(int idPedido, String plato, int cantidad, String observaciones) {}
 
     public static ComandaDTO desde(Ticket t) {
         List<Pedido> pedidos = t.getPedidos() == null ? List.of() : t.getPedidos();
@@ -25,7 +26,8 @@ public record ComandaDTO(
                 t.getReserva() != null ? t.getReserva().getZona().getNombre() : null,
                 t.getReserva() != null ? t.getReserva().getCantComensales() : null,
                 pedidos.stream()
-                        .map(p -> new Item(p.getMenu().getNombre(), p.getCantidad(), p.getObservaciones()))
+                        .filter(p -> !p.isListo())
+                        .map(p -> new Item(p.getIdPedido(), p.getMenu().getNombre(), p.getCantidad(), p.getObservaciones()))
                         .toList()
         );
     }

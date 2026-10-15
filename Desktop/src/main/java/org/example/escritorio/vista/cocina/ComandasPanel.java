@@ -39,7 +39,6 @@ import java.awt.Insets;
 import java.awt.font.TextAttribute;
 import java.time.LocalTime;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -51,8 +50,8 @@ import java.util.Set;
  * A la izquierda la lista de comandas; a la derecha lo que hay que preparar de la elegida, sin precios.
  * Se actualiza sola cada 10 segundos mientras la pantalla está a la vista.
  *
- * Los platos se pueden tildar a medida que salen. Esa marca es solo una ayuda en esta pantalla:
- * no se guarda en la base y se pierde al cerrar la aplicación.
+ * Los platos se tildan a medida que salen y el botón de abajo guarda en la base solo los tildados:
+ * esos dejan de aparecer y los que faltan siguen en la comanda. Con todos tildados, la comanda sale de la lista.
  */
 public class ComandasPanel extends JPanel {
 
@@ -83,9 +82,11 @@ public class ComandasPanel extends JPanel {
     private final JLabel lblListos = new JLabel(" ");
     private final JLabel lblListosDetalle = new JLabel(" ");
     private final JPanel pieDetalle = new JPanel(new BorderLayout());
+    private final JButton btnComandaLista = new Boton("Comanda lista", new Icono(Icono.Tipo.TILDE, 18, Color.WHITE),
+            Boton.Tipo.PRIMARIO);
 
-    /** Platos tildados por ticket (índice del plato dentro de la comanda). Solo en memoria. */
-    private final Map<Integer, Set<Integer>> platosListos = new HashMap<>();
+    /** idPedido de los platos tildados y todavía no enviados. Son únicos, sirven para todas las comandas. */
+    private final Set<Integer> pedidosTildados = new HashSet<>();
     private ComandaDTO comandaMostrada;
     /** true mientras se recarga la lista, para no limpiar el detalle por la selección que se pierde un instante. */
     private boolean recargandoLista;
@@ -127,6 +128,7 @@ public class ComandasPanel extends JPanel {
             }
         });
         btnActualizar.addActionListener(e -> controlador.cargar(true));
+        btnComandaLista.addActionListener(e -> controlador.marcarLista());
 
         // solo refresca si la solapa está a la vista; el timer se apaga al cerrar la ventana
         refresco = new Timer(REFRESCO_MS, e -> {
@@ -239,7 +241,10 @@ public class ComandasPanel extends JPanel {
         pieDetalle.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createMatteBorder(1, 0, 0, 0, Estilo.BORDE),
                 Estilo.relleno(22, 30, 22, 30)));
-        pieDetalle.add(listos, BorderLayout.WEST);
+        JPanel listosCentrados = Estilo.transparente(new GridBagLayout());
+        listosCentrados.add(listos);
+        pieDetalle.add(listosCentrados, BorderLayout.WEST);
+        pieDetalle.add(btnComandaLista, BorderLayout.EAST);
 
         Estilo.Tarjeta tarjeta = new Estilo.Tarjeta(new BorderLayout(), 22);
         tarjeta.setBorder(Estilo.relleno(1, 1, 1, 1));
@@ -273,10 +278,10 @@ public class ComandasPanel extends JPanel {
         } finally {
             recargandoLista = false;
         }
-        // las marcas de tickets que ya no están (se facturaron) no sirven más
-        Set<Integer> abiertos = new HashSet<>();
-        ordenadas.forEach(cm -> abiertos.add(cm.nroTicket()));
-        platosListos.keySet().retainAll(abiertos);
+        // los tildes de pedidos que ya no están pendientes (se enviaron o se facturó el ticket) no sirven más
+        Set<Integer> pendientes = new HashSet<>();
+        ordenadas.forEach(cm -> cm.pedidos().forEach(item -> pendientes.add(item.idPedido())));
+        pedidosTildados.retainAll(pendientes);
 
         lblCantidad.setText(comandas.size() + (comandas.size() == 1 ? " comanda" : " comandas"));
         lblEstado.setForeground(Estilo.TEXTO_SUAVE);
@@ -302,7 +307,6 @@ public class ComandasPanel extends JPanel {
         lblOrigen.setVisible(true);
 
         panelPlatos.removeAll();
-        Set<Integer> listos = platosListos.computeIfAbsent(comanda.nroTicket(), k -> new HashSet<>());
         List<ComandaDTO.Item> items = comanda.pedidos();
         for (int i = 0; i < items.size(); i++) {
             if (i > 0) {
@@ -313,7 +317,7 @@ public class ComandasPanel extends JPanel {
                 linea.setAlignmentX(LEFT_ALIGNMENT);
                 panelPlatos.add(linea);
             }
-            panelPlatos.add(new FilaPlato(items.get(i), i, listos));
+            panelPlatos.add(new FilaPlato(items.get(i)));
         }
         pieDetalle.setVisible(true);
         actualizarListos();
@@ -344,6 +348,24 @@ public class ComandasPanel extends JPanel {
     }
 
     public JButton getBotonActualizar() { return btnActualizar; }
+    public JButton getBotonComandaLista() { return btnComandaLista; }
+
+    /** idPedido de los platos tildados en la comanda elegida (los que se van a marcar como listos). */
+    public List<Integer> pedidosTildadosDeLaComanda() {
+        if (comandaMostrada == null) {
+            return List.of();
+        }
+        return comandaMostrada.pedidos().stream()
+                .map(ComandaDTO.Item::idPedido)
+                .filter(pedidosTildados::contains)
+                .toList();
+    }
+
+    /** Los platos se guardaron como listos: se olvidan sus tildes y el detalle se vuelve a dibujar al recargar. */
+    public void platosEnviados(List<Integer> idsPedido) {
+        idsPedido.forEach(pedidosTildados::remove);
+        comandaMostrada = null;
+    }
 
     // ---------- textos ----------
 
@@ -381,25 +403,28 @@ public class ComandasPanel extends JPanel {
             return;
         }
         // se cuentan platos (cantidades), igual que en la lista: "2× Lasaña" son 2 platos
-        List<ComandaDTO.Item> items = comandaMostrada.pedidos();
-        Set<Integer> tildados = platosListos.getOrDefault(comandaMostrada.nroTicket(), Set.of());
         int total = 0;
         int listos = 0;
-        for (int i = 0; i < items.size(); i++) {
-            total += items.get(i).cantidad();
-            if (tildados.contains(i)) {
-                listos += items.get(i).cantidad();
+        for (ComandaDTO.Item item : comandaMostrada.pedidos()) {
+            total += item.cantidad();
+            if (pedidosTildados.contains(item.idPedido())) {
+                listos += item.cantidad();
             }
         }
         lblListos.setText(listos + " de " + total);
         lblListosDetalle.setText(total == 1 ? " plato listo" : " platos listos");
+
+        // se envían solo los tildados: con todos es la comanda entera; sin ninguno no hay nada que enviar
+        btnComandaLista.setEnabled(listos > 0);
+        btnComandaLista.setText(listos == 0 || listos == total ? "Comanda lista"
+                : "Enviar " + listos + (listos == 1 ? " plato listo" : " platos listos"));
     }
 
     // ---------- piezas visuales ----------
 
     /** Una línea de la comanda: tilde, cantidad, plato y observaciones. Tildado, el plato se tacha. */
     private class FilaPlato extends JPanel {
-        FilaPlato(ComandaDTO.Item item, int indice, Set<Integer> listos) {
+        FilaPlato(ComandaDTO.Item item) {
             super(new GridBagLayout());
             setOpaque(false);
             setBorder(Estilo.relleno(18, 0, 18, 0));
@@ -407,11 +432,10 @@ public class ComandasPanel extends JPanel {
 
             JCheckBox tilde = new JCheckBox();
             tilde.setOpaque(false);
-            tilde.setSelected(listos.contains(indice));
+            tilde.setSelected(pedidosTildados.contains(item.idPedido()));
             tilde.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-            tilde.setToolTipText("Marcar como listo (solo en esta pantalla)");
-            Estilo.flat(tilde, "icon.selectedBackground: #8C5E35; icon.selectedBorderColor: #8C5E35;"
-                    + " icon.checkmarkColor: #FFFFFF; icon.focusWidth: 0");
+            tilde.setToolTipText("Tildalo cuando el plato esté listo; se guarda con el botón de abajo");
+            Estilo.casilla(tilde);
 
             Estilo.Pildora cantidad = new Estilo.Pildora(item.cantidad() + "×", Estilo.SEGMENTO_FONDO,
                     Estilo.CAFE, Estilo.fuente(Font.BOLD, 16f), 12);
@@ -442,9 +466,9 @@ public class ComandasPanel extends JPanel {
             pintar.run();
             tilde.addActionListener(e -> {
                 if (tilde.isSelected()) {
-                    listos.add(indice);
+                    pedidosTildados.add(item.idPedido());
                 } else {
-                    listos.remove(indice);
+                    pedidosTildados.remove(item.idPedido());
                 }
                 pintar.run();
                 actualizarListos();

@@ -23,6 +23,9 @@ public class Pedido {
     @Column(precision = 10, scale = 2)
     private BigDecimal precioUnitario;
     private String observaciones;
+    // true cuando la cocina marco la comanda como lista: el plato ya no aparece para preparar
+    @Column(nullable = false)
+    private boolean listo;
 
     public BigDecimal calcularSubtotal(){
         return precioUnitario.multiply(BigDecimal.valueOf(cantidad));
