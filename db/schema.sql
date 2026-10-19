@@ -178,6 +178,7 @@ CREATE TABLE Pedido (
     cantidad       INT NOT NULL,
     precioUnitario DECIMAL(10,2) NOT NULL,
     observaciones  VARCHAR(255),
+    listo          BOOLEAN NOT NULL DEFAULT FALSE,
     CONSTRAINT ck_pedido_cantidad CHECK (cantidad > 0),
     CONSTRAINT ck_pedido_precio CHECK (precioUnitario >= 0),
     CONSTRAINT fk_pedido_menu FOREIGN KEY (idMenu) REFERENCES Menu (idMenu),
