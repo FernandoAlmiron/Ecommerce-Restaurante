@@ -1,0 +1,101 @@
+<section th:fragment="detalle">
+
+    <h2 th:text="'Ticket #' + ${t.nroTicket}"></h2>
+    <p th:if="${t.reserva != null}"
+       th:text="'Reserva #' + ${t.reserva.nroReserva} + ' · ' + ${t.reserva.zona.nombre} + ' · ' + ${t.reserva.cantComensales} + ' comensales'"></p>
+
+    <!-- ===== Pedidos ===== -->
+    <table>
+        <thead>
+        <tr>
+            <th>Plato</th>
+            <th>Cant.</th>
+            <th>Precio</th>
+            <th>Subtotal</th>
+            <th>Cocina</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="p : ${t.pedidos}">
+            <td>
+                <span th:text="${p.menu.nombre}"></span>
+                <small th:if="${p.observaciones != null and p.observaciones != ''}"
+                       th:text="'(' + ${p.observaciones} + ')'"></small>
+            </td>
+            <td th:text="${p.cantidad}"></td>
+            <td th:text="${'$' + p.precioUnitario}"></td>
+            <td th:text="${'$' + p.calcularSubtotal()}"></td>
+            <td th:text="${p.listo ? '✓ Listo' : 'En preparación'}"></td>
+        </tr>
+        <tr th:if="${t.pedidos == null or t.pedidos.isEmpty()}">
+            <td colspan="5">Todavía no hay pedidos</td>
+        </tr>
+        </tbody>
+    </table>
+
+    <!-- ===== ETAPA 1: ABIERTO → cargar pedidos y cerrar la cuenta ===== -->
+    <th:block th:if="${t.facturacion == null}">
+
+        <p><strong th:text="'Total: $' + ${t.pedidos == null ? 0 : t.calcularTotal()}"></strong></p>
+
+        <form th:hx-post="@{/admin/salon/{id}/pedidos(id=${t.nroTicket})}"
+              hx-target="#detalle-ticket">
+            <select name="idMenu" required>
+                <option value="">Elegí un plato</option>
+                <option th:each="m : ${platos}"
+                        th:value="${m.idMenu}"
+                        th:text="${m.nombre + ' - $' + m.precio}"></option>
+            </select>
+            <input type="number" name="cantidad" value="1" min="1" required>
+            <input type="text"   name="observaciones" placeholder="Observaciones (sin sal, etc.)">
+            <button type="submit">Agregar pedido</button>
+        </form>
+
+        <h3>Cerrar cuenta</h3>
+        <form th:hx-post="@{/admin/salon/{id}/cerrar(id=${t.nroTicket})}"
+              hx-target="#detalle-ticket"
+              hx-confirm="¿Cerrar la cuenta? Después no se pueden agregar más pedidos.">
+            <select name="metodoPago" required>
+                <option value="">Método de pago</option>
+                <option value="EFECTIVO">Efectivo</option>
+                <option value="TARJETA">Tarjeta</option>
+                <option value="QR">QR</option>
+            </select>
+            <button type="submit">Cerrar cuenta</button>
+        </form>
+    </th:block>
+
+    <!-- ===== ETAPA 2 y 3: hay facturación ===== -->
+    <th:block th:if="${t.facturacion != null}" th:with="f=${t.facturacion}">
+
+        <p th:text="'Consumo: $' + ${f.montoTotal}"></p>
+        <p th:text="'Propina: $' + ${f.propina} + (${f.porcentajePropina != null} ? ' (' + ${f.porcentajePropina} + '%)' : '')"></p>
+        <p><strong th:text="'Total a pagar: $' + ${f.montoAPagar}"></strong></p>
+        <p th:text="'Método de pago: ' + ${f.metodoPago}"></p>
+
+        <!-- ETAPA 2: POR COBRAR → propina y confirmar -->
+        <th:block th:if="${f.estadoPago.name() == 'PENDIENTE'}">
+            <p>Propina:
+                <button th:each="pct : ${ {5, 10, 15} }"
+                        th:hx-put="@{/admin/salon/{id}/propina(id=${t.nroTicket}, porcentaje=${pct})}"
+                        hx-target="#detalle-ticket"
+                        th:text="${pct} + '%'"></button>
+            </p>
+
+            <button th:hx-put="@{/admin/salon/{id}/pagar(id=${t.nroTicket})}"
+                    hx-target="#detalle-ticket"
+                    hx-confirm="¿Confirmar que el cliente pagó?">
+                Confirmar pago
+            </button>
+        </th:block>
+
+        <!-- ETAPA 3: PAGADO -->
+        <p th:if="${f.estadoPago.name() == 'PAGADO'}"
+           th:text="'✓ Pagado el ' + ${#temporals.format(f.fechaPago, 'dd/MM/yyyy HH:mm')}"></p>
+    </th:block>
+
+    <!-- fila de la tabla de la izquierda, actualizada "por afuera" -->
+    <template th:if="${oob}">
+        <tr th:replace="~{fragments/admin/ticket-fila :: fila}"></tr>
+    </template>
+</section>

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:hx-on="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>Insumos - Admin</title>
+    <link rel="stylesheet" th:href="@{/style.css}">
+    <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+    <script th:src="@{/errores.js}" defer></script>
+</head>
+<body>
+
+<a th:href="@{/admin}">← Volver al panel</a>
+
+<h1>Insumos y proveedores</h1>
+<div id="mensaje-error" hidden></div>
+
+<!-- ============ INSUMOS ============ -->
+<h2>Nuevo insumo</h2>
+
+<form hx-post="/admin/insumos"
+      hx-target="#tabla-insumos"
+      hx-swap="beforeend"
+      hx-on::after-request="if(event.detail.successful) this.reset()">
+
+    <input type="text" name="nombre" placeholder="Nombre" required>
+
+    <select name="unidadMedida" required>
+        <option value="">Unidad</option>
+        <option value="kg">kg</option>
+        <option value="g">g</option>
+        <option value="l">l</option>
+        <option value="ml">ml</option>
+        <option value="unidad">unidad</option>
+    </select>
+
+    <input type="number" name="cantidadActual" placeholder="Cantidad inicial" step="0.01" min="0" required>
+    <input type="number" name="stockMinimo"    placeholder="Stock mínimo"     step="0.01" min="0">
+
+    <label>
+        <input type="checkbox" name="stockMinimoActivo" value="true">
+        Avisar si baja del mínimo
+    </label>
+
+    <select name="nroCategoria" required>
+        <option value="">Elegí una categoría</option>
+        <option th:each="c : ${categorias}" th:value="${c.nroCategoria}" th:text="${c.nombre}"></option>
+    </select>
+
+    <select name="nroRestaurante" required>
+        <option value="">Elegí un restaurante</option>
+        <option th:each="rest : ${restaurantes}" th:value="${rest.nroRestaurante}" th:text="${rest.nombre}"></option>
+    </select>
+
+    <button type="submit">Agregar insumo</button>
+</form>
+
+<table>
+    <thead>
+    <tr>
+        <th>N°</th>
+        <th>Insumo</th>
+        <th>Categoría</th>
+        <th>Cantidad</th>
+        <th>Mínimo</th>
+        <th>Estado</th>
+        <th>Acciones</th>
+    </tr>
+    </thead>
+    <tbody id="tabla-insumos">
+    <th:block th:each="s : ${insumos}">
+        <tr th:replace="~{fragments/admin/insumo-fila :: fila}"></tr>
+    </th:block>
+    </tbody>
+</table>
+
+<!-- ============ PROVEEDORES ============ -->
+<h2>Nuevo proveedor</h2>
+
+<form hx-post="/admin/insumos/proveedores"
+      hx-target="#tabla-proveedores"
+      hx-swap="beforeend"
+      hx-on::after-request="if(event.detail.successful) this.reset()">
+
+    <input type="text"  name="razonSocial" placeholder="Razón social" required>
+    <input type="text"  name="cuit"        placeholder="CUIT (11 dígitos)" required>
+    <input type="text"  name="telefono"    placeholder="Teléfono">
+    <input type="email" name="email"       placeholder="Email">
+
+    <select name="nroCategoria" required>
+        <option value="">Elegí una categoría</option>
+        <option th:each="c : ${categorias}" th:value="${c.nroCategoria}" th:text="${c.nombre}"></option>
+    </select>
+
+    <button type="submit">Agregar proveedor</button>
+</form>
+
+<table>
+    <thead>
+    <tr>
+        <th>N°</th>
+        <th>Razón social</th>
+        <th>CUIT</th>
+        <th>Teléfono</th>
+        <th>Email</th>
+        <th>Categoría</th>
+        <th>Acciones</th>
+    </tr>
+    </thead>
+    <tbody id="tabla-proveedores">
+    <th:block th:each="prov : ${proveedores}">
+        <tr th:replace="~{fragments/admin/proveedor-fila :: fila}"></tr>
+    </th:block>
+    </tbody>
+</table>
+
+</body>
+</html>

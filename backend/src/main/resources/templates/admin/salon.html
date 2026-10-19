@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:hx-on="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>Salón - Admin</title>
+    <link rel="stylesheet" th:href="@{/style.css}">
+    <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+    <script th:src="@{/errores.js}" defer></script>
+</head>
+<body>
+
+<a th:href="@{/admin}">← Volver al panel</a>
+
+<h1>Salón</h1>
+<div id="mensaje-error" hidden></div>
+
+<div class="salon">
+
+    <!-- ========== Lado izq: tickets ========== -->
+    <div class="salon-lista">
+        <h2>Abrir mesa</h2>
+
+        <form hx-post="/admin/salon"
+              hx-target="#tabla-tickets"
+              hx-swap="beforeend"
+              hx-on::after-request="if(event.detail.successful) this.reset()">
+
+            <select name="nroRestaurante" required>
+                <option value="">Elegí un restaurante</option>
+                <option th:each="rest : ${restaurantes}"
+                        th:value="${rest.nroRestaurante}"
+                        th:text="${rest.nombre}"></option>
+            </select>
+
+            <select name="nroReserva">
+                <option value="">Sin reserva</option>
+                <option th:each="r : ${reservas}"
+                        th:value="${r.nroReserva}"
+                        th:text="${'#' + r.nroReserva + ' - ' + r.cliente.nombre + ' ' + r.cliente.apellido + ' (' + r.cantComensales + ' pers.)'}"></option>
+            </select>
+
+            <button type="submit">Abrir mesa</button>
+        </form>
+
+        <table>
+            <thead>
+            <tr>
+                <th>Ticket</th>
+                <th>Reserva</th>
+                <th>Estado</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody id="tabla-tickets">
+            <th:block th:each="t : ${tickets}">
+                <tr th:replace="~{fragments/admin/ticket-fila :: fila}"></tr>
+            </th:block>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ========== Lado der: detalle ========== -->
+    <div id="detalle-ticket" class="salon-detalle">
+        <p>Elegí un ticket para ver sus pedidos.</p>
+    </div>
+
+</div>
+
+</body>
+</html>
