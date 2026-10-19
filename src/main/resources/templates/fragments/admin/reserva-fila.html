@@ -1,0 +1,47 @@
+<tr th:fragment="fila">
+    <td th:text="${r.nroReserva()}"></td>
+    <td th:text="${r.fecha()}"></td>
+    <td th:text="${r.hora()}"></td>
+    <td th:text="${r.comensales()}"></td>
+    <td th:text="${r.cliente()}"></td>
+    <td th:text="${r.zona()}"></td>
+    <td th:text="${r.estado()}"></td>
+    <td th:text="${r.senia() != null ? '$' + r.senia() : '-'}"></td>
+    <td th:text="${r.asistio() == null ? '-' : (r.asistio() ? 'Sí' : 'No')}"></td>
+    <td>
+        <!-- mostrar boton solo si estadoRes es pendiente -->
+        <button th:if="${r.estado().name() == 'PENDIENTE'}"
+                th:hx-put="@{/admin/reservas/{id}/confirmar(id=${r.nroReserva()})}"
+                hx-target="closest tr"
+                hx-swap="outerHTML">
+            Confirmar
+        </button>
+
+        <!-- mostrar cancelar si el estado es pendiente o es confirmada -->
+
+        <button th:if="${r.estado().name() == 'PENDIENTE' or r.estado().name() == 'CONFIRMADA'}"
+                th:hx-put="@{/admin/reservas/{id}/cancelar(id=${r.nroReserva()})}"
+                hx-target="closest tr"
+                hx-swap="outerHTML">
+            Cancelar
+        </button>
+
+        <!-- Voton de asistencia -->
+
+        <button th:if="${r.estado().name() == 'CONFIRMADA'}"
+                th:hx-put="@{/admin/reservas/{id}/asistencia(id=${r.nroReserva()}, asistio=true)}"
+                hx-target="closest tr"
+                hx-swap="outerHTML">
+            Asistio
+        </button>
+
+        <button th:if="${r.estado().name() == 'CONFIRMADA' and r.senia() != null}"
+                th:hx-put="@{/admin/reservas/{id}/asistencia(id=${r.nroReserva()}, asistio=false)}"
+                hx-target="closest tr"
+                hx-swap="outerHTML">
+            N/Asistio
+        </button>
+
+
+    </td>
+</tr>

@@ -31,9 +31,12 @@ public class MenuService {
         return menuRepository.save(actual);
     }
 
+    // borrado lógico: no se borra de la base (así no se pierden pedidos ni facturas),
+    // se marca como eliminado y deja de aparecer en las listas
     public void eliminar(int idMenu) {
-        buscarPorId(idMenu);   // 404 si no existe
-        menuRepository.deleteById(idMenu);   // si tiene pedidos la base lo rechaza (409) y no se pierde la receta
+        Menu menu = buscarPorId(idMenu);   // 404 si no existe
+        menu.marcarEliminado();
+        menuRepository.save(menu);
     }
 
     private void validar(Menu menu) {
@@ -53,7 +56,8 @@ public class MenuService {
                 .orElseThrow(() -> new java.util.NoSuchElementException("Menu no encontrado"));
     }
 
+    // solo los platos que no fueron eliminados
     public List<Menu> listarTodos() {
-        return menuRepository.findAll();
+        return menuRepository.findByEliminadoFalse();
     }
 }

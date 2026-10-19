@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:hx-on="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>Reservas - Admin</title>
+    <link rel="stylesheet" th:href="@{/style.css}">
+    <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+    <script th:src="@{/js/errores.js}" defer></script>
+</head>
+<body>
+
+<a th:href="@{/admin}">← Volver al panel</a>
+
+<h1>Reservas</h1>
+<div id="mensaje-error" hidden></div>
+
+<h2>Nueva reserva walk-in</h2>
+
+<!-- el formulario-->
+<!-- el beforeend agrega al final de tabla,
+after request cuando termina vacia el formulario y carga otro-->
+
+<form hx-post="/admin/reservas/walkin"
+      hx-target="#tabla-reservas"
+      hx-swap="beforeend"
+      hx-on::after-request="if(event.detail.successful) this.reset()">
+
+    <input type="text"   name="nombre"         placeholder="Nombre"     required>
+    <input type="text"   name="apellido"       placeholder="Apellido"   required>
+    <input type="number" name="dni"            placeholder="DNI"        required>
+    <input type="text"   name="celular"        placeholder="Celular"    required>
+
+    <select name="nroRestaurante" required>
+        <option value="">Elegí un restaurante</option>
+        <option th:each="rest : ${restaurantes}"
+                th:value="${rest.nroRestaurante}"
+                th:text="${rest.nombre}"></option>
+    </select>
+
+    <select name="idZona" required>
+        <option value="">Elegí una zona</option>
+        <option th:each="z : ${zonas}"
+                th:value="${z.idZona}"
+                th:text="${z.nombre}"></option>
+    </select>
+
+    <input type="number" name="cantComensales" placeholder="Comensales" required>
+
+    <button type="submit">Agregar walk-in</button>
+</form>
+
+
+<table>
+    <thead>
+    <tr>
+        <th>N°</th>
+        <th>Fecha</th>
+        <th>Hora</th>
+        <th>Comensales</th>
+        <th>Cliente</th>
+        <th>Zona</th>
+        <th>Estado</th>
+        <th>Seña</th>
+        <th>Asistió</th>
+        <th>Acciones</th>
+    </tr>
+    </thead>
+    <tbody id="tabla-reservas">
+    <th:block th:each="r : ${reservas}">
+        <tr th:replace="~{fragments/admin/reserva-fila :: fila}"></tr>
+    </th:block>
+    </tbody>
+</table>
+
+</body>
+</html>

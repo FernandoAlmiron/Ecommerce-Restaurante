@@ -28,6 +28,7 @@ public class Menu {
     @Column(precision = 10, scale = 2)
     private BigDecimal precio;
     private boolean disponible;
+    private boolean eliminado;   // borrado lógico: true = sacado de la carta para siempre
 
     public boolean estaDisponible(){
         return disponible;
@@ -37,5 +38,9 @@ public class Menu {
     }
     public void marcarNoDisponible(){
         this.disponible=false;
+    }
+    public void marcarEliminado() {
+        this.eliminado = true;
+        this.disponible = false;
     }
 }

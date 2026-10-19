@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:hx-on="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>Carta - Admin</title>
+    <link rel="stylesheet" th:href="@{/style.css}">
+    <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+    <script th:src="@{/js/errores.js}" defer></script>
+</head>
+<body>
+
+<a th:href="@{/admin}">← Volver al panel</a>
+
+<h1>Carta</h1>
+<div id="mensaje-error" hidden></div>
+
+<h2>Nuevo plato</h2>
+
+<form hx-post="/admin/carta"
+      hx-target="#tabla-platos"
+      hx-swap="beforeend"
+      hx-on::after-request="if(event.detail.successful) this.reset()">
+
+    <input type="text"   name="nombre"      placeholder="Nombre"      required>
+    <input type="text"   name="descripcion" placeholder="Descripción">
+    <input type="number" name="precio"      placeholder="Precio" step="0.01" min="0.01" required>
+
+    <select name="nroRestaurante" required>
+        <option value="">Elegí un restaurante</option>
+        <option th:each="rest : ${restaurantes}"
+                th:value="${rest.nroRestaurante}"
+                th:text="${rest.nombre}"></option>
+    </select>
+
+    <label>
+        <input type="checkbox" name="disponible" value="true" checked>
+        Disponible
+    </label>
+
+    <button type="submit">Agregar plato</button>
+</form>
+
+<table>
+    <thead>
+    <tr>
+        <th>N°</th>
+        <th>Nombre</th>
+        <th>Descripción</th>
+        <th>Precio</th>
+        <th>Disponible</th>
+        <th>Restaurante</th>
+        <th>Acciones</th>
+    </tr>
+    </thead>
+    <tbody id="tabla-platos">
+    <th:block th:each="p : ${platos}">
+        <tr th:replace="~{fragments/admin/plato-fila :: fila}"></tr>
+    </th:block>
+    </tbody>
+</table>
+
+</body>
+</html>

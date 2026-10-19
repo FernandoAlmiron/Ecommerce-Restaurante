@@ -41,12 +41,21 @@ public class Reserva {
     public void cancelar(){
         estado=EstadoReserva.CANCELADA;
     }
+    public void finalizar(){ estado = EstadoReserva.FINALIZADA; }
+    public void marcarAusente(){ estado = EstadoReserva.AUSENTE; }
+
     public void marcarAsistencia(boolean asistio) {
-        // los walk-in no tienen sena: sin este control daba NullPointerException (500)
-        if (senia == null) {
-            throw new IllegalStateException("La reserva no tiene sena: no se registra asistencia");
+        // los walk-in no tienen seña: solo se guarda en la seña si existe
+        if (senia != null) {
+            senia.setAsistio(asistio);
         }
-        senia.setAsistio(asistio);
+
+        // cierra la reserva según si vino o no
+        if (asistio) {
+            finalizar();
+        } else {
+            marcarAusente();
+        }
     }
 
 }
