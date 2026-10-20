@@ -1,0 +1,33 @@
+<section th:fragment="detalle">
+    <h2 th:text="${c.nombre + ' ' + c.apellido}"></h2>
+    <p th:text="'DNI ' + ${c.dni} + ' · Cel. ' + ${c.celular}"></p>
+    <p th:if="${c.email != null}" th:text="${c.email}"></p>
+    <p th:text="${c.username != null ? 'Tiene cuenta web (' + c.username + ')' : 'Sin cuenta web'}"></p>
+
+    <h3>Reservas</h3>
+    <table>
+        <thead>
+        <tr>
+            <th>N°</th>
+            <th>Fecha</th>
+            <th>Hora</th>
+            <th>Pers.</th>
+            <th>Zona</th>
+            <th>Estado</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="r : ${reservas}">
+            <td th:text="${r.nroReserva}"></td>
+            <td th:text="${#temporals.format(r.fechaReserva, 'dd/MM/yyyy')}"></td>
+            <td th:text="${r.horaReserva}"></td>
+            <td th:text="${r.cantComensales}"></td>
+            <td th:text="${r.zona != null ? r.zona.nombre : '-'}"></td>
+            <td th:text="${r.estado}"></td>
+        </tr>
+        <tr th:if="${reservas.isEmpty()}">
+            <td colspan="6">Todavía no tiene reservas</td>
+        </tr>
+        </tbody>
+    </table>
+</section>
