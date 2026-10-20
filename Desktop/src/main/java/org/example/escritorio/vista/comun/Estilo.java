@@ -45,6 +45,8 @@ public final class Estilo {
     public static final Color AMARILLO_TEXTO = new Color(0x97600A);
     public static final Color ROJO_FONDO = new Color(0xFBE3E0);
     public static final Color ROJO_TEXTO = new Color(0xB3261E);
+    public static final Color AZUL_FONDO = new Color(0xE3EEFB);
+    public static final Color AZUL_TEXTO = new Color(0x1F5FA8);
     public static final Color VIOLETA_FONDO = new Color(0xECE8FA);
     public static final Color VIOLETA_TEXTO = new Color(0x5B45A8);
     public static final Color GRIS_FONDO = new Color(0xEDE8E4);
@@ -200,6 +202,36 @@ public final class Estilo {
             g2.fillRoundRect(0, 0, getWidth(), getHeight(), a, a);
             g2.dispose();
             super.paintComponent(g);
+        }
+    }
+
+    /** Borde de una línea punteada arriba o abajo, para separar partes como en un ticket de papel. */
+    public static class LineaPunteada implements javax.swing.border.Border {
+        private final boolean arriba;
+
+        public LineaPunteada(boolean arriba) {
+            this.arriba = arriba;
+        }
+
+        @Override
+        public void paintBorder(java.awt.Component c, Graphics g, int x, int y, int ancho, int alto) {
+            Graphics2D g2 = suave(g);
+            g2.setColor(new Color(0xD9CBBE));
+            g2.setStroke(new BasicStroke(1f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10f,
+                    new float[]{4f, 4f}, 0f));
+            int yLinea = arriba ? y : y + alto - 1;
+            g2.drawLine(x, yLinea, x + ancho, yLinea);
+            g2.dispose();
+        }
+
+        @Override
+        public java.awt.Insets getBorderInsets(java.awt.Component c) {
+            return arriba ? new java.awt.Insets(1, 0, 0, 0) : new java.awt.Insets(0, 0, 1, 0);
+        }
+
+        @Override
+        public boolean isBorderOpaque() {
+            return false;
         }
     }
 

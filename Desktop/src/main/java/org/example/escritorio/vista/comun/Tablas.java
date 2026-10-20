@@ -35,7 +35,7 @@ import java.util.function.IntSupplier;
  */
 public final class Tablas {
 
-    public static final int RELLENO_CELDA = 24;
+    public static final int RELLENO_CELDA = 18;
     private static final Locale ARGENTINA = Locale.forLanguageTag("es-AR");
 
     private Tablas() {
@@ -193,6 +193,7 @@ public final class Tablas {
         public static Insignia verde(String texto) { return new Insignia(texto, Estilo.VERDE_FONDO, Estilo.VERDE_TEXTO); }
         public static Insignia amarilla(String texto) { return new Insignia(texto, Estilo.AMARILLO_FONDO, Estilo.AMARILLO_TEXTO); }
         public static Insignia violeta(String texto) { return new Insignia(texto, Estilo.VIOLETA_FONDO, Estilo.VIOLETA_TEXTO); }
+        public static Insignia azul(String texto) { return new Insignia(texto, Estilo.AZUL_FONDO, Estilo.AZUL_TEXTO); }
         public static Insignia roja(String texto) { return new Insignia(texto, Estilo.ROJO_FONDO, Estilo.ROJO_TEXTO); }
         public static Insignia gris(String texto) { return new Insignia(texto, Estilo.GRIS_FONDO, Estilo.GRIS_TEXTO); }
     }

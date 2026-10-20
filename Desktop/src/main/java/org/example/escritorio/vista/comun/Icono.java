@@ -17,7 +17,7 @@ public class Icono implements Icon {
 
     public enum Tipo {
         CALENDARIO, MAS_CIRCULO, OLLA, BILLETE, BICI, PERSONAS, ENGRANAJE,
-        SALIR, LUPA, ACTUALIZAR, MAS, USUARIO, CANDADO, OJO, OJO_TACHADO, TILDE
+        SALIR, LUPA, ACTUALIZAR, MAS, USUARIO, CANDADO, OJO, OJO_TACHADO, TILDE, IZQUIERDA, DERECHA, UBICACION, TELEFONO
     }
 
     private final Tipo tipo;
@@ -121,6 +121,39 @@ public class Icono implements Icon {
             case MAS -> {
                 g2.drawLine(10, 3, 10, 17);
                 g2.drawLine(3, 10, 17, 10);
+            }
+            case UBICACION -> {
+                Path2D gota = new Path2D.Float();
+                gota.moveTo(10, 18);
+                gota.curveTo(5, 12, 4, 9.5, 4, 8);
+                gota.curveTo(4, 4.5, 6.7, 2, 10, 2);
+                gota.curveTo(13.3, 2, 16, 4.5, 16, 8);
+                gota.curveTo(16, 9.5, 15, 12, 10, 18);
+                g2.draw(gota);
+                g2.drawOval(8, 6, 4, 4);
+            }
+            case TELEFONO -> {
+                Path2D tel = new Path2D.Float();
+                tel.moveTo(5, 3);
+                tel.lineTo(8, 3);
+                tel.lineTo(9.5, 7);
+                tel.lineTo(7.5, 8.5);
+                tel.curveTo(8.5, 11, 9, 11.5, 11.5, 12.5);
+                tel.lineTo(13, 10.5);
+                tel.lineTo(17, 12);
+                tel.lineTo(17, 15);
+                tel.curveTo(17, 16.5, 16, 17, 15, 17);
+                tel.curveTo(9, 16.5, 3.5, 11, 3, 5);
+                tel.curveTo(3, 4, 3.5, 3, 5, 3);
+                g2.draw(tel);
+            }
+            case IZQUIERDA -> {
+                g2.drawLine(12, 4, 6, 10);
+                g2.drawLine(6, 10, 12, 16);
+            }
+            case DERECHA -> {
+                g2.drawLine(8, 4, 14, 10);
+                g2.drawLine(14, 10, 8, 16);
             }
             case TILDE -> {
                 Path2D tilde = new Path2D.Float();

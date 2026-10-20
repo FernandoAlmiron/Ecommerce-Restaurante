@@ -3,39 +3,33 @@ package org.example.escritorio.vista.reparto;
 import org.example.Modelo.persona.Empleado;
 import org.example.dto.RemitoDTO;
 import org.example.escritorio.controlador.reparto.AsignarRepartidorControlador;
-import org.example.escritorio.vista.comun.Dialogos;
+import org.example.escritorio.vista.comun.DialogoFormulario;
+import org.example.escritorio.vista.comun.Estilo;
+import org.example.escritorio.vista.comun.Formulario;
 
-import javax.swing.BorderFactory;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
-import javax.swing.JDialog;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JList;
-import javax.swing.JPanel;
-import java.awt.BorderLayout;
 import java.awt.Component;
-import java.awt.FlowLayout;
 import java.awt.Font;
-import java.awt.GridLayout;
 import java.awt.Window;
 import java.util.List;
 
 /** Asignar un repartidor a un envío (RF-36). Solo ADMIN; el combo muestra empleados del sector REPARTIDOR. */
-public class AsignarRepartidorDialog extends JDialog {
+public class AsignarRepartidorDialog extends DialogoFormulario {
 
     private final RemitoDTO envio;
     private final JComboBox<Empleado> cmbRepartidor = new JComboBox<>();
-    private final JButton btnAsignar = new JButton("Asignar");
-    private final JButton btnCancelar = new JButton("Cancelar");
 
     private final AsignarRepartidorControlador controlador;
     private boolean asignado;
 
     public AsignarRepartidorDialog(Window padre, RemitoDTO envio) {
-        super(padre, "Asignar repartidor — Envío N° " + envio.idEnvio(), ModalityType.APPLICATION_MODAL);
+        super(padre, "Reparto · Envío #E-" + envio.idEnvio(), "Asignar repartidor", envio.direccionEntrega(), "Asignar");
         this.envio = envio;
-        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
         cmbRepartidor.setRenderer(new DefaultListCellRenderer() {
             @Override
@@ -49,52 +43,35 @@ public class AsignarRepartidorDialog extends JDialog {
             }
         });
 
-        JLabel titulo = new JLabel("Envío N° " + envio.idEnvio() + " · " + envio.direccionEntrega());
-        titulo.setFont(titulo.getFont().deriveFont(Font.BOLD, 15f));
-
-        JPanel datos = new JPanel(new GridLayout(0, 2, 12, 6));
-        datos.add(new JLabel("Repartidor actual"));
-        datos.add(new JLabel(envio.repartidor()));
-        datos.add(new JLabel("Nuevo repartidor"));
-        datos.add(cmbRepartidor);
-
-        JPanel botones = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
-        botones.add(btnCancelar);
-        botones.add(btnAsignar);
-        getRootPane().setDefaultButton(btnAsignar);
-
-        JPanel raiz = new JPanel(new BorderLayout(0, 16));
-        raiz.setBorder(BorderFactory.createEmptyBorder(20, 24, 20, 24));
-        raiz.add(titulo, BorderLayout.NORTH);
-        raiz.add(datos, BorderLayout.CENTER);
-        raiz.add(botones, BorderLayout.SOUTH);
-        setContentPane(raiz);
-
         controlador = new AsignarRepartidorControlador(this);
-        btnAsignar.addActionListener(e -> controlador.asignar());
-        btnCancelar.addActionListener(e -> dispose());
+        btnPrincipal.addActionListener(e -> controlador.asignar());
         controlador.cargarRepartidores();
 
-        pack();
-        setResizable(false);
-        setLocationRelativeTo(padre);
+        armar();
+    }
+
+    @Override
+    protected JComponent armarCuerpo() {
+        Formulario.estilizar(cmbRepartidor);
+        JLabel actual = new JLabel(envio.repartidor());
+        actual.setFont(Estilo.fuente(Font.BOLD, 16f));
+        actual.setForeground("Sin asignar".equals(envio.repartidor()) ? Estilo.ROJO_TEXTO : Estilo.TEXTO);
+        return Formulario.cuerpo(
+                Formulario.campo("Repartidor actual", actual, null),
+                Formulario.campo("Nuevo repartidor", cmbRepartidor, "Solo aparecen los empleados del sector Reparto."));
     }
 
     // ---------- lo que usa el controlador ----------
 
     public RemitoDTO getEnvio() { return envio; }
     public Empleado getRepartidorElegido() { return (Empleado) cmbRepartidor.getSelectedItem(); }
-    public JButton getBotonAsignar() { return btnAsignar; }
+    public JButton getBotonAsignar() { return btnPrincipal; }
     public JComboBox<Empleado> getComboRepartidor() { return cmbRepartidor; }
 
     public void mostrarRepartidores(List<Empleado> repartidores) {
         cmbRepartidor.removeAllItems();
         repartidores.forEach(cmbRepartidor::addItem);
-        btnAsignar.setEnabled(!repartidores.isEmpty());
-    }
-
-    public void mostrarError(String mensaje) {
-        Dialogos.error(this, mensaje);
+        btnPrincipal.setEnabled(!repartidores.isEmpty());
     }
 
     public void cerrarAsignado() {
