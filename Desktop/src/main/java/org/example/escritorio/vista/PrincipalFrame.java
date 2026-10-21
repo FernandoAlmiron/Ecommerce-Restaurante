@@ -1,6 +1,7 @@
 package org.example.escritorio.vista;
 
 import org.example.escritorio.sesion.Sesion;
+import org.example.escritorio.vista.admin.AdministracionPanel;
 import org.example.escritorio.vista.comun.Dialogos;
 import org.example.escritorio.vista.comun.Estilo;
 import org.example.escritorio.vista.comun.Icono;
@@ -86,7 +87,7 @@ public class PrincipalFrame extends JFrame {
             case CAJA -> new CajaPanel();
             case REPARTO -> new RepartoPanel();
             case RRHH -> new EmpleadosPanel();
-            case ADMINISTRACION -> new PanelPendiente(area);
+            case ADMINISTRACION -> new AdministracionPanel();
         };
     }
 
