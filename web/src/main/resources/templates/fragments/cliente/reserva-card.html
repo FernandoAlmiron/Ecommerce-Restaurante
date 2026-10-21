@@ -1,0 +1,39 @@
+<!-- Una tarjeta de "Mis reservas". La usa reservas.html (una por reserva)
+     y el controller cuando se cancela (HTMX reemplaza solo esta tarjeta). -->
+<article th:fragment="card" class="tarjeta">
+
+    <div class="tarjeta-fecha">
+        <span th:text="${#temporals.format(r.fechaReserva, 'dd/MM/yyyy')}"></span>
+        <span th:text="${#temporals.format(r.horaReserva, 'HH:mm')}"></span>
+    </div>
+
+    <!-- la clase cambia según el estado: estado-confirmada, estado-pendiente... (color en el CSS) -->
+    <p class="estado" th:classappend="'estado-' + ${#strings.toLowerCase(r.estado.name())}"
+       th:text="${r.estado}"></p>
+
+    <ul class="tarjeta-datos">
+        <li><span class="icono">👤</span> <span th:text="${r.cantComensales} + ' Comensales'"></span></li>
+        <li><span class="icono">📍</span> <span th:text="${r.zona.nombre}"></span></li>
+        <li><span class="icono">💳</span>
+            <span th:text="${r.senia != null
+                    ? 'Seña $' + #numbers.formatDecimal(r.senia.monto, 1, 'POINT', 0, 'COMMA')
+                    : 'Sin seña'}"></span></li>
+    </ul>
+
+    <details class="tarjeta-detalle">
+        <summary class="boton-blanco">Ver Detalles</summary>
+        <p th:text="'Reserva N° ' + ${r.nroReserva}"></p>
+        <p th:text="${r.restaurante.nombre}"></p>
+        <p th:if="${r.senia != null}" th:text="'Tarjeta de ' + ${r.senia.tarjeta.titular}"></p>
+    </details>
+
+    <!-- solo se puede cancelar si todavía no pasó (PENDIENTE o CONFIRMADA) -->
+    <button th:if="${r.estado.name() == 'PENDIENTE' or r.estado.name() == 'CONFIRMADA'}"
+            class="boton-blanco texto-rojo"
+            th:hx-put="@{/reservas/{id}/cancelar(id=${r.nroReserva})}"
+            hx-target="closest .tarjeta"
+            hx-swap="outerHTML"
+            hx-confirm="¿Seguro que querés cancelar esta reserva?">
+        Cancelar
+    </button>
+</article>

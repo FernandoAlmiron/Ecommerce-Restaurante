@@ -1,0 +1,19 @@
+<!-- =========================================================
+     Piezas que se repiten en todas las páginas del cliente.
+     Se escriben UNA vez acá y cada página las incluye con:
+       <header th:replace="~{fragments/cliente/layout :: logo}"></header>
+       <nav th:replace="~{fragments/cliente/layout :: nav('reservas')}"></nav>
+     ========================================================= -->
+
+<!-- logo de arriba -->
+<header th:fragment="logo">
+    <a th:href="@{/elegir}"><img th:src="@{/img/logo.png}" alt="La Nona - pastas caseras" class="logo"></a>
+</header>
+
+<!-- barra de abajo: "activo" dice qué botón va pintado de dorado -->
+<nav th:fragment="nav(activo)" class="nav-inferior">
+    <a th:href="@{/elegir}"   th:classappend="${activo == 'inicio'}   ? 'activo'">INICIO</a>
+    <a th:href="@{/pedidos}"  th:classappend="${activo == 'pedidos'}  ? 'activo'">PEDIDOS</a>
+    <a th:href="@{/reservas}" th:classappend="${activo == 'reservas'} ? 'activo'">RESERVAS</a>
+    <a th:href="@{/perfil}"   th:classappend="${activo == 'perfil'}   ? 'activo'">PERFIL</a>
+</nav>

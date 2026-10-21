@@ -1,0 +1,748 @@
+/* =====================================================================
+   LA NONA - Estilos del front web
+   ---------------------------------------------------------------------
+   Índice
+     1. Fuentes y colores (variables)
+     2. Base: lo que comparten todas las páginas
+     3. Componentes comunes: logo, botones, inputs, alertas
+     4. CLIENTE · Landing (carta pública)
+     5. CLIENTE · Login
+     6. CLIENTE · Crear cuenta
+     7. CLIENTE · Elegir presencial / delivery
+     8. Celular (pantallas angostas)
+     9. CLIENTE · Barra de navegación de abajo
+    10. CLIENTE · Mis reservas
+    11. CLIENTE · Registrar reserva
+
+   Las páginas del cliente tienen <body class="cliente">, así estos
+   estilos no se mezclan con los del panel de admin.
+
+   ⚠️ ADAPTADO AL BACKEND = el diseño de Figma se cambió para que
+   coincida con lo que el backend guarda y valida (sin tocar la API).
+   ===================================================================== */
+
+
+/* =====================================================================
+   1. FUENTES Y COLORES
+   Se definen una sola vez como variables (--nombre) y se usan con
+   var(--nombre). Si cambia un color, se cambia solo acá.
+   ===================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;700;800&family=Oswald:wght@500&display=swap');
+
+:root {
+    --dorado:        #A0753A;   /* botones principales */
+    --dorado-oscuro: #87612E;   /* botón al pasar el mouse */
+    --beige:         #BC9B70;   /* tarjetas (pedidos, reservas) */
+    --beige-claro:   #F3E9DC;   /* fondos suaves */
+    --marron:        #9A6243;   /* "PRESENCIAL", "DELIVERY", títulos con color */
+    --gris-input:    #E6E6E6;   /* fondo de los campos */
+    --gris-texto:    #6B6B6B;   /* textos chicos y aclaraciones */
+    --negro:         #1A1A1A;
+    --blanco:        #FFFFFF;
+
+    --error:         #C0392B;
+    --ok:            #2E7D32;
+
+    --fuente:        'Lexend', system-ui, sans-serif;
+    --fuente-titulo: 'Oswald', 'Lexend', sans-serif;
+
+    --radio:         8px;       /* esquinas redondeadas de botones e inputs */
+}
+
+
+/* =====================================================================
+   2. BASE
+   ===================================================================== */
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;     /* el padding no agranda las cajas */
+}
+
+body.cliente {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--blanco);
+    color: var(--negro);
+    font-family: var(--fuente);
+    font-weight: 300;
+    font-size: 15px;
+    line-height: 1.5;
+
+    /* todo centrado en una columna, como en Figma */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px 40px;
+}
+
+body.cliente a {
+    color: var(--negro);
+    font-weight: 500;
+    text-decoration: none;
+}
+
+body.cliente a:hover {
+    text-decoration: underline;
+}
+
+
+/* =====================================================================
+   3. COMPONENTES COMUNES
+   ===================================================================== */
+
+/* --- Logo (es una imagen: static/img/logo.png) --- */
+body.cliente .logo {
+    display: block;
+    width: 230px;
+    max-width: 70vw;
+    height: auto;
+    margin: 0 auto;
+}
+
+/* --- Botón principal dorado ---
+   Sirve para <button> y para links con class="boton" */
+body.cliente button,
+body.cliente .boton {
+    display: inline-block;
+    width: 100%;
+    padding: 10px 20px;
+    border: none;
+    border-radius: var(--radio);
+    background: var(--dorado);
+    color: var(--blanco);
+    font-family: var(--fuente);
+    font-size: 15px;
+    font-weight: 400;
+    text-align: center;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+body.cliente button:hover,
+body.cliente .boton:hover {
+    background: var(--dorado-oscuro);
+    text-decoration: none;
+}
+
+/* --- Campos de texto: gris claro, sin borde, como en Figma --- */
+body.cliente input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    background: var(--gris-input);
+    font-family: var(--fuente);
+    font-size: 14px;
+    color: var(--negro);
+}
+
+body.cliente input::placeholder {
+    color: var(--gris-texto);
+}
+
+/* al hacer click en un campo se marca con el dorado */
+body.cliente input:focus {
+    outline: none;
+    border-color: var(--dorado);
+    background: var(--blanco);
+}
+
+/* --- Mensajes de aviso ---
+   ⚠️ ADAPTADO AL BACKEND: no están en Figma. Muestran lo que responde el
+   backend: "Email o contraseña incorrectos", "Las contraseñas no
+   coinciden", "Ese DNI ya tiene una cuenta", etc. */
+body.cliente .alerta {
+    width: 100%;
+    margin: 0 0 12px;
+    padding: 10px 14px;
+    border-radius: var(--radio);
+    font-size: 14px;
+    text-align: center;
+}
+
+body.cliente .alerta.error {
+    background: #FDECEA;
+    color: var(--error);
+}
+
+body.cliente .alerta.ok {
+    background: #E8F5E9;
+    color: var(--ok);
+}
+
+
+/* =====================================================================
+   4. CLIENTE · LANDING (cliente/landing.html)
+   La carta pública: los platos en zigzag (texto - foto / foto - texto)
+   y el botón "Iniciar / Registrarme" abajo.
+   ===================================================================== */
+
+body.cliente header {
+    margin-bottom: 32px;
+}
+
+body.cliente .carta {
+    width: 100%;
+    max-width: 640px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* cada plato: foto y texto uno al lado del otro */
+body.cliente .plato {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+}
+
+/* zigzag: en los platos impares (1°, 3°, 5°...) el texto va a la
+   izquierda y la foto a la derecha. En los pares queda al revés.
+   En el HTML siempre va primero la foto y después el texto;
+   el orden visual lo da el CSS. */
+body.cliente .plato:nth-child(odd) {
+    flex-direction: row-reverse;
+}
+
+/* la foto con forma ovalada, como en Figma.
+   object-fit: cover recorta la foto sin deformarla.
+   ⚠️ ADAPTADO AL BACKEND: el plato (Menu) no guarda imagen. Cada foto se
+   busca por el número del plato: static/img/platos/1.jpg, 2.jpg... */
+body.cliente .plato img {
+    flex: 1;
+    width: 50%;
+    aspect-ratio: 3 / 2;
+    object-fit: cover;
+    border-radius: 50%;
+    background: var(--beige-claro);   /* se ve si todavía no hay foto */
+}
+
+/* el texto del plato, centrado */
+body.cliente .plato div {
+    flex: 1;
+    text-align: center;
+    font-size: 14px;
+}
+
+body.cliente .plato h3 {
+    margin: 0 0 4px;
+    font-size: 15px;
+    font-weight: 500;
+}
+
+body.cliente .plato p {
+    margin: 0 0 4px;
+}
+
+body.cliente .plato strong {
+    font-weight: 700;
+}
+
+/* botón "Iniciar / Registrarme" y el textito de abajo */
+body.cliente .acciones {
+    margin-top: 32px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+body.cliente .acciones .boton {
+    width: auto;
+    padding: 10px 36px;
+    color: var(--blanco);
+}
+
+body.cliente .acciones small {
+    color: var(--gris-texto);
+    font-size: 13px;
+}
+
+
+/* =====================================================================
+   5 y 6. CLIENTE · LOGIN y CREAR CUENTA (cliente/login.html, registro.html)
+   Las dos usan <main class="auth">: una columna angosta y centrada.
+   ===================================================================== */
+
+body.cliente .auth {
+    width: 100%;
+    max-width: 300px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+body.cliente .auth form {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* --- LOGIN: logo grande y mucho aire arriba, como en Figma --- */
+body.cliente .auth .logo {
+    width: 280px;
+    margin: 40px auto 56px;
+}
+
+body.cliente .auth h1 {
+    margin: 0 0 16px;
+    font-size: 17px;
+    font-weight: 400;
+}
+
+/* ⚠️ ADAPTADO AL BACKEND: en Figma el login tiene solo el email y
+   "Continuar". Se agregó el campo contraseña en la misma pantalla
+   porque Spring Security valida email + contraseña juntos.
+   Tampoco está "¿Olvidaste tu correo?": el backend no manda mails. */
+body.cliente .auth > a {
+    align-self: flex-end;
+    margin-top: 12px;
+    font-size: 13px;
+}
+
+/* --- CREAR CUENTA: logo más chico y título grande en negrita --- */
+body.cliente .auth:has(input[name="password2"]) .logo {
+    width: 180px;
+    margin: 0 auto 24px;
+}
+
+body.cliente .auth:has(input[name="password2"]) h1 {
+    margin: 0 0 28px;
+    font-size: 36px;
+    font-weight: 800;
+}
+
+/* nombre y apellido en la misma fila */
+body.cliente .fila {
+    display: flex;
+    gap: 8px;
+}
+
+/* separación extra antes de la contraseña, como en Figma */
+body.cliente .auth input[name="password"] {
+    margin-top: 8px;
+}
+
+/* ⚠️ ADAPTADO AL BACKEND: en Figma el último campo es "Fecha de
+   nacimiento". Se cambió por DNI porque el cliente (Persona) no guarda
+   fecha de nacimiento y el DNI es obligatorio para registrarse.
+   Además el email se usa como usuario para iniciar sesión. */
+
+/* textito de términos y condiciones */
+body.cliente .auth small {
+    margin-top: 14px;
+    color: var(--gris-texto);
+    font-size: 11px;
+    text-align: left;
+}
+
+/* sacar las flechitas del campo DNI (input number) */
+body.cliente input[type="number"]::-webkit-inner-spin-button,
+body.cliente input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+body.cliente input[type="number"] {
+    -moz-appearance: textfield;
+}
+
+
+/* =====================================================================
+   7. CLIENTE · ELEGIR (cliente/elegir.html)
+   Dos opciones grandes una debajo de la otra: PRESENCIAL y DELIVERY.
+   ===================================================================== */
+
+body.cliente .elegir {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 64px;
+    margin-top: 16px;
+}
+
+body.cliente .opcion {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    transition: transform 0.2s;
+}
+
+/* al pasar el mouse la opción se agranda un poquito */
+body.cliente .opcion:hover {
+    transform: scale(1.05);
+    text-decoration: none;
+}
+
+body.cliente .opcion img {
+    width: 130px;
+    height: 130px;
+    object-fit: contain;
+}
+
+body.cliente .opcion span {
+    font-family: var(--fuente-titulo);
+    font-size: 26px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    color: var(--marron);
+}
+
+/* "Cerrar sesión": discreto, no compite con las dos opciones */
+body.cliente > form button {
+    width: auto;
+    margin-top: 48px;
+    background: none;
+    color: var(--gris-texto);
+    font-size: 13px;
+    text-decoration: underline;
+}
+
+body.cliente > form button:hover {
+    background: none;
+    color: var(--negro);
+}
+
+
+/* =====================================================================
+   8. CELULAR
+   En pantallas angostas los platos se apilan: foto arriba, texto abajo.
+   ===================================================================== */
+
+@media (max-width: 600px) {
+    body.cliente .plato,
+    body.cliente .plato:nth-child(odd) {
+        flex-direction: column;
+    }
+
+    body.cliente .plato img {
+        width: 100%;
+    }
+
+    body.cliente .auth:has(input[name="password2"]) h1 {
+        font-size: 28px;
+    }
+}
+
+
+/* =====================================================================
+   9. CLIENTE · BARRA DE NAVEGACIÓN (fragments/cliente/layout.html)
+   La "pastilla" de abajo: INICIO · PEDIDOS · RESERVAS · PERFIL.
+   Queda fija abajo de la pantalla; el botón de la página actual
+   (clase "activo") va pintado de dorado.
+   ===================================================================== */
+
+/* las páginas con barra dejan lugar abajo para que no tape nada */
+body.cliente.con-nav {
+    padding-bottom: 110px;
+}
+
+body.cliente .nav-inferior {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);   /* centrada */
+    display: flex;
+    gap: 4px;
+    padding: 4px;
+    background: #F2F2F5;
+    border: 1px solid var(--negro);
+    border-radius: 999px;          /* bordes totalmente redondos */
+    z-index: 10;
+}
+
+body.cliente .nav-inferior a {
+    padding: 8px 18px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--negro);
+}
+
+body.cliente .nav-inferior a.activo {
+    background: var(--dorado);
+}
+
+body.cliente .nav-inferior a:hover {
+    text-decoration: none;
+    background: var(--beige-claro);
+}
+
+body.cliente .nav-inferior a.activo:hover {
+    background: var(--dorado);
+}
+
+
+/* =====================================================================
+   10. CLIENTE · MIS RESERVAS (cliente/reservas.html)
+   Título con botón "+ Nueva Reserva" y tarjetas beige en fila.
+   ===================================================================== */
+
+body.cliente .mis-reservas {
+    width: 100%;
+    max-width: 860px;
+}
+
+/* título centrado y el botón a la derecha */
+body.cliente .titulo-con-boton {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 8px 0 28px;
+}
+
+body.cliente .titulo-con-boton h1 {
+    margin: 0;
+    font-size: 30px;
+    font-weight: 400;
+}
+
+body.cliente .titulo-con-boton .boton-beige {
+    position: absolute;
+    right: 0;
+}
+
+/* botón beige con sombra ("+ Nueva Reserva") */
+body.cliente .boton-beige {
+    padding: 8px 28px;
+    border-radius: 999px;
+    background: var(--beige);
+    color: var(--negro);
+    font-weight: 400;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+body.cliente .boton-beige:hover {
+    text-decoration: none;
+    filter: brightness(1.05);
+}
+
+/* las tarjetas: se acomodan solas en columnas de 220px como mínimo */
+body.cliente .tarjetas {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 16px;
+}
+
+body.cliente .tarjeta {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 14px;
+    border-radius: 20px;
+    background: var(--beige);
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
+}
+
+/* fecha y hora en "pastillas" más oscuras */
+body.cliente .tarjeta-fecha {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+}
+
+body.cliente .tarjeta-fecha span {
+    padding: 2px 10px;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.08);
+    font-size: 13px;
+}
+
+/* el estado, con un color distinto para cada uno */
+body.cliente .estado {
+    margin: 0;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+body.cliente .estado-confirmada  { color: #C6F29B; }   /* verde */
+body.cliente .estado-pendiente   { color: #FFC24B; }   /* naranja */
+body.cliente .estado-cancelada   { color: #B3261E; }   /* rojo */
+body.cliente .estado-finalizada  { color: #FFFFFF; }   /* blanco */
+body.cliente .estado-ausente     { color: #5A3E26; }   /* marrón */
+
+/* comensales, zona y seña con su ícono */
+body.cliente .tarjeta-datos {
+    margin: 0;
+    padding: 0 6px;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    font-size: 13px;
+}
+
+body.cliente .tarjeta-datos .icono {
+    display: inline-block;
+    width: 26px;
+}
+
+/* botones blancos de las tarjetas ("Ver Detalles", "Cancelar") */
+body.cliente .boton-blanco {
+    display: block;
+    width: 100%;
+    padding: 8px;
+    border-radius: 999px;
+    background: var(--blanco);
+    color: var(--negro);
+    text-align: center;
+    font-size: 13px;
+    cursor: pointer;
+    list-style: none;   /* le saca el triangulito al <summary> */
+}
+
+body.cliente button.boton-blanco:hover {
+    background: var(--beige-claro);
+}
+
+body.cliente .texto-rojo {
+    color: #D62F22;
+}
+
+/* "Ver Detalles": un <details> de HTML, se abre y cierra sin JavaScript */
+body.cliente .tarjeta-detalle summary::-webkit-details-marker {
+    display: none;
+}
+
+body.cliente .tarjeta-detalle p {
+    margin: 6px 4px 0;
+    font-size: 12px;
+}
+
+body.cliente .vacio {
+    text-align: center;
+    color: var(--gris-texto);
+}
+
+
+/* =====================================================================
+   11. CLIENTE · REGISTRAR RESERVA (cliente/reserva-nueva.html)
+   Cada campo es una caja con borde: el nombre a la izquierda y el
+   valor a la derecha, separados por una línea (como en Figma).
+   ===================================================================== */
+
+body.cliente .registrar-reserva {
+    width: 100%;
+    max-width: 260px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+body.cliente .registrar-reserva h1 {
+    margin: 48px 0 40px;
+    font-size: 30px;
+    font-weight: 400;
+    line-height: 1.6;
+    text-align: center;
+}
+
+body.cliente .registrar-reserva form {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* la caja del campo: nombre | valor */
+body.cliente .campo {
+    display: flex;
+    border: 1px solid var(--negro);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+body.cliente .campo span {
+    flex: 1;
+    padding: 8px 10px;
+    border-right: 1px solid var(--negro);
+    font-size: 12px;
+    font-weight: 400;
+}
+
+body.cliente .campo input,
+body.cliente .campo select {
+    flex: 1;
+    min-width: 0;
+    padding: 6px 8px;
+    border: none;
+    border-radius: 0;
+    background: var(--blanco);
+    font-family: var(--fuente);
+    font-size: 12px;
+}
+
+body.cliente .campo:focus-within {
+    border-color: var(--dorado);
+}
+
+body.cliente .aclaracion {
+    margin: 0;
+    color: var(--gris-texto);
+    font-size: 12px;
+    text-align: center;
+}
+
+/* ⚠️ ADAPTADO AL BACKEND: la seña no está en Figma. El backend no deja
+   reservar sin una seña con tarjeta vigente. Se muestra en una caja beige
+   para que se note que es algo aparte. */
+body.cliente .senia {
+    margin: 4px 0;
+    padding: 12px;
+    border: none;
+    border-radius: 12px;
+    background: var(--beige-claro);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+body.cliente .senia legend {
+    float: left;
+    font-weight: 500;
+    font-size: 14px;
+}
+
+body.cliente .senia small {
+    color: var(--gris-texto);
+    font-size: 11px;
+}
+
+/* ⚠️ ADAPTADO AL BACKEND: en Figma también estaban "Num Reserva", "Cliente"
+   y "Num Restaurante". No se piden: el número lo genera la base, el cliente
+   sale del login y el restaurante es uno solo. */
+
+/* botón "Cancelar": blanco con borde dorado */
+body.cliente .boton-borde {
+    display: block;
+    padding: 9px;
+    border: 1px solid var(--dorado);
+    border-radius: var(--radio);
+    text-align: center;
+    font-weight: 400;
+}
+
+body.cliente .boton-borde:hover {
+    background: var(--beige-claro);
+    text-decoration: none;
+}
+
+@media (max-width: 600px) {
+    body.cliente .titulo-con-boton {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    body.cliente .titulo-con-boton .boton-beige {
+        position: static;
+    }
+}

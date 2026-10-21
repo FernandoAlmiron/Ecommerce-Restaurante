@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Registrar reserva - La Nona</title>
+    <link rel="stylesheet" th:href="@{/style.css}">
+</head>
+<body class="cliente">
+
+<main class="registrar-reserva">
+    <h1>Registrar<br>Reserva</h1>
+
+    <p th:if="${error}" th:text="${error}" class="alerta error"></p>
+
+    <!-- formulario común (sin HTMX): si sale bien, redirige a "Mis reservas" -->
+    <form th:action="@{/reservas/nueva}" method="post">
+
+        <label class="campo">
+            <span>Cant Comensales</span>
+            <input type="number" name="cantComensales" min="1" th:value="${param.cantComensales}" required>
+        </label>
+
+        <label class="campo">
+            <span>Fecha</span>
+            <input type="date" name="fecha" th:min="${hoy}" th:value="${param.fecha}" required>
+        </label>
+
+        <label class="campo">
+            <span>Hora</span>
+            <input type="time" name="hora" th:value="${param.hora}" required>
+        </label>
+
+        <label class="campo">
+            <span>Zona</span>
+            <select name="idZona" required>
+                <option value="">Elegí</option>
+                <option th:each="z : ${zonas}"
+                        th:value="${z.idZona}"
+                        th:text="${z.nombre + ' (hasta ' + z.capacidadMaxima + ')'}"
+                        th:selected="${param.idZona != null and param.idZona[0] == '' + z.idZona}"></option>
+            </select>
+        </label>
+
+        <p class="aclaracion" th:text="'Abierto de ' + ${#temporals.format(restaurante.horarioApertura, 'HH:mm')}
+                                     + ' a ' + ${#temporals.format(restaurante.horarioCierre, 'HH:mm')} + ' hs'"></p>
+
+        <!-- ⚠️ ADAPTADO AL BACKEND: no está en Figma. El backend exige una seña con
+             tarjeta vigente para reservar (se cobra solo si no venís). -->
+        <fieldset class="senia">
+            <legend th:text="'Seña $' + ${#numbers.formatDecimal(montoSenia, 1, 'POINT', 0, 'COMMA')}"></legend>
+            <small>Se cobra solo si no asistís a la reserva.</small>
+
+            <label class="campo">
+                <span>Titular tarjeta</span>
+                <input type="text" name="titular" th:value="${param.titular}" required>
+            </label>
+
+            <label class="campo">
+                <span>Vencimiento</span>
+                <input type="month" name="vencimiento" th:min="${mesActual}" th:value="${param.vencimiento}" required>
+            </label>
+        </fieldset>
+
+        <button type="submit">Confirmar</button>
+        <a th:href="@{/elegir}" class="boton-borde">Cancelar</a>
+    </form>
+</main>
+
+</body>
+</html>

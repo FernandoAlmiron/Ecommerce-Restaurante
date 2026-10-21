@@ -15,7 +15,7 @@
         <div>
             <h3 th:text="${p.nombre}"></h3>
             <p th:text="${p.descripcion}"></p>
-            <strong th:text="${'$ ' + p.precio}"></strong>
+            <strong th:text="'$ ' + ${#numbers.formatDecimal(p.precio, 1, 'POINT', 0, 'COMMA')}"></strong>
         </div>
     </article>
 </main>
