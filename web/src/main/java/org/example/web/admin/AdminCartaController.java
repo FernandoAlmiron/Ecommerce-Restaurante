@@ -1,4 +1,4 @@
-package org.example.web;
+package org.example.web.admin;
 import org.example.Modelo.menu.Menu;
 import org.example.service.RestauranteService;
 import org.example.service.menu.MenuService;

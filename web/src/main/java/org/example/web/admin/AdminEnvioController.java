@@ -1,4 +1,4 @@
-package org.example.web;
+package org.example.web.admin;
 
 public class AdminEnvioController {
 }
