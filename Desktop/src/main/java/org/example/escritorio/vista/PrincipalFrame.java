@@ -1,6 +1,7 @@
 package org.example.escritorio.vista;
 
 import org.example.escritorio.sesion.Sesion;
+import org.example.escritorio.vista.comun.Avatar;
 import org.example.escritorio.vista.comun.Dialogos;
 import org.example.escritorio.vista.comun.Estilo;
 import org.example.escritorio.vista.comun.Icono;
@@ -29,7 +30,6 @@ import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridBagConstraints;
@@ -180,7 +180,7 @@ public class PrincipalFrame extends JFrame {
         tarjeta.setBackground(Estilo.CAFE_OSCURO);
         tarjeta.setBorder(Estilo.relleno(14, 16, 14, 12));
 
-        JComponent avatar = new Avatar(iniciales(Sesion.nombreCompleto()));
+        JComponent avatar = new Avatar(50, 17f, Sesion.nombreCompleto());
 
         JLabel nombre = new JLabel("<html>" + escapar(Sesion.nombreCompleto()) + "</html>");
         nombre.setFont(Estilo.fuente(Font.BOLD, 15f));
@@ -221,16 +221,6 @@ public class PrincipalFrame extends JFrame {
         c.insets = new Insets(0, 0, 0, 0);
         tarjeta.add(salir, c);
         return tarjeta;
-    }
-
-    private static String iniciales(String nombreCompleto) {
-        StringBuilder sb = new StringBuilder();
-        for (String parte : nombreCompleto.trim().split("\\s+")) {
-            if (!parte.isEmpty() && sb.length() < 2) {
-                sb.append(Character.toUpperCase(parte.charAt(0)));
-            }
-        }
-        return sb.toString();
     }
 
     private static String escapar(String texto) {
@@ -287,33 +277,6 @@ public class PrincipalFrame extends JFrame {
             }
             g2.dispose();
             super.paintComponent(g);
-        }
-    }
-
-    /** Círculo blanco con las iniciales del empleado. */
-    private static class Avatar extends JComponent {
-        private final String iniciales;
-
-        Avatar(String iniciales) {
-            this.iniciales = iniciales;
-            Dimension tam = new Dimension(50, 50);
-            setPreferredSize(tam);
-            setMinimumSize(tam);
-            setFont(Estilo.fuente(Font.BOLD, 17f));
-        }
-
-        @Override
-        protected void paintComponent(Graphics g) {
-            Graphics2D g2 = Estilo.suave(g);
-            g2.setColor(Color.WHITE);
-            g2.fillOval(0, 0, getWidth() - 1, getHeight() - 1);
-            g2.setColor(Estilo.CAFE_OSCURO);
-            g2.setFont(getFont());
-            FontMetrics fm = g2.getFontMetrics();
-            int x = (getWidth() - fm.stringWidth(iniciales)) / 2;
-            int y = (getHeight() - fm.getHeight()) / 2 + fm.getAscent();
-            g2.drawString(iniciales, x, y);
-            g2.dispose();
         }
     }
 }

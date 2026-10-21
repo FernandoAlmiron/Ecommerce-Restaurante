@@ -3,27 +3,19 @@ package org.example.escritorio.vista.rrhh;
 import org.example.Modelo.persona.Empleado;
 import org.example.Modelo.persona.Sector;
 import org.example.escritorio.controlador.rrhh.EmpleadoEdicionControlador;
-import org.example.escritorio.vista.comun.Dialogos;
+import org.example.escritorio.vista.comun.DialogoFormulario;
+import org.example.escritorio.vista.comun.Formulario;
 
-import javax.swing.BorderFactory;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
-import javax.swing.JDialog;
-import javax.swing.JLabel;
 import javax.swing.JList;
-import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
-import java.awt.BorderLayout;
 import java.awt.Component;
-import java.awt.FlowLayout;
-import java.awt.Font;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
 import java.awt.Window;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -31,7 +23,7 @@ import java.util.Optional;
  * Alta o modificación de los datos de un empleado (RF-53, RF-54). Con empleado null es un alta.
  * En el alta se cargan también la clave y el sector; al modificar no, porque tienen sus propias acciones.
  */
-public class EmpleadoDialog extends JDialog {
+public class EmpleadoDialog extends DialogoFormulario {
 
     private final Empleado empleado;
 
@@ -43,16 +35,17 @@ public class EmpleadoDialog extends JDialog {
     private final JPasswordField txtClave = new JPasswordField(16);
     private final JPasswordField txtRepetirClave = new JPasswordField(16);
     private final JComboBox<Sector> cmbSector = new JComboBox<>();
-    private final JButton btnGuardar = new JButton("Guardar");
-    private final JButton btnCancelar = new JButton("Cancelar");
 
     private final EmpleadoEdicionControlador controlador;
     private Empleado guardado;
 
     public EmpleadoDialog(Window padre, Empleado empleado) {
-        super(padre, empleado == null ? "Nuevo empleado" : "Modificar empleado", ModalityType.APPLICATION_MODAL);
+        super(padre, empleado == null ? "Recursos humanos" : "Recursos humanos · Legajo " + empleado.getLegajo(),
+                empleado == null ? "Nuevo empleado" : "Modificar datos",
+                empleado == null ? "Completá sus datos, el usuario para entrar al sistema y el sector."
+                        : empleado.getApellido() + ", " + empleado.getNombre(),
+                "Guardar");
         this.empleado = empleado;
-        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
         cmbSector.setRenderer(new DefaultListCellRenderer() {
             @Override
@@ -60,17 +53,11 @@ public class EmpleadoDialog extends JDialog {
                                                           boolean seleccionado, boolean foco) {
                 super.getListCellRendererComponent(lista, valor, indice, seleccionado, foco);
                 if (valor instanceof Sector s) {
-                    setText(s.getNombre());
+                    setText(EmpleadoTableModel.textoSector(s.getNombre()));
                 }
                 return this;
             }
         });
-
-        JPanel raiz = new JPanel(new BorderLayout(0, 16));
-        raiz.setBorder(BorderFactory.createEmptyBorder(20, 24, 20, 24));
-        raiz.add(armarFormulario(), BorderLayout.CENTER);
-        raiz.add(armarBotones(), BorderLayout.SOUTH);
-        setContentPane(raiz);
 
         if (empleado != null) {
             txtNombre.setText(empleado.getNombre());
@@ -81,58 +68,41 @@ public class EmpleadoDialog extends JDialog {
         }
 
         controlador = new EmpleadoEdicionControlador(this);
-        btnGuardar.addActionListener(e -> controlador.guardar());
-        btnCancelar.addActionListener(e -> dispose());
+        btnPrincipal.addActionListener(e -> controlador.guardar());
         if (empleado == null) {
             controlador.cargarSectores();
         }
 
-        pack();
-        setResizable(false);
-        setLocationRelativeTo(padre);
+        armar();
     }
 
-    private JPanel armarFormulario() {
-        JPanel panel = new JPanel(new GridBagLayout());
-        GridBagConstraints c = new GridBagConstraints();
-        c.anchor = GridBagConstraints.WEST;
-        c.fill = GridBagConstraints.HORIZONTAL;
-        c.insets = new Insets(4, 0, 4, 12);
+    @Override
+    protected JComponent armarCuerpo() {
+        Formulario.estilizar(txtNombre, null);
+        Formulario.estilizar(txtApellido, null);
+        Formulario.estilizar(txtDni, "Sin puntos");
+        Formulario.estilizar(txtCelular, "Opcional");
+        Formulario.estilizar(txtUsuario, "Con este entra al sistema");
+        Formulario.estilizar(txtClave, null);
+        Formulario.estilizar(txtRepetirClave, null);
+        Formulario.estilizar(cmbSector);
 
-        JLabel titulo = new JLabel(empleado == null ? "Nuevo empleado"
-                : empleado.getApellido() + ", " + empleado.getNombre() + " · legajo " + empleado.getLegajo());
-        titulo.setFont(titulo.getFont().deriveFont(Font.BOLD, 16f));
-        c.gridx = 0; c.gridy = 0; c.gridwidth = 2;
-        panel.add(titulo, c);
-        c.gridwidth = 1;
-
-        int y = 1;
-        fila(panel, c, y++, "Nombre", txtNombre);
-        fila(panel, c, y++, "Apellido", txtApellido);
-        fila(panel, c, y++, "DNI", txtDni);
-        fila(panel, c, y++, "Celular", txtCelular);
-        fila(panel, c, y++, "Usuario", txtUsuario);
+        List<JComponent> filas = new ArrayList<>(List.of(
+                Formulario.enFila(
+                        Formulario.campo("Nombre", txtNombre, null),
+                        Formulario.campo("Apellido", txtApellido, null)),
+                Formulario.enFila(
+                        Formulario.campo("DNI", txtDni, null),
+                        Formulario.campo("Celular", txtCelular, null)),
+                Formulario.campo("Usuario", txtUsuario, null)));
         if (empleado == null) {
-            fila(panel, c, y++, "Clave", txtClave);
-            fila(panel, c, y++, "Repetir clave", txtRepetirClave);
-            fila(panel, c, y, "Sector", cmbSector);
+            // la clave y el sector solo se cargan en el alta; después tienen sus propias acciones
+            filas.add(Formulario.enFila(
+                    Formulario.campo("Clave", txtClave, null),
+                    Formulario.campo("Repetir clave", txtRepetirClave, null)));
+            filas.add(Formulario.campo("Sector", cmbSector, null));
         }
-        return panel;
-    }
-
-    private void fila(JPanel panel, GridBagConstraints c, int y, String etiqueta, JComponent campo) {
-        c.gridx = 0; c.gridy = y; c.weightx = 0;
-        panel.add(new JLabel(etiqueta), c);
-        c.gridx = 1; c.weightx = 1;
-        panel.add(campo, c);
-    }
-
-    private JPanel armarBotones() {
-        JPanel botones = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
-        botones.add(btnCancelar);
-        botones.add(btnGuardar);
-        getRootPane().setDefaultButton(btnGuardar);
-        return botones;
+        return Formulario.cuerpo(filas.toArray(new JComponent[0]));
     }
 
     // ---------- lo que usa el controlador ----------
@@ -148,16 +118,12 @@ public class EmpleadoDialog extends JDialog {
     public char[] getRepetirClave() { return txtRepetirClave.getPassword(); }
     public Sector getSector() { return (Sector) cmbSector.getSelectedItem(); }
 
-    public JButton getBotonGuardar() { return btnGuardar; }
+    public JButton getBotonGuardar() { return btnPrincipal; }
     public JComboBox<Sector> getComboSector() { return cmbSector; }
 
     public void mostrarSectores(List<Sector> sectores) {
         cmbSector.removeAllItems();
         sectores.forEach(cmbSector::addItem);
-    }
-
-    public void mostrarError(String mensaje) {
-        Dialogos.error(this, mensaje);
     }
 
     public void cerrarCon(Empleado empleadoGuardado) {
