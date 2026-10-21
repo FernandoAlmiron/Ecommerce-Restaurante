@@ -1,4 +1,4 @@
-package org.example.controller.web;
+package org.example.web;
 
 import org.example.Modelo.enums.EstadoReserva;
 import org.example.Modelo.enums.MetodoPago;

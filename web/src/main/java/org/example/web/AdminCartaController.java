@@ -1,5 +1,4 @@
-package org.example.controller.web;
-
+package org.example.web;
 import org.example.Modelo.menu.Menu;
 import org.example.service.RestauranteService;
 import org.example.service.menu.MenuService;
