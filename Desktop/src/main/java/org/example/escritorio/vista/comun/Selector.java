@@ -31,6 +31,19 @@ public class Selector extends JPanel {
         super(new FlowLayout(FlowLayout.LEFT, 0, 0));
         setOpaque(false);
         setBorder(Estilo.relleno(4, 4, 4, 4));
+        setOpciones(textos);
+    }
+
+    /**
+     * Rearma las opciones (por ejemplo, cuando dependen de los datos cargados). Queda elegida la primera;
+     * los oyentes se mantienen.
+     */
+    public void setOpciones(String... textos) {
+        for (Opcion o : opciones) {
+            grupo.remove(o);
+        }
+        opciones.clear();
+        removeAll();
         for (int i = 0; i < textos.length; i++) {
             Opcion o = new Opcion(textos[i]);
             int indice = i;
@@ -42,6 +55,12 @@ public class Selector extends JPanel {
         if (!opciones.isEmpty()) {
             opciones.get(0).setSelected(true);
         }
+        revalidate();
+        repaint();
+    }
+
+    public int cantidad() {
+        return opciones.size();
     }
 
     /** Se llama con el índice de la opción cada vez que el usuario elige una. */
