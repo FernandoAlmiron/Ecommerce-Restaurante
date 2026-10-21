@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>La Nona - Pastas caseras</title>
+    <link rel="stylesheet" th:href="@{/style.css}">
+</head>
+<body class="cliente">
+
+<header><img th:src="@{/img/logo.png}" alt="La Nona - pastas caseras" class="logo"></header>
+
+<main class="carta">
+    <article class="plato" th:each="p : ${platos}">
+        <img th:src="@{/img/platos/{id}.jpg(id=${p.idMenu})}" th:alt="${p.nombre}">
+        <div>
+            <h3 th:text="${p.nombre}"></h3>
+            <p th:text="${p.descripcion}"></p>
+            <strong th:text="${'$ ' + p.precio}"></strong>
+        </div>
+    </article>
+</main>
+
+<footer class="acciones">
+    <a th:href="@{/login}" class="boton">Iniciar / Registrarme</a>
+    <small>Registrese para reservar y/o delivery</small>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Iniciar sesión - La Nona</title>
+    <link rel="stylesheet" th:href="@{/style.css}">
+</head>
+<body class="cliente">
+
+<main class="auth">
+    <img th:src="@{/img/logo.png}" alt="La Nona - pastas caseras" class="logo">
+    <h1>Inicio Sesión - Crear una cuenta</h1>
+
+    <p th:if="${param.error}" class="alerta error">Email o contraseña incorrectos</p>
+    <p th:if="${param.registrado}" class="alerta ok">¡Cuenta creada! Ya podés iniciar sesión.</p>
+
+    <form th:action="@{/login}" method="post">
+        <input type="text"     name="email"    placeholder="correoelectronico@dominio.com" required>
+        <input type="password" name="password" placeholder="Contraseña" required>
+        <button type="submit">Continuar</button>
+    </form>
+
+    <a th:href="@{/registro}">Crear cuenta</a>
+</main>
+
+</body>
+</html>
