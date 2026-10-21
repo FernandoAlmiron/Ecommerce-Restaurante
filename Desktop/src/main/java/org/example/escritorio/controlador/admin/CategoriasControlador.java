@@ -69,6 +69,24 @@ public class CategoriasControlador {
         });
     }
 
+    /** Guarda lo que se editó de la categoría elegida en el panel de la derecha. */
+    public void guardarCambios() {
+        vista.seleccionado().ifPresent(original -> {
+            CategoriaForm form = vista.getFormularioEdicion();
+            if (form == null) {
+                return;
+            }
+            Callable<Categoria> trabajo;
+            try {
+                trabajo = preparar(form, original);
+            } catch (IllegalArgumentException e) {
+                vista.mostrarError(e.getMessage());
+                return;
+            }
+            Tarea.ejecutar(vista.getBotonGuardar(), trabajo, guardada -> cargar(guardada.getNroCategoria()));
+        });
+    }
+
     private void abrir(Categoria original) {
         CategoriaForm form = new CategoriaForm(original);
         FormularioDialog.abrir(vista, original == null ? "Nueva categoría" : "Modificar categoría", form,

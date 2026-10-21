@@ -8,10 +8,13 @@ import org.example.escritorio.vista.admin.SectoresPanel;
 import org.example.escritorio.vista.comun.FormularioDialog;
 import org.example.escritorio.vista.comun.Tarea;
 import org.example.service.RestauranteService;
+import org.example.service.persona.EmpleadoService;
 import org.example.service.persona.SectorService;
 import org.springframework.dao.DataIntegrityViolationException;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.concurrent.Callable;
 
 /**
@@ -23,12 +26,18 @@ public class SectoresControlador {
     private final SectoresPanel vista;
     private final SectorService sectorService;
     private final RestauranteService restauranteService;
+    private final EmpleadoService empleadoService;
     private List<Sector> sectores = List.of(); // lo último que se cargó, para avisar nombres repetidos
 
     public SectoresControlador(SectoresPanel vista) {
         this.vista = vista;
         this.sectorService = Contexto.get(SectorService.class);
         this.restauranteService = Contexto.get(RestauranteService.class);
+        this.empleadoService = Contexto.get(EmpleadoService.class);
+    }
+
+    /** Lo que muestra la pantalla: los sectores y cuántos empleados tiene cada uno. */
+    private record Datos(List<Sector> sectores, Map<Integer, Long> empleadosPorSector) {
     }
 
     /** @param seleccionar id del sector a dejar seleccionado, o null para mantener el actual */
@@ -38,12 +47,19 @@ public class SectoresControlador {
         int restaurante = Sesion.nroRestaurante();
 
         Tarea.ejecutar(vista.getBotonActualizar(),
-                () -> sectorService.listarTodos().stream()
-                        .filter(s -> s.getRestaurante() == null
-                                || s.getRestaurante().getNroRestaurante() == restaurante)
-                        .toList(),
-                lista -> {
+                () -> new Datos(
+                        sectorService.listarTodos().stream()
+                                .filter(s -> s.getRestaurante() == null
+                                        || s.getRestaurante().getNroRestaurante() == restaurante)
+                                .toList(),
+                        // cuántos empleados hay en cada sector (un sector con empleados no se puede borrar)
+                        empleadoService.listarTodos().stream()
+                                .filter(e -> e.getSector() != null)
+                                .collect(Collectors.groupingBy(e -> e.getSector().getIdSector(), Collectors.counting()))),
+                datos -> {
+                    List<Sector> lista = datos.sectores();
                     sectores = lista;
+                    vista.setEmpleadosPorSector(datos.empleadosPorSector());
                     long activos = lista.stream().filter(Sector::isActiva).count();
                     vista.mostrar(lista, lista.size() + " sectores · " + activos + " activos");
                     if (aSeleccionar != null) {
@@ -73,6 +89,7 @@ public class SectoresControlador {
             boolean activar = !sector.isActiva();
             if (!activar && !vista.confirmar("¿Desactivar el sector " + sector.getNombre() + "?\n"
                     + "No se va a poder asignar a empleados. Los que ya están en el sector no cambian.")) {
+                cargar(null); // el interruptor de la fila vuelve a como estaba
                 return;
             }
             Tarea.ejecutar(vista.getBotonActivar(),

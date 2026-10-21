@@ -17,7 +17,7 @@ public class Icono implements Icon {
 
     public enum Tipo {
         CALENDARIO, MAS_CIRCULO, OLLA, BILLETE, BICI, PERSONAS, ENGRANAJE,
-        SALIR, LUPA, ACTUALIZAR, MAS, USUARIO, CANDADO, OJO, OJO_TACHADO, TILDE, IZQUIERDA, DERECHA, UBICACION, TELEFONO, LAPIZ
+        SALIR, LUPA, ACTUALIZAR, MAS, USUARIO, CANDADO, OJO, OJO_TACHADO, TILDE, IZQUIERDA, DERECHA, UBICACION, TELEFONO, LAPIZ, COPA, SOBRE, INFO, TACHO, DOCUMENTO, RELOJ
     }
 
     private final Tipo tipo;
@@ -121,6 +121,53 @@ public class Icono implements Icon {
             case MAS -> {
                 g2.drawLine(10, 3, 10, 17);
                 g2.drawLine(3, 10, 17, 10);
+            }
+            case COPA -> {
+                Path2D copa = new Path2D.Float();
+                copa.moveTo(5, 3);
+                copa.lineTo(15, 3);
+                copa.curveTo(15, 8, 13, 11, 10, 11);
+                copa.curveTo(7, 11, 5, 8, 5, 3);
+                g2.draw(copa);
+                g2.drawLine(10, 11, 10, 17);
+                g2.drawLine(7, 17, 13, 17);
+            }
+            case SOBRE -> {
+                g2.drawRoundRect(2, 4, 16, 12, 3, 3);
+                Path2D v = new Path2D.Float();
+                v.moveTo(3, 5.5);
+                v.lineTo(10, 11);
+                v.lineTo(17, 5.5);
+                g2.draw(v);
+            }
+            case INFO -> {
+                g2.drawOval(2, 2, 16, 16);
+                g2.drawLine(10, 9, 10, 14);
+                g2.fillOval(9, 5, 2, 2);
+            }
+            case TACHO -> {
+                g2.drawLine(3, 5, 17, 5);
+                g2.drawLine(8, 5, 8, 3);
+                g2.drawLine(8, 3, 12, 3);
+                g2.drawLine(12, 3, 12, 5);
+                Path2D balde = new Path2D.Float();
+                balde.moveTo(5, 5);
+                balde.lineTo(6, 17);
+                balde.lineTo(14, 17);
+                balde.lineTo(15, 5);
+                g2.draw(balde);
+                g2.drawLine(8, 8, 8, 14);
+                g2.drawLine(12, 8, 12, 14);
+            }
+            case DOCUMENTO -> {
+                g2.drawRoundRect(2, 4, 16, 12, 3, 3);
+                g2.drawLine(6, 8, 14, 8);
+                g2.drawLine(6, 12, 11, 12);
+            }
+            case RELOJ -> {
+                g2.drawOval(2, 2, 16, 16);
+                g2.drawLine(10, 6, 10, 10);
+                g2.drawLine(10, 10, 13, 12);
             }
             case LAPIZ -> {
                 Path2D lapiz = new Path2D.Float();

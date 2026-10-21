@@ -64,6 +64,32 @@ public class ZonasControlador {
         vista.seleccionado().ifPresent(this::abrir);
     }
 
+    /**
+     * Habilita o deshabilita la zona elegida (el interruptor de su tarjeta). Una zona deshabilitada no se borra:
+     * deja de ofrecerse para reservas nuevas. Se guarda con el mismo ZonaService.actualizar que usa Modificar.
+     */
+    public void activarODesactivar() {
+        vista.seleccionado().ifPresent(zona -> {
+            boolean activar = !zona.isActiva();
+            if (!activar && !vista.confirmar("¿Deshabilitar la zona \"" + zona.getNombre() + "\"?\n"
+                    + "No se va a ofrecer para reservas nuevas. Las reservas que ya tiene no cambian.")) {
+                cargar(null); // el interruptor vuelve a como estaba
+                return;
+            }
+            Zona datos = new Zona();
+            datos.setNombre(zona.getNombre());
+            datos.setCapacidadMaxima(zona.getCapacidadMaxima());
+            datos.setActiva(activar);
+            Tarea.ejecutar(vista.getBotonActualizar(),
+                    () -> zonaService.actualizar(zona.getIdZona(), datos),
+                    cambiada -> cargar(cambiada.getIdZona()),
+                    mensaje -> {
+                        vista.mostrarError(mensaje);
+                        cargar(null);
+                    });
+        });
+    }
+
     public void eliminar() {
         vista.seleccionado().ifPresent(zona -> {
             if (!vista.confirmar("¿Eliminar la zona \"" + zona.getNombre() + "\"?")) {
