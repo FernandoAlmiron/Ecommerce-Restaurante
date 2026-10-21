@@ -18,7 +18,7 @@ import org.springframework.context.annotation.FilterType;
         @ComponentScan.Filter(type = FilterType.REGEX, pattern = {
                 "org\\.example\\.Main",
                 "org\\.example\\.controller\\..*",
-                "org\\.example\\.config\\.SecurityConfig"})
+                "org\\.example\\.config\\.SecurityConfig"}) })
 
 public class AppWeb {
 

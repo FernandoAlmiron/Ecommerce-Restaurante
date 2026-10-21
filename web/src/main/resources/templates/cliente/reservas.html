@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Mis reservas - La Nona</title>
+    <link rel="stylesheet" th:href="@{/style.css}">
+    <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+    <script th:src="@{/errores.js}" defer></script>
+</head>
+<body class="cliente con-nav">
+
+<header th:replace="~{fragments/cliente/layout :: logo}"></header>
+
+<main class="mis-reservas">
+    <div class="titulo-con-boton">
+        <h1>Mis reservas</h1>
+        <a th:href="@{/reservas/nueva}" class="boton-beige">+ Nueva Reserva</a>
+    </div>
+
+    <div id="mensaje-error" class="alerta error" hidden></div>
+    <p th:if="${param.creada}" class="alerta ok">¡Reserva registrada! Te avisamos cuando el restaurante la confirme.</p>
+
+    <section class="tarjetas">
+        <th:block th:each="r : ${reservas}">
+            <article th:replace="~{fragments/cliente/reserva-card :: card}"></article>
+        </th:block>
+    </section>
+
+    <p th:if="${reservas.isEmpty()}" class="vacio">Todavía no tenés reservas.</p>
+</main>
+
+<nav th:replace="~{fragments/cliente/layout :: nav('reservas')}"></nav>
+
+</body>
+</html>
