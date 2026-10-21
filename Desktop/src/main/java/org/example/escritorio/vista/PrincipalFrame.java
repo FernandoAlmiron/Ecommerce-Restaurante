@@ -1,17 +1,16 @@
 package org.example.escritorio.vista;
 
 import org.example.escritorio.sesion.Sesion;
-import org.example.escritorio.vista.admin.AdministracionPanel;
 import org.example.escritorio.vista.comun.Dialogos;
 import org.example.escritorio.vista.comun.Estilo;
 import org.example.escritorio.vista.comun.Icono;
+import org.example.escritorio.vista.comun.PanelPendiente;
 import org.example.escritorio.vista.recepcion.ReservasPanel;
 import org.example.escritorio.vista.salon.TicketsPanel;
 import org.example.escritorio.vista.cocina.CocinaPanel;
 import org.example.escritorio.vista.caja.CajaPanel;
 import org.example.escritorio.vista.reparto.RepartoPanel;
 import org.example.escritorio.vista.rrhh.EmpleadosPanel;
-import org.example.escritorio.vista.admin.AdministracionPanel;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -87,7 +86,7 @@ public class PrincipalFrame extends JFrame {
             case CAJA -> new CajaPanel();
             case REPARTO -> new RepartoPanel();
             case RRHH -> new EmpleadosPanel();
-            case ADMINISTRACION -> new AdministracionPanel();
+            case ADMINISTRACION -> new PanelPendiente(area);
         };
     }
 

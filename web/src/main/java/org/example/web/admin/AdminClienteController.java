@@ -1,4 +1,4 @@
-package org.example.web;
+package org.example.web.admin;
 
 import org.example.Modelo.persona.Cliente;
 import org.example.service.persona.ClienteService;

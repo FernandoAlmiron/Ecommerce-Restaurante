@@ -1,4 +1,4 @@
-package org.example.web;
+package org.example.web.admin;
 
 import org.example.dto.ReservaResponseDTO;
 import org.example.dto.ReservaWalkInDTO;
