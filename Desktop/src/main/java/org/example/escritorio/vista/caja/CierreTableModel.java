@@ -14,7 +14,7 @@ public class CierreTableModel extends ModeloTablaBase<CierreFila> {
     public static final int COL_TOTAL = 8;
 
     public CierreTableModel() {
-        super("N°", "Fecha", "Cajera", "Efectivo esperado", "Efectivo contado", "Diferencia",
+        super("N°", "Fecha", "Cajera", "Esperado", "Contado", "Diferencia",
                 "Tarjeta", "QR", "Total del día", "Observaciones");
     }
 

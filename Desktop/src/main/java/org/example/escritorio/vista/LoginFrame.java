@@ -93,7 +93,7 @@ public class LoginFrame extends JFrame {
         logo.add(new Estilo.Rodillo(170, 116, 16));
 
         JLabel pie = new JLabel("Sistema interno del personal", SwingConstants.CENTER);
-        pie.setFont(Estilo.fuente(Font.PLAIN, 16f));
+        pie.setFont(Estilo.fuente(Font.PLAIN, 15f));
         pie.setForeground(new Color(255, 255, 255, 215));
 
         JPanel centrado = Estilo.transparente(new GridBagLayout());

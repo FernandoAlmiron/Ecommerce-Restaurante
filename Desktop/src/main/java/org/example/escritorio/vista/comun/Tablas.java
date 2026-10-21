@@ -25,7 +25,6 @@ import java.awt.LayoutManager;
 import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.util.Locale;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.function.IntSupplier;
 
@@ -35,14 +34,17 @@ import java.util.function.IntSupplier;
  */
 public final class Tablas {
 
-    public static final int RELLENO_CELDA = 24;
+    public static final int RELLENO_CELDA = 12;
     private static final Locale ARGENTINA = Locale.forLanguageTag("es-AR");
 
     private Tablas() {
     }
 
-    /** Aplica el aspecto general. Las columnas se configuran después con los renderers de acá. */
-    public static void estilizar(JTable tabla, int altoFila, Set<Integer> columnasDerecha) {
+    /**
+     * Aplica el aspecto general. Las columnas se configuran después con los renderers de acá.
+     * Títulos y datos van centrados en su columna, así quedan alineados entre sí.
+     */
+    public static void estilizar(JTable tabla, int altoFila) {
         tabla.setFillsViewportHeight(true);
         tabla.setRowHeight(altoFila);
         tabla.setShowVerticalLines(false);
@@ -60,7 +62,7 @@ public final class Tablas {
         JTableHeader encabezado = tabla.getTableHeader();
         encabezado.setReorderingAllowed(false);
         encabezado.setResizingAllowed(false);
-        encabezado.setDefaultRenderer(new RendererEncabezado(columnasDerecha));
+        encabezado.setDefaultRenderer(new RendererEncabezado());
         encabezado.setBackground(Estilo.ENCABEZADO_TABLA);
     }
 
@@ -119,25 +121,26 @@ public final class Tablas {
     }
 
     /** Relleno de la celda; la primera columna de la fila elegida lleva una rayita café a la izquierda. */
-    private static Border bordeCelda(JTable tabla, boolean seleccionada, int columnaVista, boolean derecha) {
-        int izquierda = derecha ? 8 : RELLENO_CELDA;
-        int derechaPx = derecha ? RELLENO_CELDA : 8;
+    private static Border bordeCelda(boolean seleccionada, int columnaVista) {
         if (seleccionada && columnaVista == 0) {
+            // la rayita ocupa 4 px: se los descuenta del lado izquierdo para que el texto no se corra
             return BorderFactory.createCompoundBorder(
                     BorderFactory.createMatteBorder(0, 4, 0, 0, Estilo.CAFE),
-                    Estilo.relleno(0, izquierda - 4, 0, derechaPx));
+                    Estilo.relleno(0, RELLENO_CELDA - 4, 0, RELLENO_CELDA));
         }
-        return Estilo.relleno(0, izquierda, 0, derechaPx);
+        return Estilo.relleno(0, RELLENO_CELDA, 0, RELLENO_CELDA);
     }
 
     // ---------- renderers ----------
 
     /** Títulos de columna: mayúsculas chiquitas, grises y con letras separadas. */
     public static class RendererEncabezado extends DefaultTableCellRenderer {
-        private final Set<Integer> columnasDerecha;
 
-        public RendererEncabezado(Set<Integer> columnasDerecha) {
-            this.columnasDerecha = columnasDerecha;
+        public RendererEncabezado() {
+            setHorizontalAlignment(SwingConstants.CENTER);
+            setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createMatteBorder(0, 0, 1, 0, Estilo.BORDE),
+                    Estilo.relleno(20, RELLENO_CELDA, 20, RELLENO_CELDA)));
             setFont(Estilo.conEspaciado(Estilo.fuente(Font.BOLD, 13f), 0.08f));
             setForeground(Estilo.TEXTO_SUAVE);
             setBackground(Estilo.ENCABEZADO_TABLA);
@@ -147,33 +150,22 @@ public final class Tablas {
         @Override
         public Component getTableCellRendererComponent(JTable tabla, Object valor, boolean seleccionada,
                                                        boolean foco, int fila, int columna) {
-            boolean derecha = columnasDerecha.contains(tabla.convertColumnIndexToModel(columna));
             setText(valor == null ? "" : valor.toString().toUpperCase(ARGENTINA));
-            setHorizontalAlignment(derecha ? SwingConstants.RIGHT : SwingConstants.LEFT);
-            setBorder(BorderFactory.createCompoundBorder(
-                    BorderFactory.createMatteBorder(0, 0, 1, 0, Estilo.BORDE),
-                    Estilo.relleno(20, derecha ? 8 : RELLENO_CELDA, 20, derecha ? RELLENO_CELDA : 8)));
             return this;
         }
     }
 
-    /** Celda de texto con su propia fuente, color y alineación. Si el valor es null muestra "—". */
+    /** Celda de texto centrada, con su propia fuente y color. Si el valor es null muestra "—". */
     public static class RendererTexto extends DefaultTableCellRenderer {
         private final Font fuente;
         private final Color color;
         private final Function<Object, String> texto;
-        private final boolean derecha;
 
         public RendererTexto(Font fuente, Color color, Function<Object, String> texto) {
-            this(fuente, color, texto, false);
-        }
-
-        public RendererTexto(Font fuente, Color color, Function<Object, String> texto, boolean derecha) {
             this.fuente = fuente;
             this.color = color;
             this.texto = texto;
-            this.derecha = derecha;
-            setHorizontalAlignment(derecha ? SwingConstants.RIGHT : SwingConstants.LEFT);
+            setHorizontalAlignment(SwingConstants.CENTER);
         }
 
         @Override
@@ -183,7 +175,7 @@ public final class Tablas {
             setText(valor == null ? "—" : texto.apply(valor));
             setFont(fuente);
             setForeground(color);
-            setBorder(bordeCelda(tabla, seleccionada, columna, derecha));
+            setBorder(bordeCelda(seleccionada, columna));
             return this;
         }
     }
@@ -193,11 +185,12 @@ public final class Tablas {
         public static Insignia verde(String texto) { return new Insignia(texto, Estilo.VERDE_FONDO, Estilo.VERDE_TEXTO); }
         public static Insignia amarilla(String texto) { return new Insignia(texto, Estilo.AMARILLO_FONDO, Estilo.AMARILLO_TEXTO); }
         public static Insignia violeta(String texto) { return new Insignia(texto, Estilo.VIOLETA_FONDO, Estilo.VIOLETA_TEXTO); }
+        public static Insignia azul(String texto) { return new Insignia(texto, Estilo.AZUL_FONDO, Estilo.AZUL_TEXTO); }
         public static Insignia roja(String texto) { return new Insignia(texto, Estilo.ROJO_FONDO, Estilo.ROJO_TEXTO); }
         public static Insignia gris(String texto) { return new Insignia(texto, Estilo.GRIS_FONDO, Estilo.GRIS_TEXTO); }
     }
 
-    /** Estado como etiqueta redondeada. La función decide texto y colores según el valor de la celda. */
+    /** Estado como etiqueta redondeada y centrada. La función decide texto y colores según el valor de la celda. */
     public static class RendererInsignia implements TableCellRenderer {
         private final JPanel celda = new JPanel(new GridBagLayout());
         private final Etiqueta etiqueta = new Etiqueta();
@@ -206,9 +199,9 @@ public final class Tablas {
         public RendererInsignia(Function<Object, Insignia> insignia) {
             this.insignia = insignia;
             GridBagConstraints c = new GridBagConstraints();
-            c.anchor = GridBagConstraints.WEST;
+            c.anchor = GridBagConstraints.CENTER;
             c.weightx = 1;
-            c.insets = new Insets(0, RELLENO_CELDA, 0, 0);
+            c.insets = new Insets(0, 8, 0, 8);
             celda.add(etiqueta, c);
         }
 

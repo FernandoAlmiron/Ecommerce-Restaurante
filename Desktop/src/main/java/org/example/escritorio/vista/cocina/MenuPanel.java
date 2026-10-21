@@ -30,7 +30,6 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 /**
  * La carta del restaurante (RF-26 a RF-28): alta y modificación de platos y su receta.
@@ -119,7 +118,7 @@ public class MenuPanel extends JPanel {
         orden.setSortKeys(List.of(new RowSorter.SortKey(MenuTableModel.COL_NOMBRE, SortOrder.ASCENDING)));
         tabla.setRowSorter(orden);
         tabla.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        Tablas.estilizar(tabla, ALTO_FILA, Set.of(2));
+        Tablas.estilizar(tabla, ALTO_FILA);
 
         Font normal = Estilo.fuente(Font.PLAIN, 16f);
         Font negrita = Estilo.fuente(Font.BOLD, 16f);
@@ -127,7 +126,7 @@ public class MenuPanel extends JPanel {
         Tablas.renderer(tabla, 1, new Tablas.RendererTexto(normal, Estilo.TEXTO_SUAVE,
                 v -> v.toString().isBlank() ? "—" : v.toString()));
         Tablas.renderer(tabla, 2, new Tablas.RendererTexto(normal, Estilo.TEXTO,
-                v -> Tablas.pesosCortos((BigDecimal) v), true));
+                v -> Tablas.pesosCortos((BigDecimal) v)));
         Tablas.renderer(tabla, 3, new Tablas.RendererInsignia(v -> Boolean.TRUE.equals(v)
                 ? Tablas.Insignia.verde("Disponible") : Tablas.Insignia.gris("No disponible")));
         Tablas.anchos(tabla, 260, 420, 140, 170);

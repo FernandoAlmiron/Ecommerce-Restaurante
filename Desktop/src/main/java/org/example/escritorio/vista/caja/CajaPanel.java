@@ -1,31 +1,27 @@
 package org.example.escritorio.vista.caja;
 
-import javax.swing.BorderFactory;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JTabbedPane;
-import java.awt.BorderLayout;
-import java.awt.Font;
+import org.example.escritorio.vista.comun.PantallaConSolapas;
+
+import java.awt.Color;
 
 /**
- * Área de Caja: cuatro solapas, cada una con su controlador.
- * Cobros (RF-40 a RF-45), Cierre de caja (RF-47), Reporte de delivery (RF-48) y Tarjetas (RF-46).
+ * Área de Caja: tres solapas, cada una con su controlador.
+ * Cobros (RF-40 a RF-45), Cierre de caja (RF-47) y Reporte de delivery (RF-48).
  */
-public class CajaPanel extends JPanel {
+public class CajaPanel extends PantallaConSolapas {
 
     public CajaPanel() {
-        super(new BorderLayout(0, 12));
-        setBorder(BorderFactory.createEmptyBorder(16, 16, 16, 16));
+        super("Caja");
 
-        JLabel titulo = new JLabel("Caja");
-        titulo.setFont(titulo.getFont().deriveFont(Font.BOLD, 20f));
+        CobrosPanel cobros = new CobrosPanel();
+        Solapa solapaCobros = agregar("Cobros", cobros);
+        agregar("Cierre de caja", new CierreCajaPanel());
+        agregar("Reporte de delivery", new ReporteDeliveryPanel());
 
-        JTabbedPane solapas = new JTabbedPane();
-        solapas.addTab("Cobros", new CobrosPanel());
-        solapas.addTab("Cierre de caja", new CierreCajaPanel());
-        solapas.addTab("Reporte de delivery", new ReporteDeliveryPanel());
-
-        add(titulo, BorderLayout.NORTH);
-        add(solapas, BorderLayout.CENTER);
+        // el contador de Cobros sigue a los tickets por cobrar
+        cobros.addPropertyChangeListener(CobrosPanel.PROP_POR_COBRAR, e -> {
+            int cantidad = (Integer) e.getNewValue();
+            solapaCobros.setContador(cantidad > 0 ? String.valueOf(cantidad) : null, null, Color.WHITE);
+        });
     }
 }

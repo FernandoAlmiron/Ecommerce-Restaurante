@@ -8,11 +8,11 @@ import org.example.escritorio.vista.comun.Dialogos;
 import org.example.escritorio.vista.comun.Estilo;
 import org.example.escritorio.vista.comun.Formatos;
 import org.example.escritorio.vista.comun.Icono;
+import org.example.escritorio.vista.comun.Selector;
 import org.example.escritorio.vista.comun.Tablas;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
@@ -20,7 +20,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTable;
 import javax.swing.JTextField;
-import javax.swing.JToggleButton;
 import javax.swing.ListSelectionModel;
 import javax.swing.RowFilter;
 import javax.swing.RowSorter;
@@ -45,7 +44,6 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 /**
  * Pantalla de Recepción: lista de reservas con filtros y las acciones de cada reserva.
@@ -166,39 +164,14 @@ public class ReservasPanel extends JPanel {
         return tarjeta;
     }
 
-    /** Pestañas Todas / Pendientes / Confirmadas / Canceladas sobre un fondo gris claro. */
+    /** Pestañas Todas / Pendientes / Confirmadas / Canceladas. */
     private JComponent armarSelectorEstado() {
-        JPanel selector = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0)) {
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2 = Estilo.suave(g);
-                g2.setColor(Estilo.SEGMENTO_FONDO);
-                g2.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 16, 16);
-                g2.dispose();
-            }
-        };
-        selector.setOpaque(false);
-        selector.setBorder(Estilo.relleno(4, 4, 4, 4));
-
-        ButtonGroup grupo = new ButtonGroup();
-        Object[][] opciones = {
-                {"Todas", null},
-                {"Pendientes", EstadoReserva.PENDIENTE},
-                {"Confirmadas", EstadoReserva.CONFIRMADA},
-                {"Canceladas", EstadoReserva.CANCELADA}};
-        for (Object[] opcion : opciones) {
-            Segmento s = new Segmento((String) opcion[0]);
-            EstadoReserva estado = (EstadoReserva) opcion[1];
-            s.addActionListener(e -> {
-                filtroEstado = estado;
-                aplicarFiltros();
-            });
-            grupo.add(s);
-            selector.add(s);
-            if (estado == null) {
-                s.setSelected(true);
-            }
-        }
+        EstadoReserva[] estados = {null, EstadoReserva.PENDIENTE, EstadoReserva.CONFIRMADA, EstadoReserva.CANCELADA};
+        Selector selector = new Selector("Todas", "Pendientes", "Confirmadas", "Canceladas");
+        selector.alElegir(i -> {
+            filtroEstado = estados[i];
+            aplicarFiltros();
+        });
         return selector;
     }
 
@@ -208,7 +181,7 @@ public class ReservasPanel extends JPanel {
                 new RowSorter.SortKey(ReservaTableModel.COL_FECHA, SortOrder.ASCENDING),
                 new RowSorter.SortKey(ReservaTableModel.COL_HORA, SortOrder.ASCENDING)));
         tabla.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        Tablas.estilizar(tabla, ALTO_FILA, Set.of());
+        Tablas.estilizar(tabla, ALTO_FILA);
 
         Font normal = Estilo.fuente(Font.PLAIN, 16f);
         Font negrita = Estilo.fuente(Font.BOLD, 16f);
@@ -355,48 +328,6 @@ public class ReservasPanel extends JPanel {
     }
 
     // ---------- piezas visuales ----------
-
-    /** Pestaña del selector de estado: blanca y en negrita cuando está elegida. */
-    private static class Segmento extends JToggleButton {
-        Segmento(String texto) {
-            super(texto);
-            setContentAreaFilled(false);
-            setBorderPainted(false);
-            setFocusPainted(false);
-            setOpaque(false);
-            setBorder(Estilo.relleno(10, 20, 10, 20));
-            setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-            putClientProperty("JButton.buttonType", "borderless");
-            getModel().addChangeListener(e -> {
-                setForeground(isSelected() ? Estilo.TEXTO : Estilo.TEXTO_SUAVE);
-                setFont(Estilo.fuente(isSelected() ? Font.BOLD : Font.PLAIN, 16f));
-            });
-            setForeground(Estilo.TEXTO_SUAVE);
-            setFont(Estilo.fuente(Font.PLAIN, 16f));
-        }
-
-        @Override
-        public Dimension getPreferredSize() {
-            // mismo ancho elegido o no (la negrita no tiene que mover a las demás)
-            java.awt.FontMetrics fm = getFontMetrics(Estilo.fuente(Font.BOLD, 16f));
-            Insets i = getInsets();
-            return new Dimension(fm.stringWidth(getText()) + i.left + i.right + 2,
-                    fm.getHeight() + i.top + i.bottom);
-        }
-
-        @Override
-        protected void paintComponent(Graphics g) {
-            if (isSelected()) {
-                Graphics2D g2 = Estilo.suave(g);
-                g2.setColor(new Color(0, 0, 0, 14));
-                g2.fillRoundRect(0, 1, getWidth() - 1, getHeight() - 1, 12, 12);
-                g2.setColor(Color.WHITE);
-                g2.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 2, 12, 12);
-                g2.dispose();
-            }
-            super.paintComponent(g);
-        }
-    }
 
     /** Seña: el monto, o "Sin seña" en gris. En las canceladas el monto va en gris. */
     private static class RendererSenia extends Tablas.RendererTexto {

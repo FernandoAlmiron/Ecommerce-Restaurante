@@ -10,6 +10,8 @@ import org.example.Modelo.menu.Pedido;
 import org.example.Modelo.reserva.Envio;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -29,7 +31,8 @@ public record CobroFila(
         MetodoPago metodoPago,
         MetodoPago metodoElegidoPorCliente,
         boolean envioCancelado,
-        String estado
+        String estado,
+        LocalDateTime fechaPago
 ) {
     public static final String SIN_FACTURAR = "Sin facturar";
     public static final String PENDIENTE = "Pendiente de pago";
@@ -42,6 +45,11 @@ public record CobroFila(
     /** Se puede facturar si todavía no tiene facturación, tiene pedidos y el envío no está cancelado. */
     public boolean sePuedeFacturar() {
         return sinFacturar() && cantidadPedidos > 0 && !envioCancelado;
+    }
+
+    /** Pagado en el día indicado (para los totales de "hoy"). */
+    public boolean pagadoEl(LocalDate dia) {
+        return pagado() && fechaPago != null && fechaPago.toLocalDate().equals(dia);
     }
 
     /** Lo que caja tiene que resolver: tickets para facturar y facturaciones sin pagar. */
@@ -71,7 +79,8 @@ public record CobroFila(
                 f != null ? f.getMetodoPago() : null,
                 envio != null ? envio.getMetodoPago() : null,
                 envio != null && envio.getEstado() == EstadoEnvio.CANCELADO,
-                f == null ? SIN_FACTURAR : (f.getEstadoPago() == EstadoPago.PAGADO ? PAGADO : PENDIENTE));
+                f == null ? SIN_FACTURAR : (f.getEstadoPago() == EstadoPago.PAGADO ? PAGADO : PENDIENTE),
+                f != null ? f.getFechaPago() : null);
     }
 
     private static String cliente(Ticket ticket, Envio envio) {
