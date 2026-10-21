@@ -24,6 +24,6 @@
     <modules>
         <module>backend</module>
         <module>Desktop</module>
-        <!-- <module>htmx</module> -->
+        <module>web</module>
     </modules>
 </project>

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- mismo padre que el backend y el escritorio: misma versión de Spring Boot y de Java -->
+    <parent>
+        <groupId>com.restaurante</groupId>
+        <artifactId>restaurante</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>restaurante-web</artifactId>
+    <name>restaurante-web</name>
+    <description>Front web (HTMX + Thymeleaf) para el administrador y los clientes</description>
+
+    <dependencies>
+        <!-- El backend: entidades, repositorios, services, DTOs y seguridad. Trae Spring Web, JPA y MySQL -->
+        <dependency>
+            <groupId>com.restaurante</groupId>
+            <artifactId>backend</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!-- Thymeleaf: arma el HTML en el servidor (páginas y fragmentos que pide HTMX) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-thymeleaf</artifactId>
+        </dependency>
+        <!-- recarga los cambios sin reiniciar a mano (solo en desarrollo) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-devtools</artifactId>
+            <scope>runtime</scope>
+            <optional>true</optional>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <mainClass>org.example.AppWeb</mainClass>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>
