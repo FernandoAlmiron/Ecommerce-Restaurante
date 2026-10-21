@@ -43,7 +43,6 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 /**
  * Cobros (RF-40 a RF-45): facturar un ticket, aplicar propina, recalcular, confirmar el pago y ver el comprobante.
@@ -162,7 +161,7 @@ public class CobrosPanel extends JPanel {
         orden.setSortKeys(List.of(new RowSorter.SortKey(CobroTableModel.COL_TICKET, SortOrder.DESCENDING)));
         tabla.setRowSorter(orden);
         tabla.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        Tablas.estilizar(tabla, ALTO_FILA, Set.of(5));
+        Tablas.estilizar(tabla, ALTO_FILA);
 
         Font normal = Estilo.fuente(Font.PLAIN, 16f);
         Font negrita = Estilo.fuente(Font.BOLD, 16f);
@@ -170,7 +169,7 @@ public class CobrosPanel extends JPanel {
         Tablas.renderer(tabla, 1, new Tablas.RendererTexto(normal, Estilo.TEXTO, String::valueOf));
         Tablas.renderer(tabla, 2, new Tablas.RendererTexto(normal, Estilo.TEXTO, String::valueOf));
         Tablas.renderer(tabla, 5, new Tablas.RendererTexto(negrita, Estilo.TEXTO,
-                v -> Tablas.pesosCortos((BigDecimal) v), true));
+                v -> Tablas.pesosCortos((BigDecimal) v)));
         Tablas.renderer(tabla, CobroTableModel.COL_ESTADO, new Tablas.RendererInsignia(CobrosPanel::insignia));
         Tablas.anchos(tabla, 80, 100, 125, 80, 120, 105, 150);
         // la lista muestra lo que caja necesita: pedidos y consumo están en el detalle

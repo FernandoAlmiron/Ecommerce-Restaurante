@@ -44,7 +44,6 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 /**
  * Pantalla de Recepción: lista de reservas con filtros y las acciones de cada reserva.
@@ -182,7 +181,7 @@ public class ReservasPanel extends JPanel {
                 new RowSorter.SortKey(ReservaTableModel.COL_FECHA, SortOrder.ASCENDING),
                 new RowSorter.SortKey(ReservaTableModel.COL_HORA, SortOrder.ASCENDING)));
         tabla.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        Tablas.estilizar(tabla, ALTO_FILA, Set.of());
+        Tablas.estilizar(tabla, ALTO_FILA);
 
         Font normal = Estilo.fuente(Font.PLAIN, 16f);
         Font negrita = Estilo.fuente(Font.BOLD, 16f);

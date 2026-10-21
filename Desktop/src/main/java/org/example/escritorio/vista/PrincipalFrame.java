@@ -71,6 +71,7 @@ public class PrincipalFrame extends JFrame {
         setSize(1360, 840);
         setMinimumSize(new Dimension(1100, 650));
         setLocationRelativeTo(null);
+        setExtendedState(JFrame.MAXIMIZED_BOTH); // se abre maximizada despues del login
     }
 
     /**

@@ -35,7 +35,6 @@ import java.awt.Window;
 import java.text.ParseException;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 /**
  * Receta de un plato (RF-28): qué insumos lleva y cuánto por porción.
@@ -108,15 +107,15 @@ public class RecetaDialog extends DialogoFormulario {
     /** La receta actual en una tarjeta, con Quitar y Cambiar cantidad arriba a la derecha. */
     private JComponent armarTabla() {
         tabla.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        Tablas.estilizar(tabla, ALTO_FILA, Set.of(1, 3));
+        Tablas.estilizar(tabla, ALTO_FILA);
         Font normal = Estilo.fuente(Font.PLAIN, 15f);
         Font negrita = Estilo.fuente(Font.BOLD, 15f);
         Tablas.renderer(tabla, 0, new Tablas.RendererTexto(negrita, Estilo.TEXTO, String::valueOf));
         Tablas.renderer(tabla, 1, new Tablas.RendererTexto(normal, Estilo.TEXTO,
-                v -> Tablas.numero(((Number) v).doubleValue()), true));
+                v -> Tablas.numero(((Number) v).doubleValue())));
         Tablas.renderer(tabla, 2, new Tablas.RendererTexto(normal, Estilo.TEXTO_SUAVE, String::valueOf));
         Tablas.renderer(tabla, 3, new Tablas.RendererTexto(normal, Estilo.TEXTO_SUAVE,
-                v -> Tablas.numero(((Number) v).doubleValue()), true));
+                v -> Tablas.numero(((Number) v).doubleValue())));
         Tablas.anchos(tabla, 170, 240, 100, 140);
 
         Estilo.Tarjeta tarjeta = new Estilo.Tarjeta(new BorderLayout(), 18);

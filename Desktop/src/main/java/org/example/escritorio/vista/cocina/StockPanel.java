@@ -31,7 +31,6 @@ import java.awt.GridBagLayout;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 /**
  * Stock de insumos (RF-30, RF-31): alta, modificación, reponer y ajustar.
@@ -131,7 +130,7 @@ public class StockPanel extends JPanel {
         orden.setSortKeys(List.of(new RowSorter.SortKey(StockTableModel.COL_INSUMO, SortOrder.ASCENDING)));
         tabla.setRowSorter(orden);
         tabla.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        Tablas.estilizar(tabla, ALTO_FILA, Set.of(3, 4));
+        Tablas.estilizar(tabla, ALTO_FILA);
 
         Font normal = Estilo.fuente(Font.PLAIN, 16f);
         Font negrita = Estilo.fuente(Font.BOLD, 16f);
@@ -141,7 +140,7 @@ public class StockPanel extends JPanel {
         Tablas.renderer(tabla, 2, new Tablas.RendererTexto(normal, Estilo.TEXTO_SUAVE, String::valueOf));
         Tablas.renderer(tabla, 3, new RendererCantidad(negrita));
         Tablas.renderer(tabla, 4, new Tablas.RendererTexto(normal, Estilo.TEXTO_SUAVE,
-                v -> Tablas.numero(((Number) v).doubleValue()), true));
+                v -> Tablas.numero(((Number) v).doubleValue())));
         Tablas.renderer(tabla, 5, new Tablas.RendererInsignia(v -> null) {
             @Override
             protected Tablas.Insignia insigniaPara(JTable t, Object valor, int filaVista) {
@@ -253,7 +252,7 @@ public class StockPanel extends JPanel {
     /** Cantidad actual: en rojo si el insumo está bajo mínimo. */
     private class RendererCantidad extends Tablas.RendererTexto {
         RendererCantidad(Font fuente) {
-            super(fuente, Estilo.TEXTO, v -> Tablas.numero(((Number) v).doubleValue()), true);
+            super(fuente, Estilo.TEXTO, v -> Tablas.numero(((Number) v).doubleValue()));
         }
 
         @Override

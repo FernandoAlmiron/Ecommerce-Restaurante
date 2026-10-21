@@ -44,7 +44,6 @@ import java.awt.Insets;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 /**
  * Reparto (RF-36 a RF-39): los envíos del repartidor logueado (el ADMIN ve todos),
@@ -164,7 +163,7 @@ public class RepartoPanel extends JPanel {
         orden.setSortKeys(List.of(new RowSorter.SortKey(EnvioTableModel.COL_ENVIO, SortOrder.ASCENDING)));
         tabla.setRowSorter(orden);
         tabla.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        Tablas.estilizar(tabla, ALTO_FILA, Set.of(5));
+        Tablas.estilizar(tabla, ALTO_FILA);
 
         Font normal = Estilo.fuente(Font.PLAIN, 16f);
         Font negrita = Estilo.fuente(Font.BOLD, 16f);
@@ -172,7 +171,7 @@ public class RepartoPanel extends JPanel {
         Tablas.renderer(tabla, 2, new Tablas.RendererTexto(normal, Estilo.TEXTO, String::valueOf));
         Tablas.renderer(tabla, 3, new Tablas.RendererTexto(normal, Estilo.TEXTO, String::valueOf));
         Tablas.renderer(tabla, 5, new Tablas.RendererTexto(negrita, Estilo.TEXTO,
-                v -> Tablas.pesosCortos((BigDecimal) v), true));
+                v -> Tablas.pesosCortos((BigDecimal) v)));
         Tablas.renderer(tabla, EnvioTableModel.COL_ESTADO,
                 new Tablas.RendererInsignia(v -> insignia((EstadoEnvio) v)));
         Tablas.renderer(tabla, 8, new RendererRepartidor(normal));
@@ -470,7 +469,7 @@ public class RepartoPanel extends JPanel {
                                                        boolean foco, int fila, int columna) {
             super.getTableCellRendererComponent(t, valor, seleccionada, foco, fila, columna);
             RemitoDTO r = modelo.getFila(t.convertRowIndexToModel(fila));
-            setText("<html>#E-" + r.idEnvio() + "<br><font size='-1'>Tk " + r.nroTicket() + "</font></html>");
+            setText("<html><center>#E-" + r.idEnvio() + "<br><font size='-1'>Tk " + r.nroTicket() + "</font></center></html>");
             return this;
         }
     }

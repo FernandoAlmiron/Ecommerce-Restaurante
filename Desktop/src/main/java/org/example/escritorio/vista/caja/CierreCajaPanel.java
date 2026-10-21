@@ -38,7 +38,6 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
-import java.util.Set;
 
 /**
  * Cierre de caja del día (RF-47).
@@ -239,7 +238,7 @@ public class CierreCajaPanel extends JPanel {
         orden.setSortKeys(List.of(new RowSorter.SortKey(CierreTableModel.COL_NRO, SortOrder.DESCENDING)));
         tabla.setRowSorter(orden);
         tabla.setRowSelectionAllowed(false);
-        Tablas.estilizar(tabla, ALTO_FILA, Set.of(3, 4, 6, 7, 8));
+        Tablas.estilizar(tabla, ALTO_FILA);
 
         Font normal = Estilo.fuente(Font.PLAIN, 16f);
         Font negrita = Estilo.fuente(Font.BOLD, 16f);
@@ -249,11 +248,11 @@ public class CierreCajaPanel extends JPanel {
                 v -> v.toString().isBlank() ? "—" : v.toString()));
         for (int col : new int[]{3, 4, 6, 7}) {
             Tablas.renderer(tabla, col, new Tablas.RendererTexto(normal, Estilo.TEXTO,
-                    v -> Tablas.pesosCortos((BigDecimal) v), true));
+                    v -> Tablas.pesosCortos((BigDecimal) v)));
         }
         Tablas.renderer(tabla, CierreTableModel.COL_DIFERENCIA, new Tablas.RendererInsignia(v -> diferencia((BigDecimal) v)));
         Tablas.renderer(tabla, CierreTableModel.COL_TOTAL, new Tablas.RendererTexto(negrita, Estilo.TEXTO,
-                v -> Tablas.pesosCortos((BigDecimal) v), true));
+                v -> Tablas.pesosCortos((BigDecimal) v)));
         Tablas.renderer(tabla, 9, new Tablas.RendererTexto(normal, Estilo.TEXTO_SUAVE,
                 v -> v.toString().isBlank() ? "—" : v.toString()));
         Tablas.anchos(tabla, 65, 75, 140, 110, 110, 160, 110, 110, 160, 10);

@@ -38,7 +38,6 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Reporte de delivery de un día (RF-48): lo cobrado en envíos, separado por método de pago,
@@ -210,7 +209,7 @@ public class ReporteDeliveryPanel extends JPanel {
     }
 
     private JComponent armarPedidos() {
-        Tablas.estilizar(tabla, ALTO_FILA, Set.of(5));
+        Tablas.estilizar(tabla, ALTO_FILA);
         tabla.setRowSelectionAllowed(false);
         Font normal = Estilo.fuente(Font.PLAIN, 16f);
         Font negrita = Estilo.fuente(Font.BOLD, 16f);
@@ -220,7 +219,7 @@ public class ReporteDeliveryPanel extends JPanel {
         Tablas.renderer(tabla, 3, new Tablas.RendererTexto(normal, Estilo.TEXTO, String::valueOf));
         Tablas.renderer(tabla, 4, new Tablas.RendererTexto(normal, Estilo.TEXTO, String::valueOf));
         Tablas.renderer(tabla, 5, new Tablas.RendererTexto(negrita, Estilo.TEXTO,
-                v -> Tablas.pesosCortos((BigDecimal) v), true));
+                v -> Tablas.pesosCortos((BigDecimal) v)));
         Tablas.anchos(tabla, 85, 80, 140, 130, 100, 115);
 
         JLabel titulo = new JLabel("Pedidos del día");

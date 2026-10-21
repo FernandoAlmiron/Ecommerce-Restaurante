@@ -32,7 +32,6 @@ import java.awt.GridBagLayout;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 /**
  * Pantalla de Salón (RF-19 a RF-24): arriba las mesas (tickets de salón), abajo los pedidos de la mesa elegida.
@@ -139,7 +138,7 @@ public class TicketsPanel extends JPanel {
         tablaTickets.setRowSorter(orden);
         orden.setSortKeys(List.of(new RowSorter.SortKey(TicketTableModel.COL_TICKET, SortOrder.DESCENDING)));
         tablaTickets.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        Tablas.estilizar(tablaTickets, ALTO_FILA, Set.of(4, 5, 6));
+        Tablas.estilizar(tablaTickets, ALTO_FILA);
 
         Font normal = Estilo.fuente(Font.PLAIN, 16f);
         Font negrita = Estilo.fuente(Font.BOLD, 16f);
@@ -147,8 +146,8 @@ public class TicketsPanel extends JPanel {
         Tablas.renderer(tablaTickets, 1, new Tablas.RendererTexto(normal, Estilo.TEXTO_SUAVE, v -> "#" + v));
         Tablas.renderer(tablaTickets, 2, new RendererCliente(normal));
         Tablas.renderer(tablaTickets, 3, new Tablas.RendererTexto(normal, Estilo.TEXTO, String::valueOf));
-        Tablas.renderer(tablaTickets, 4, new Tablas.RendererTexto(normal, Estilo.TEXTO, String::valueOf, true));
-        Tablas.renderer(tablaTickets, 5, new Tablas.RendererTexto(normal, Estilo.TEXTO, String::valueOf, true));
+        Tablas.renderer(tablaTickets, 4, new Tablas.RendererTexto(normal, Estilo.TEXTO, String::valueOf));
+        Tablas.renderer(tablaTickets, 5, new Tablas.RendererTexto(normal, Estilo.TEXTO, String::valueOf));
         Tablas.renderer(tablaTickets, 6, new RendererTotal(negrita, normal));
         Tablas.renderer(tablaTickets, 7, new Tablas.RendererInsignia(v -> null) {
             @Override
@@ -190,15 +189,15 @@ public class TicketsPanel extends JPanel {
         cabeceraDetalle.add(btnAgregarPedido, BorderLayout.EAST);
 
         tablaPedidos.setRowSelectionAllowed(false);
-        Tablas.estilizar(tablaPedidos, ALTO_FILA, Set.of(1, 2, 3));
+        Tablas.estilizar(tablaPedidos, ALTO_FILA);
         Font normal = Estilo.fuente(Font.PLAIN, 16f);
         Font negrita = Estilo.fuente(Font.BOLD, 16f);
         Tablas.renderer(tablaPedidos, 0, new Tablas.RendererTexto(negrita, Estilo.TEXTO, String::valueOf));
-        Tablas.renderer(tablaPedidos, 1, new Tablas.RendererTexto(normal, Estilo.TEXTO, String::valueOf, true));
+        Tablas.renderer(tablaPedidos, 1, new Tablas.RendererTexto(normal, Estilo.TEXTO, String::valueOf));
         Tablas.renderer(tablaPedidos, 2, new Tablas.RendererTexto(normal, Estilo.TEXTO,
-                v -> Tablas.pesosCortos((BigDecimal) v), true));
+                v -> Tablas.pesosCortos((BigDecimal) v)));
         Tablas.renderer(tablaPedidos, 3, new Tablas.RendererTexto(normal, Estilo.TEXTO,
-                v -> Tablas.pesosCortos((BigDecimal) v), true));
+                v -> Tablas.pesosCortos((BigDecimal) v)));
         Tablas.renderer(tablaPedidos, 4, new Tablas.RendererTexto(normal, Estilo.TEXTO_SUAVE, String::valueOf));
         Tablas.anchos(tablaPedidos, 320, 120, 190, 150, 280);
 
@@ -368,7 +367,7 @@ public class TicketsPanel extends JPanel {
         private final Font normal;
 
         RendererTotal(Font negrita, Font normal) {
-            super(negrita, Estilo.TEXTO, v -> Tablas.pesosCortos((BigDecimal) v), true);
+            super(negrita, Estilo.TEXTO, v -> Tablas.pesosCortos((BigDecimal) v));
             this.negrita = negrita;
             this.normal = normal;
         }
