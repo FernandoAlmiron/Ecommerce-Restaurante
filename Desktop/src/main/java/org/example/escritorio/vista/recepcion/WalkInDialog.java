@@ -26,11 +26,13 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Window;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
  * Ventana para ubicar a un cliente que llega sin reserva (RF-17).
  * Primero se busca por DNI: si existe se usan sus datos; si no, se completan nombre y apellido.
+ * La usan Recepción ("Nuevo walk-in") y Salón (abrir una mesa sin reserva): cambia solo el encabezado.
  */
 public class WalkInDialog extends DialogoFormulario {
 
@@ -46,9 +48,15 @@ public class WalkInDialog extends DialogoFormulario {
 
     private final WalkInControlador controlador;
     private ReservaResponseDTO reservaCreada;
+    /** Lugares libres ahora en cada zona (por id), para mostrarlos en el combo. */
+    private Map<Integer, Integer> libres = Map.of();
 
     public WalkInDialog(Window padre) {
-        super(padre, "Recepción", "Nuevo walk-in", "Cliente que llega sin reserva.", "Registrar walk-in");
+        this(padre, "Recepción", "Nuevo walk-in", "Cliente que llega sin reserva.", "Registrar walk-in");
+    }
+
+    public WalkInDialog(Window padre, String seccion, String titulo, String subtitulo, String accionPrincipal) {
+        super(padre, seccion, titulo, subtitulo, accionPrincipal);
 
         cmbZona.setRenderer(new DefaultListCellRenderer() {
             @Override
@@ -56,7 +64,9 @@ public class WalkInDialog extends DialogoFormulario {
                                                           boolean seleccionado, boolean foco) {
                 super.getListCellRendererComponent(lista, valor, indice, seleccionado, foco);
                 if (valor instanceof Zona z) {
-                    setText(z.getNombre() + " (hasta " + z.getCapacidadMaxima() + ")");
+                    Integer quedan = libres.get(z.getIdZona());
+                    setText(quedan == null ? z.getNombre() + " (hasta " + z.getCapacidadMaxima() + ")"
+                            : z.getNombre() + " · " + quedan + " libres de " + z.getCapacidadMaxima());
                 }
                 return this;
             }
@@ -121,7 +131,8 @@ public class WalkInDialog extends DialogoFormulario {
     public JButton getBotonRegistrar() { return btnPrincipal; }
     public JComboBox<Zona> getComboZona() { return cmbZona; }
 
-    public void mostrarZonas(List<Zona> zonas) {
+    public void mostrarZonas(List<Zona> zonas, Map<Integer, Integer> libres) {
+        this.libres = libres;
         cmbZona.removeAllItems();
         zonas.forEach(cmbZona::addItem);
     }

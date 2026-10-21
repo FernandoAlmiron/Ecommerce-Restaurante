@@ -8,6 +8,7 @@ import org.example.dto.ReservaResponseDTO;
 import org.example.escritorio.Contexto;
 import org.example.escritorio.sesion.Sesion;
 import org.example.escritorio.vista.comun.Tarea;
+import org.example.escritorio.vista.recepcion.WalkInDialog;
 import org.example.escritorio.vista.salon.AbrirMesaDialog;
 import org.example.service.facturacion.TicketService;
 import org.example.service.reserva.ReservaService;
@@ -20,6 +21,8 @@ import java.util.stream.Collectors;
 /**
  * Lógica de abrir mesa (RF-19). El ticket lo crea TicketService.crear del backend:
  * pone origen SALON y controla que la reserva sea del mismo restaurante.
+ * Sin reserva, primero se registra un walk-in (zona y comensales) con la misma ventana de Recepción,
+ * así el lugar se descuenta del cupo de la zona y se libera cuando la mesa se cobra.
  */
 public class AbrirMesaControlador {
 
@@ -61,22 +64,36 @@ public class AbrirMesaControlador {
     }
 
     public void abrir() {
+        if (!vista.isConReserva()) {
+            abrirSinReserva();
+            return;
+        }
         ReservaResponseDTO elegida = vista.getReservaSeleccionada();
-        if (vista.isConReserva() && elegida == null) {
+        if (elegida == null) {
             vista.mostrarError("Elegí la reserva, o destildá \"Viene con reserva\".");
             return;
         }
+        crearTicket(elegida.nroReserva());
+    }
+
+    /** Pide el cliente, la zona y los comensales; si se registra, abre la mesa con esa reserva. */
+    private void abrirSinReserva() {
+        WalkInDialog walkIn = new WalkInDialog(vista, "Salón", "Abrir mesa sin reserva",
+                "Elegí la zona y cuántos son: se descuenta del lugar libre.", "Abrir mesa");
+        walkIn.setVisible(true); // es modal: sigue cuando se cierra
+        walkIn.getReservaCreada().ifPresent(r -> crearTicket(r.nroReserva()));
+    }
+
+    private void crearTicket(int nroReserva) {
 
         // TicketService.crear solo usa los números: el restaurante y la reserva los busca él en la base
         Ticket datos = new Ticket();
         Restaurante restaurante = new Restaurante();
         restaurante.setNroRestaurante(Sesion.nroRestaurante());
         datos.setRestaurante(restaurante);
-        if (vista.isConReserva()) {
-            Reserva reserva = new Reserva();
-            reserva.setNroReserva(elegida.nroReserva());
-            datos.setReserva(reserva);
-        }
+        Reserva reserva = new Reserva();
+        reserva.setNroReserva(nroReserva);
+        datos.setReserva(reserva);
 
         Tarea.ejecutar(vista.getBotonAbrir(),
                 () -> ticketService.crear(datos).getNroTicket(),

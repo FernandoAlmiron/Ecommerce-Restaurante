@@ -17,7 +17,9 @@ public interface ReservaRepository extends JpaRepository<Reserva, Integer> {
     @Query("SELECT COALESCE(SUM(r.cantComensales), 0) FROM Reserva r " +
             "WHERE r.zona.idZona = :idZona AND r.fechaReserva = :fecha " +
             "AND r.horaReserva >= :desde AND r.horaReserva < :hasta " +
-            "AND r.estado <> :excluido")
+            "AND r.estado <> :excluido " +
+            // la mesa ya se cobró: la gente se fue y el lugar vuelve a estar libre
+            "AND NOT EXISTS (SELECT f FROM Facturacion f WHERE f.ticket.reserva = r)")
     Long sumarComensales(@Param("idZona") int idZona,
                          @Param("fecha") LocalDate fecha,
                          @Param("desde") LocalTime desde,

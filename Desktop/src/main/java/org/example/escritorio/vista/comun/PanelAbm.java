@@ -253,10 +253,7 @@ public abstract class PanelAbm<T> extends JPanel {
 
     /** Un botón chiquito de ícono (lápiz, tacho) para dentro de una fila o tarjeta. */
     protected static JButton botonIcono(Icono.Tipo tipo, Color color, String ayuda) {
-        Boton b = new Boton(null, new Icono(tipo, 18, color), Boton.Tipo.CONTORNO);
-        b.setBorder(Estilo.relleno(10, 10, 10, 10));
-        b.setToolTipText(ayuda);
-        return b;
+        return Boton.soloIcono(tipo, color, ayuda);
     }
 
     // ---------- conexión con el controlador ----------

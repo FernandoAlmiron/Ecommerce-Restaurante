@@ -1,5 +1,6 @@
 package org.example.escritorio.controlador.recepcion;
 
+import org.example.Modelo.enums.EstadoReserva;
 import org.example.Modelo.persona.Cliente;
 import org.example.Modelo.reserva.Zona;
 import org.example.dto.ReservaResponseDTO;
@@ -9,8 +10,16 @@ import org.example.escritorio.sesion.Sesion;
 import org.example.escritorio.vista.comun.Tarea;
 import org.example.escritorio.vista.recepcion.WalkInDialog;
 import org.example.repository.persona.ClienteRepository;
+import org.example.repository.reserva.ReservaRepository;
 import org.example.service.reserva.ReservaService;
 import org.example.service.reserva.ZonaService;
+
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Lógica del walk-in (RF-17). Fecha, hora, estado CONFIRMADA y control de horario y cupo
@@ -22,6 +31,7 @@ public class WalkInControlador {
     private final ReservaService reservaService;
     private final ZonaService zonaService;
     private final ClienteRepository clienteRepository;
+    private final ReservaRepository reservaRepository;
 
     /** true cuando ya se buscó el DNI escrito; si cambia el DNI hay que volver a buscar. */
     private boolean dniBuscado;
@@ -33,18 +43,41 @@ public class WalkInControlador {
         this.reservaService = Contexto.get(ReservaService.class);
         this.zonaService = Contexto.get(ZonaService.class);
         this.clienteRepository = Contexto.get(ClienteRepository.class);
+        this.reservaRepository = Contexto.get(ReservaRepository.class);
     }
 
-    /** Solo las zonas activas del restaurante del empleado. */
+    /** Las zonas y cuántos lugares libres tiene cada una ahora. */
+    private record Zonas(List<Zona> zonas, Map<Integer, Integer> libres) {
+    }
+
+    /** Solo las zonas activas del restaurante del empleado, con los lugares que les quedan libres ahora. */
     public void cargarZonas() {
         int restaurante = Sesion.nroRestaurante();
-        Tarea.ejecutar(vista.getComboZona(),
-                () -> zonaService.listarTodos().stream()
-                        .filter(Zona::isActiva)
-                        .filter(z -> z.getRestaurante() != null
-                                && z.getRestaurante().getNroRestaurante() == restaurante)
-                        .toList(),
-                vista::mostrarZonas);
+        Tarea.ejecutar(vista.getComboZona(), () -> {
+            List<Zona> zonas = zonaService.listarTodos().stream()
+                    .filter(Zona::isActiva)
+                    .filter(z -> z.getRestaurante() != null
+                            && z.getRestaurante().getNroRestaurante() == restaurante)
+                    .toList();
+            Map<Integer, Integer> libres = zonas.stream().collect(Collectors.toMap(Zona::getIdZona,
+                    z -> Math.max(0, z.getCapacidadMaxima() - ocupadosAhora(z))));
+            return new Zonas(zonas, libres);
+        }, datos -> vista.mostrarZonas(datos.zonas(), datos.libres()));
+    }
+
+    /**
+     * Comensales que ocupan la zona ahora, con la misma cuenta que hace el backend al registrar
+     * el walk-in (las reservas de 2 horas antes y después, sin las canceladas ni las mesas ya cobradas).
+     * Es solo para mostrar: el que decide si hay lugar es ReservaService.reservarWalkIn.
+     */
+    private int ocupadosAhora(Zona zona) {
+        LocalTime hora = LocalTime.now().truncatedTo(ChronoUnit.MINUTES);
+        LocalTime desde = hora.minusHours(2);
+        desde = desde.isAfter(hora) ? LocalTime.MIN : desde.plusMinutes(1);
+        LocalTime hasta = hora.plusHours(2);
+        hasta = hasta.isBefore(hora) ? LocalTime.MAX : hasta;
+        return reservaRepository.sumarComensales(zona.getIdZona(), LocalDate.now(), desde, hasta,
+                EstadoReserva.CANCELADA).intValue();
     }
 
     public void buscarCliente() {

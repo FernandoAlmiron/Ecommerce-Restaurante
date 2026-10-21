@@ -17,7 +17,7 @@ public class Icono implements Icon {
 
     public enum Tipo {
         CALENDARIO, MAS_CIRCULO, OLLA, BILLETE, BICI, PERSONAS, ENGRANAJE,
-        SALIR, LUPA, ACTUALIZAR, MAS, USUARIO, CANDADO, OJO, OJO_TACHADO, TILDE, IZQUIERDA, DERECHA, UBICACION, TELEFONO, LAPIZ, COPA, SOBRE, INFO, TACHO, DOCUMENTO, RELOJ
+        SALIR, LUPA, ACTUALIZAR, MAS, MENOS, USUARIO, CANDADO, OJO, OJO_TACHADO, TILDE, IZQUIERDA, DERECHA, UBICACION, TELEFONO, LAPIZ, COPA, SOBRE, INFO, TACHO, DOCUMENTO, RELOJ
     }
 
     private final Tipo tipo;
@@ -122,6 +122,7 @@ public class Icono implements Icon {
                 g2.drawLine(10, 3, 10, 17);
                 g2.drawLine(3, 10, 17, 10);
             }
+            case MENOS -> g2.drawLine(3, 10, 17, 10);
             case COPA -> {
                 Path2D copa = new Path2D.Float();
                 copa.moveTo(5, 3);

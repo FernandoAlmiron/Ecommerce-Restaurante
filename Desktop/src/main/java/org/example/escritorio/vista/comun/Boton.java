@@ -44,6 +44,14 @@ public class Boton extends JButton {
         this(texto, null, tipo);
     }
 
+    /** Botón cuadrado, blanco y con borde, que solo tiene un ícono (editar, borrar...); el texto va de ayuda. */
+    public static Boton soloIcono(Icono.Tipo icono, Color color, String ayuda) {
+        Boton b = new Boton(null, new Icono(icono, 18, color), Tipo.CONTORNO);
+        b.setBorder(Estilo.relleno(10, 10, 10, 10));
+        b.setToolTipText(ayuda);
+        return b;
+    }
+
     public Boton(String texto, Icon icono, Tipo tipo) {
         super(texto, icono);
         this.tipo = tipo;
