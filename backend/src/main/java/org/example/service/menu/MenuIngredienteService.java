@@ -23,7 +23,17 @@ public class MenuIngredienteService {
         this.stockRepository = stockRepository;
     }
 
+    /** RF-28: la cantidad tiene que ser mayor a 0 y un insumo va una sola vez en la receta de un plato. */
     public MenuIngrediente guardar(MenuIngrediente menuIngrediente) {
+        if (menuIngrediente.getMenu() == null || menuIngrediente.getStock() == null) {
+            throw new IllegalArgumentException("El renglón de la receta necesita un plato y un insumo");
+        }
+        validarCantidad(menuIngrediente.getCantidadNecesaria());
+        if (menuIngredienteRepository.existsByMenu_IdMenuAndStock_IdStockAndIdMenuIngredienteNot(
+                menuIngrediente.getMenu().getIdMenu(), menuIngrediente.getStock().getIdStock(),
+                menuIngrediente.getIdMenuIngrediente())) {
+            throw new IllegalStateException("Ese insumo ya está en la receta: cambiá su cantidad en lugar de agregarlo otra vez");
+        }
         return menuIngredienteRepository.save(menuIngrediente);
     }
 
@@ -41,6 +51,7 @@ public class MenuIngredienteService {
     }
 
     public MenuIngrediente actualizarCantidad(int id, double nuevaCantidad) {
+        validarCantidad(nuevaCantidad);
         MenuIngrediente mi = buscarPorId(id);
         mi.setCantidadNecesaria(nuevaCantidad);
         return menuIngredienteRepository.save(mi);
@@ -72,6 +83,12 @@ public class MenuIngredienteService {
             stockRepository.save(stock);
         }
     }
+    private static void validarCantidad(double cantidad) {
+        if (!(cantidad > 0)) {   // también rechaza NaN
+            throw new IllegalArgumentException("La cantidad del insumo tiene que ser mayor a 0");
+        }
+    }
+
     private Map<Integer, Double> cantidadesRequeridas(Menu menu, int cantidad) {
         Map<Integer, Double> requerido = new TreeMap<>();
         for (MenuIngrediente mi : menuIngredienteRepository.findByMenu(menu)) {

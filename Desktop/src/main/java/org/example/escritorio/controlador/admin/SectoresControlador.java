@@ -10,11 +10,9 @@ import org.example.escritorio.vista.comun.Tarea;
 import org.example.service.RestauranteService;
 import org.example.service.persona.EmpleadoService;
 import org.example.service.persona.SectorService;
-import org.springframework.dao.DataIntegrityViolationException;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import java.util.concurrent.Callable;
 
 /**
@@ -53,9 +51,7 @@ public class SectoresControlador {
                                         || s.getRestaurante().getNroRestaurante() == restaurante)
                                 .toList(),
                         // cuántos empleados hay en cada sector (un sector con empleados no se puede borrar)
-                        empleadoService.listarTodos().stream()
-                                .filter(e -> e.getSector() != null)
-                                .collect(Collectors.groupingBy(e -> e.getSector().getIdSector(), Collectors.counting()))),
+                        empleadoService.contarPorSector()),
                 datos -> {
                     List<Sector> lista = datos.sectores();
                     sectores = lista;
@@ -104,14 +100,10 @@ public class SectoresControlador {
             if (!vista.confirmar("¿Eliminar el sector " + sector.getNombre() + "?")) {
                 return;
             }
+            // SectorService.eliminar rechaza los sectores del sistema y los que tienen empleados, con su mensaje
             Tarea.ejecutar(vista.getBotonEliminar(), () -> {
-                try {
-                    sectorService.eliminar(sector.getIdSector());
-                    return true;
-                } catch (DataIntegrityViolationException e) {
-                    throw new IllegalStateException("El sector " + sector.getNombre() + " tiene empleados y no se "
-                            + "puede eliminar. Pasalos a otro sector en Recursos humanos o desactivalo.");
-                }
+                sectorService.eliminar(sector.getIdSector());
+                return true;
             }, ok -> cargar(null));
         });
     }

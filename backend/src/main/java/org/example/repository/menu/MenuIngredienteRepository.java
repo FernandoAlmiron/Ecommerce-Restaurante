@@ -8,4 +8,7 @@ import java.util.List;
 
 public interface MenuIngredienteRepository extends JpaRepository<MenuIngrediente, Integer> {
     List<MenuIngrediente> findByMenu(Menu menu);
+
+    /** Si el plato ya tiene ese insumo en otro renglón de la receta (idPropio = el que se guarda, 0 si es nuevo). */
+    boolean existsByMenu_IdMenuAndStock_IdStockAndIdMenuIngredienteNot(int idMenu, int idStock, int idPropio);
 }

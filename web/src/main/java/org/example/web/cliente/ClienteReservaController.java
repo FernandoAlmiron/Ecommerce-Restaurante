@@ -119,8 +119,9 @@ public class ClienteReservaController {
 
     // lo que necesita el formulario
     private void cargarFormulario(Model model) {
-        model.addAttribute("zonas", zonaService.listarTodos().stream().filter(z -> z.isActiva()).toList());
-        model.addAttribute("restaurante", restauranteService.listarTodos().get(0));
+        var restaurante = restauranteService.listarTodos().get(0);
+        model.addAttribute("zonas", zonaService.listarActivas(restaurante.getNroRestaurante()));
+        model.addAttribute("restaurante", restaurante);
         model.addAttribute("montoSenia", montoSenia);
         model.addAttribute("hoy", LocalDate.now());                      // no deja elegir días pasados
         model.addAttribute("maxFecha", LocalDate.now().plusMonths(3));   // ni reservar a más de 3 meses

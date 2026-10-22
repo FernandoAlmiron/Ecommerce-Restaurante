@@ -16,6 +16,8 @@ public class CategoriaService {
     }
 
     public Categoria guardar(Categoria categoria) {
+        validarNombre(categoria.getNombre(), categoria.getNroCategoria());
+        categoria.setNombre(categoria.getNombre().trim());
         return categoriaRepository.save(categoria);
     }
 
@@ -30,10 +32,21 @@ public class CategoriaService {
 
     public Categoria actualizar(int nroCategoria, Categoria datos) {
         Categoria actual = buscarPorId(nroCategoria);
-        actual.setNombre(datos.getNombre());
+        validarNombre(datos.getNombre(), nroCategoria);
+        actual.setNombre(datos.getNombre().trim());
         actual.setDescripcion(datos.getDescripcion());
         actual.setActivo(datos.isActivo());
         return categoriaRepository.save(actual);
+    }
+
+    /** Obligatorio y sin repetir (sin importar mayúsculas). */
+    private void validarNombre(String nombre, int idPropio) {
+        if (nombre == null || nombre.isBlank()) {
+            throw new IllegalArgumentException("El nombre de la categoría es obligatorio");
+        }
+        if (categoriaRepository.existsByNombreIgnoreCaseAndNroCategoriaNot(nombre.trim(), idPropio)) {
+            throw new IllegalStateException("Ya hay una categoría llamada " + nombre.trim());
+        }
     }
 
     public void eliminar(int nroCategoria) {

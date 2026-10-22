@@ -16,6 +16,9 @@ import org.example.repository.menu.MenuRepository;
 import org.example.repository.persona.ClienteRepository;
 import org.example.repository.persona.EmpleadoRepository;
 import org.example.repository.reserva.EnvioRepository;
+import org.example.Modelo.enums.EstadoPago;
+import org.example.Modelo.facturacion.Facturacion;
+import org.example.service.facturacion.FacturacionService;
 import org.example.service.menu.MenuIngredienteService;
 import org.example.service.menu.PedidoService;
 import org.springframework.security.access.AccessDeniedException;
@@ -35,6 +38,7 @@ public class EnvioService {
     private final RestauranteRepository restauranteRepository;
     private final PedidoService pedidoService;
     private final ClienteService clienteService;
+    private final FacturacionService facturacionService;
     private static final int MAX_PLATOS_DISTINTOS = 10;
     private static final int MAX_UNIDADES_POR_PLATO = 10;
 
@@ -42,7 +46,7 @@ public class EnvioService {
                         ClienteRepository clienteRepository, EmpleadoRepository empleadoRepository,
                         MenuRepository menuRepository, RestauranteRepository restauranteRepository,
                         PedidoService pedidoService, MenuIngredienteService menuIngredienteService,
-                        ClienteService clienteService) {
+                        ClienteService clienteService, FacturacionService facturacionService) {
         this.envioRepository = envioRepository;
         this.ticketRepository = ticketRepository;
         this.clienteRepository = clienteRepository;
@@ -51,6 +55,7 @@ public class EnvioService {
         this.restauranteRepository = restauranteRepository;
         this.pedidoService = pedidoService;
         this.clienteService = clienteService;
+        this.facturacionService = facturacionService;
     }
 
     @Transactional
@@ -146,6 +151,32 @@ public class EnvioService {
             throw new AccessDeniedException("El envio no esta asignado a este repartidor");
         }
         envio.cambiarEstado(nuevoEstado);   // valida que el cambio tenga sentido
+        return envioRepository.save(envio);
+    }
+
+    /**
+     * El repartidor entrega y cobra: factura el ticket del envío (si todavía no estaba), confirma el pago
+     * y lo marca ENTREGADO. Va todo en una transacción: si algo falla, no queda nada a medias
+     * (por ejemplo, entregado pero sin cobrar).
+     */
+    @Transactional
+    public Envio entregarYCobrar(int idEnvio, String username, boolean esAdmin) {
+        Envio envio = envioRepository.findById(idEnvio).orElseThrow();
+        if (!esAdmin && (envio.getRepartidor() == null
+                || !envio.getRepartidor().getUsername().equals(username))) {
+            throw new AccessDeniedException("El envio no esta asignado a este repartidor");
+        }
+        envio.cambiarEstado(EstadoEnvio.ENTREGADO);   // valida que se pueda entregar antes de cobrar
+
+        Facturacion factura = envio.getTicket().getFacturacion();
+        if (factura == null) {
+            Facturacion datos = new Facturacion();
+            datos.setTicket(envio.getTicket());   // el metodo de pago lo toma del envio
+            factura = facturacionService.crear(datos);
+        }
+        if (factura.getEstadoPago() != EstadoPago.PAGADO) {
+            facturacionService.confirmarPago(factura.getNroFacturacion());
+        }
         return envioRepository.save(envio);
     }
 

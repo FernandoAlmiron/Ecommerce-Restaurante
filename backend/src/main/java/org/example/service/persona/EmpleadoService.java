@@ -50,6 +50,15 @@ public class EmpleadoService {
                 .orElseThrow(() -> new NoSuchElementException("Empleado no encontrado"));
     }
 
+    /** Cuántos empleados tiene cada sector (por idSector); los que no tienen, no aparecen. */
+    public java.util.Map<Integer, Long> contarPorSector() {
+        java.util.Map<Integer, Long> cantidades = new java.util.HashMap<>();
+        for (Object[] fila : empleadoRepository.contarPorSector()) {
+            cantidades.put((Integer) fila[0], (Long) fila[1]);
+        }
+        return cantidades;
+    }
+
     public List<Empleado> listarTodos() {
         return empleadoRepository.findAll();
     }

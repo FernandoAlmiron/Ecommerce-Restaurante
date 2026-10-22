@@ -42,6 +42,7 @@ public class CustomUserDetailsService implements UserDetailsService {
                 List.of(new SimpleGrantedAuthority("ROLE_" + rol)));
     }
 
+    // si se agrega un sector acá, sumarlo también a Sector.DEL_SISTEMA (así no se puede renombrar ni borrar)
     private String mapearRol(String sector) {
         return switch (sector.toUpperCase()) {
             case "ADMINISTRACION" -> "ADMIN";

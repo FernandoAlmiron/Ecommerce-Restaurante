@@ -74,9 +74,7 @@ public class StockEdicionControlador {
                 datos.setRestaurante(restauranteService.buscarPorId(restaurante));
                 return stockService.guardar(datos);
             }
-            // StockService.actualizar también pisa la cantidad: se relee justo antes para no deshacer
-            // lo que descontaron los pedidos mientras la ventana estaba abierta
-            datos.setCantidadActual(stockService.buscarPorId(original.getIdStock()).getCantidadActual());
+            // StockService.actualizar no toca la cantidad (la mueven reponer, ajustar y los pedidos)
             return stockService.actualizar(original.getIdStock(), datos);
         }, vista::cerrarCon);
     }

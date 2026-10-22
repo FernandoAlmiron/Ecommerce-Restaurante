@@ -85,7 +85,10 @@ public class RepartoControlador {
             boolean admin = Sesion.esAdmin();
             Tarea.ejecutar(vista.botonPara(nuevo), () -> {
                 try {
-                    return envioService.actualizarEstado(r.idEnvio(), nuevo, usuario, admin);
+                    // al entregar, el repartidor cobra: factura, pago y ENTREGADO van juntos o ninguno
+                    return nuevo == EstadoEnvio.ENTREGADO
+                            ? envioService.entregarYCobrar(r.idEnvio(), usuario, admin)
+                            : envioService.actualizarEstado(r.idEnvio(), nuevo, usuario, admin);
                 } catch (AccessDeniedException e) {
                     // RF-38: el backend no deja mover un envío de otro repartidor
                     throw new IllegalStateException("Este envío no está asignado a vos.");

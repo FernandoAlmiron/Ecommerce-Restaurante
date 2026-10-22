@@ -50,11 +50,7 @@ public class WalkInControlador {
     public void cargarZonas() {
         int restaurante = Sesion.nroRestaurante();
         Tarea.ejecutar(vista.getComboZona(), () -> {
-            List<Zona> zonas = zonaService.listarTodos().stream()
-                    .filter(Zona::isActiva)
-                    .filter(z -> z.getRestaurante() != null
-                            && z.getRestaurante().getNroRestaurante() == restaurante)
-                    .toList();
+            List<Zona> zonas = zonaService.listarActivas(restaurante);
             Map<Integer, Integer> libres = zonas.stream().collect(Collectors.toMap(Zona::getIdZona,
                     z -> Math.max(0, z.getCapacidadMaxima() - ocupadosAhora(z))));
             return new Zonas(zonas, libres);

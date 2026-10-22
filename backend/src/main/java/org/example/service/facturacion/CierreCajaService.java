@@ -43,9 +43,13 @@ public class CierreCajaService {
         Restaurante restaurante = restauranteRepository.findById(dto.getNroRestaurante())
                 .orElseThrow(() -> new IllegalArgumentException("Restaurante no encontrado"));
 
+        LocalDate hoy = LocalDate.now();
+        if (cierreCajaRepository.existsByRestaurante_NroRestauranteAndFecha(restaurante.getNroRestaurante(), hoy)) {
+            throw new IllegalStateException("La caja de hoy ya se cerró: hay un solo cierre por día");
+        }
+
         // Lo esperado en la caja: el EFECTIVO cobrado hoy en el salon (con su propina).
         // Tarjeta y QR no pasan por la caja, y el delivery tiene su propio reporte.
-        LocalDate hoy = LocalDate.now();
         BigDecimal esperado = facturacionRepository.sumarPagos(
                 dto.getNroRestaurante(), hoy.atStartOfDay(), hoy.plusDays(1).atStartOfDay(),
                 OrigenTicket.SALON, EstadoPago.PAGADO, MetodoPago.EFECTIVO);

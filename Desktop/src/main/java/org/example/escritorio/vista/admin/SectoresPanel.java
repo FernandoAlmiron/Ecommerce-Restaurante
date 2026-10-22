@@ -63,7 +63,8 @@ public class SectoresPanel extends PanelAbm<Sector> {
     @Override
     protected JComponent armarNota() {
         JLabel nota = new JLabel("Un sector con empleados no se puede eliminar: desactivalo con el interruptor. "
-                + "El tacho aparece cuando el sector queda vacío.");
+                + "El tacho aparece cuando el sector queda vacío. Los sectores del sistema (los que dan permisos) "
+                + "no se pueden renombrar ni eliminar.");
         nota.setIcon(new Icono(Icono.Tipo.INFO, 18, Estilo.TEXTO_SUAVE));
         nota.setIconTextGap(12);
         nota.setFont(Estilo.fuente(Font.PLAIN, 15f));
@@ -97,12 +98,20 @@ public class SectoresPanel extends PanelAbm<Sector> {
         Interruptor interruptor = new Interruptor(sector.isActiva());
         interruptor.setToolTipText(sector.isActiva() ? "Desactivar el sector" : "Activar el sector");
         interruptor.addActionListener(e -> sobre(sector, controlador::activarODesactivar));
-        JButton editar = botonIcono(Icono.Tipo.LAPIZ, Estilo.TEXTO, "Modificar el nombre");
-        editar.addActionListener(e -> modificar(sector));
         JPanel acciones = Estilo.transparente(new FlowLayout(FlowLayout.RIGHT, 10, 0));
         acciones.add(interruptor);
-        acciones.add(editar);
-        if (empleados == 0) {
+        // los sectores del sistema dan los permisos: no se renombran ni se borran (lo controla SectorService)
+        boolean delSistema = sector.esDelSistema();
+        if ("ADMINISTRACION".equalsIgnoreCase(sector.getNombre())) {
+            interruptor.setEnabled(false);
+            interruptor.setToolTipText("El sector de los administradores no se puede desactivar");
+        }
+        if (!delSistema) {
+            JButton editar = botonIcono(Icono.Tipo.LAPIZ, Estilo.TEXTO, "Modificar el nombre");
+            editar.addActionListener(e -> modificar(sector));
+            acciones.add(editar);
+        }
+        if (empleados == 0 && !delSistema) {
             JButton borrar = botonIcono(Icono.Tipo.TACHO, Estilo.ROJO_TEXTO, "Eliminar el sector (está vacío)");
             borrar.addActionListener(e -> eliminar(sector));
             acciones.add(borrar);
