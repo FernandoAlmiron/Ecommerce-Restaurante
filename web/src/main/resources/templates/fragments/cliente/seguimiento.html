@@ -1,0 +1,44 @@
+<!-- =========================================================
+     "Así va tu pedido". Mientras el pedido está en marcha, HTMX lo vuelve
+     a pedir cada 10 segundos (hx-trigger="every 10s") y lo reemplaza:
+     cuando el admin marca "En camino", el cliente lo ve sin recargar.
+     Cuando llega o se cancela, ya no se pone hx-get y deja de preguntar.
+     ========================================================= -->
+<section th:fragment="seguimiento" id="seguimiento" class="seguimiento"
+         th:with="activo=${paso >= 2 and paso <= 4}"
+         th:hx-get="${activo} ? @{/pedidos/{id}/seguimiento(id=${e.idEnvio})}"
+         th:hx-trigger="${activo} ? 'every 10s'"
+         hx-swap="outerHTML">
+
+    <div class="seguimiento-titulo">
+        <h3>Así va tu pedido</h3>
+        <small th:if="${activo}" class="en-vivo">● En vivo</small>
+    </div>
+
+    <p th:if="${paso == 0}" class="alerta error">Este pedido fue cancelado.</p>
+
+    <!-- cada paso: "hecho" (ya pasó), "actual" (está pasando ahora) o nada (todavía no) -->
+    <ol th:unless="${paso == 0}" class="pasos">
+        <li class="hecho">
+            <span class="punto">✓</span>
+            <div><strong>Pedido confirmado</strong><small>Ya recibimos tu pedido</small></div>
+        </li>
+        <li th:classappend="${paso > 2} ? 'hecho' : (${paso == 2} ? 'actual')">
+            <span class="punto">🍝</span>
+            <div><strong>Preparando tus pastas</strong><small>Hechas en casa, con mucho cariño</small></div>
+        </li>
+        <li th:classappend="${paso > 3} ? 'hecho' : (${paso == 3} ? 'actual')">
+            <span class="punto">🛵</span>
+            <div>
+                <strong>En camino</strong>
+                <small th:text="${e.repartidor != null}
+                        ? 'Lo lleva ' + ${e.repartidor.nombre}
+                        : 'Te avisamos cuando salga el repartidor'"></small>
+            </div>
+        </li>
+        <li th:classappend="${paso > 4} ? 'hecho'">
+            <span class="punto">🍽️</span>
+            <div><strong>¡A disfrutar!</strong><small>Tu pedido llega a la puerta de tu casa</small></div>
+        </li>
+    </ol>
+</section>

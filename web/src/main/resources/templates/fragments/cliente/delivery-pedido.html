@@ -1,0 +1,59 @@
+<!-- =========================================================
+     El panel "Tu pedido" (columna derecha de la carta).
+     ========================================================= -->
+
+<aside th:fragment="panel" id="panel-pedido" class="panel-pedido"
+       th:hx-swap-oob="${oob} ? 'true'">
+
+    <div class="panel-titulo">
+        <h2>Tu pedido</h2>
+        <span class="chip" th:text="${carrito.unidades} + ' platos'"></span>
+    </div>
+
+    <!-- ⚠️ ADAPTADO AL BACKEND: en Figma se puede elegir "Retiro en local".
+         El backend solo crea envíos a domicilio (la dirección es obligatoria). -->
+    <div class="modo-entrega">🛵 Delivery · Llega en 30–45 minutos</div>
+
+    <p th:if="${carrito.vacio}" class="vacio">Todavía no agregaste platos.</p>
+
+    <ul class="lineas">
+        <li th:each="l : ${lineas}">
+            <img th:src="@{/img/platos/{id}.jpg(id=${l.menu().idMenu})}" alt="">
+            <div class="linea-info">
+                <strong th:text="${l.menu().nombre}"></strong>
+                <small th:text="${l.cantidad()} + ' × $' + ${#numbers.formatDecimal(l.menu().precio, 1, 'POINT', 0, 'COMMA')}"></small>
+                <div class="contador chico">
+                    <button th:hx-post="@{/delivery/{id}/restar(id=${l.menu().idMenu})}" hx-swap="none">−</button>
+                    <span th:text="${l.cantidad()}"></span>
+                    <button th:hx-post="@{/delivery/{id}/sumar(id=${l.menu().idMenu})}" hx-swap="none">+</button>
+                </div>
+            </div>
+            <strong th:text="'$' + ${#numbers.formatDecimal(l.subtotal(), 1, 'POINT', 0, 'COMMA')}"></strong>
+        </li>
+    </ul>
+
+    <!-- la nota se guarda sola al salir del cuadro de texto (hx-trigger="change") -->
+    <details class="nota" th:open="${!carrito.nota.isEmpty()}" th:unless="${carrito.vacio}">
+        <summary>📝 Agregar una nota a la cocina</summary>
+        <textarea name="nota" rows="2" placeholder="Ej: sin sal, timbre B..."
+                  hx-post="/delivery/nota" hx-trigger="change" hx-swap="none"
+                  th:text="${carrito.nota}"></textarea>
+    </details>
+
+    <!-- ⚠️ ADAPTADO AL BACKEND: en Figma hay "Envío $2.500". El backend no cobra
+         envío: el total es la suma de los platos, igual que lo calcula el ticket. -->
+    <div class="total">
+        <span>Total</span>
+        <strong th:text="'$' + ${#numbers.formatDecimal(total, 1, 'POINT', 0, 'COMMA')}"></strong>
+    </div>
+
+    <a th:href="@{/delivery/pago}" class="boton boton-flecha"
+       th:classappend="${carrito.vacio} ? 'deshabilitado'">Continuar al pago <span>→</span></a>
+    <small class="aclaracion">Podés revisar tu pedido antes de pagar.</small>
+</aside>
+
+<!-- respuesta de + y −: la tarjeta y el panel, los dos con hx-swap-oob -->
+<th:block th:fragment="actualizacion">
+    <article th:replace="~{fragments/cliente/delivery-plato :: plato}"></article>
+    <aside th:replace="~{fragments/cliente/delivery-pedido :: panel}"></aside>
+</th:block>

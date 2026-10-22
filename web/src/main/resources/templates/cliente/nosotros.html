@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Sobre nosotros - La Nona</title>
+    <link rel="stylesheet" th:href="@{/style.css}">
+</head>
+<body class="cliente">
+
+<header><a th:href="@{/}"><img th:src="@{/img/logo.png}" alt="La Nona - pastas caseras" class="logo"></a></header>
+
+<main class="nosotros">
+    <h1>Sobre nosotros</h1>
+    <p class="intro">
+        Somos estudiantes de <strong>Aplicaciones Interactivas</strong> (UADE).
+        La Nona es nuestro proyecto: un sistema para un restaurante de pastas caseras
+        con reservas, salón, delivery, stock y caja.
+    </p>
+
+    <!-- una tarjeta por integrante: iniciales, nombre y mail (al tocarlo abre el correo) -->
+    <section class="equipo">
+        <article class="integrante" th:each="p : ${equipo}">
+            <div class="iniciales" th:text="${p[0]}"></div>
+            <h2 th:text="${p[1]}"></h2>
+            <a th:href="'mailto:' + ${p[2]}" th:text="${p[2]}"></a>
+        </article>
+    </section>
+
+    <p class="tecnologias">
+        Hecho con Java · Spring Boot · MySQL · Thymeleaf · HTMX · Swing
+    </p>
+
+    <a href="javascript:history.back()" class="boton-borde volver-atras">← Volver</a>
+</main>
+
+</body>
+</html>

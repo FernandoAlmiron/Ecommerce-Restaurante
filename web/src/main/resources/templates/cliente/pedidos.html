@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Mis pedidos - La Nona</title>
+    <link rel="stylesheet" th:href="@{/style.css}">
+</head>
+<body class="cliente con-nav">
+
+<!-- botón "Sobre nosotros" (arriba a la derecha, en todas las páginas) -->
+<a th:replace="~{fragments/cliente/layout :: boton-nosotros}"></a>
+
+<header th:replace="~{fragments/cliente/layout :: logo}"></header>
+
+<main class="mis-reservas">
+    <div class="titulo-con-boton">
+        <h1>Mis pedidos</h1>
+        <a th:href="@{/delivery}" class="boton-beige">+ Nuevo pedido</a>
+    </div>
+
+    <!-- las mismas tarjetas beige que "Mis reservas" -->
+    <section class="tarjetas">
+        <article th:each="e : ${envios}" class="tarjeta">
+
+            <!-- ⚠️ ADAPTADO AL BACKEND: en Figma la tarjeta muestra fecha y hora.
+                 El envío no guarda cuándo se pidió, así que se muestra el número. -->
+            <div class="tarjeta-fecha"><span th:text="'Pedido #' + ${e.idEnvio}"></span></div>
+
+            <p class="estado" th:classappend="'envio-' + ${#strings.toLowerCase(e.estado.name())}"
+               th:text="${e.estado.name() == 'PENDIENTE'} ? 'EN PREPARACIÓN'
+                      : (${e.estado.name() == 'EN_CAMINO'} ? 'EN CAMINO' : ${e.estado})"></p>
+
+            <ul class="tarjeta-datos">
+                <li><span class="icono">👤</span> <span th:text="${e.ticket.pedidos.size()} + ' artículos'"></span></li>
+                <li><span class="icono">📍</span> <span th:text="${e.direccionEntrega}"></span></li>
+                <li><span class="icono">💳</span>
+                    <span th:text="'Total $' + ${#numbers.formatDecimal(e.ticket.calcularTotal(), 1, 'POINT', 0, 'COMMA')}"></span></li>
+            </ul>
+
+            <a th:href="@{/pedidos/{id}(id=${e.idEnvio})}" class="boton-blanco">Ver detalle</a>
+
+            <form th:action="@{/pedidos/{id}/repetir(id=${e.idEnvio})}" method="post">
+                <button type="submit" class="boton-blanco">Volver a pedir</button>
+            </form>
+            <!-- ⚠️ ADAPTADO AL BACKEND: en Figma también hay "Cancelar". En el backend
+                 solo el restaurante o el repartidor pueden cancelar un envío. -->
+        </article>
+    </section>
+
+    <p th:if="${envios.isEmpty()}" class="vacio">Todavía no hiciste pedidos.</p>
+</main>
+
+<nav th:replace="~{fragments/cliente/layout :: nav('pedidos')}"></nav>
+
+</body>
+</html>

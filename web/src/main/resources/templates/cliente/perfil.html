@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Perfil - La Nona</title>
+    <link rel="stylesheet" th:href="@{/style.css}">
+</head>
+<body class="cliente con-nav">
+
+<!-- botón "Sobre nosotros" (arriba a la derecha, en todas las páginas) -->
+<a th:replace="~{fragments/cliente/layout :: boton-nosotros}"></a>
+
+<header th:replace="~{fragments/cliente/layout :: logo}"></header>
+
+<main class="perfil">
+    <h1>Perfil</h1>
+    <p>Usuario</p>
+
+    <!-- ⚠️ ADAPTADO AL BACKEND: en Figma hay una foto. El cliente no guarda imagen,
+         así que se muestran sus iniciales en un círculo. -->
+    <div class="avatar" th:text="${#strings.substring(c.nombre, 0, 1) + #strings.substring(c.apellido, 0, 1)}"></div>
+
+    <div class="fila">
+        <input type="text" th:value="${c.nombre}" readonly>
+        <input type="text" th:value="${c.apellido}" readonly>
+    </div>
+    <input type="text" th:value="${c.email}" readonly>
+    <div class="fila">
+        <input type="text" th:value="${c.celular}" placeholder="Sin celular" readonly>
+        <input type="text" th:value="'DNI ' + ${c.dni}" readonly>
+    </div>
+
+    <form th:action="@{/logout}" method="post" class="cerrar-sesion">
+        <button type="submit">Cerrar sesión</button>
+    </form>
+</main>
+
+<nav th:replace="~{fragments/cliente/layout :: nav('perfil')}"></nav>
+
+</body>
+</html>

@@ -7,6 +7,9 @@
 </head>
 <body class="cliente">
 
+<!-- botón "Sobre nosotros" (arriba a la derecha, en todas las páginas) -->
+<a th:replace="~{fragments/cliente/layout :: boton-nosotros}"></a>
+
 <main class="registrar-reserva">
     <h1>Registrar<br>Reserva</h1>
 
@@ -22,7 +25,7 @@
 
         <label class="campo">
             <span>Fecha</span>
-            <input type="date" name="fecha" th:min="${hoy}" th:value="${param.fecha}" required>
+            <input type="date" name="fecha" th:min="${hoy}" th:max="${maxFecha}" th:value="${param.fecha}" required>
         </label>
 
         <label class="campo">
@@ -57,7 +60,7 @@
 
             <label class="campo">
                 <span>Vencimiento</span>
-                <input type="month" name="vencimiento" th:min="${mesActual}" th:value="${param.vencimiento}" required>
+                <input type="month" name="vencimiento" th:min="${mesActual}" th:max="${maxMes}" th:value="${param.vencimiento}" required>
             </label>
         </fieldset>
 

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Finalizá tu pedido - La Nona</title>
+    <link rel="stylesheet" th:href="@{/style.css}">
+</head>
+<body class="cliente ancho sin-padding">
+
+<!-- botón "Sobre nosotros" (arriba a la derecha, en todas las páginas) -->
+<a th:replace="~{fragments/cliente/layout :: boton-nosotros}"></a>
+
+<!-- un solo formulario para las tres columnas: medio de pago, datos y resumen -->
+<form th:action="@{/delivery/pago}" method="post" class="pago">
+
+    <!-- ===== izquierda: medio de pago ===== -->
+    <section class="pago-medios">
+        <span class="chip">🕒 Pago pendiente</span>
+        <h1>Un paso más y a la mesa.</h1>
+        <p>Elegí cómo pagar. Al confirmar, comenzamos a preparar tus pastas.</p>
+
+        <h3>Medio de pago</h3>
+        <!-- ⚠️ ADAPTADO AL BACKEND: el backend guarda el método como TARJETA, QR o
+             EFECTIVO. Mercado Pago y MODO se pagan con QR. Se sumó Efectivo
+             (el backend lo tiene y el repartidor sabe que tiene que cobrar). -->
+        <label class="medio">
+            <input type="radio" name="metodoPago" value="TARJETA" checked>
+            <span>💳</span><div><strong>Tarjeta de crédito o débito</strong><small>Visa, Mastercard y American Express</small></div>
+        </label>
+        <label class="medio">
+            <input type="radio" name="metodoPago" value="QR">
+            <span>👛</span><div><strong>Mercado Pago</strong><small>Saldo en cuenta o tarjetas vinculadas</small></div>
+        </label>
+        <label class="medio">
+            <input type="radio" name="metodoPago" value="QR">
+            <span>📱</span><div><strong>MODO</strong><small>Pagá con la app de tu banco</small></div>
+        </label>
+        <label class="medio">
+            <input type="radio" name="metodoPago" value="EFECTIVO">
+            <span>💵</span><div><strong>Efectivo</strong><small>Le pagás al repartidor</small></div>
+        </label>
+    </section>
+
+    <!-- ===== centro: entrega y tarjeta ===== -->
+    <section class="pago-datos">
+        <a th:href="@{/delivery}" class="volver" title="Volver a la carta">←</a>
+        <img th:src="@{/img/logo.png}" alt="La Nona" class="logo chico">
+        <h2>Finalizá tu pedido</h2>
+
+        <p th:if="${error}" th:text="${error}" class="alerta error"></p>
+
+        <h3>Entrega</h3>
+        <label>Dirección
+            <input type="text" name="direccionEntrega" placeholder="Av. Santa Fe 2450, 3° B"
+                   th:value="${param.direccionEntrega}" required>
+        </label>
+        <label>¿Quién recibe? <small>(opcional)</small>
+            <input type="text" name="nombreReceptor" placeholder="Si no completás, va a tu nombre"
+                   th:value="${param.nombreReceptor}">
+        </label>
+
+        <!-- solo se ve si está elegida "Tarjeta" (lo hace el CSS con :has) -->
+        <div class="datos-tarjeta">
+            <h3>Datos de la tarjeta <span class="visa">VISA</span></h3>
+            <!-- ⚠️ ADAPTADO AL BACKEND: el pago es SIMULADO. Estos datos no se envían
+                 ni se guardan (no tienen name): el backend no procesa cobros reales. -->
+            <label>Número de tarjeta <input type="text" placeholder="4242 4242 4242 4242" inputmode="numeric"></label>
+            <label>Nombre del titular <input type="text" placeholder="Como figura en la tarjeta"></label>
+            <div class="fila">
+                <label>Vencimiento <input type="text" placeholder="12 / 28"></label>
+                <label>Código <input type="password" placeholder="•••" maxlength="4"></label>
+            </div>
+            <small class="aclaracion">Pago simulado: no se realiza ningún cargo.</small>
+        </div>
+    </section>
+
+    <!-- ===== derecha: resumen ===== -->
+    <section class="pago-resumen">
+        <div class="resumen-titulo"><h3>Tu pedido</h3><small th:text="${carrito.unidades} + ' platos'"></small></div>
+        <ul class="lineas">
+            <li th:each="l : ${lineas}">
+                <img th:src="@{/img/platos/{id}.jpg(id=${l.menu().idMenu})}" alt="">
+                <div class="linea-info">
+                    <strong th:text="${l.menu().nombre}"></strong>
+                    <small th:text="${l.cantidad()} + ' × $' + ${#numbers.formatDecimal(l.menu().precio, 1, 'POINT', 0, 'COMMA')}"></small>
+                </div>
+                <strong th:text="'$' + ${#numbers.formatDecimal(l.subtotal(), 1, 'POINT', 0, 'COMMA')}"></strong>
+            </li>
+        </ul>
+        <p th:if="${!carrito.nota.isEmpty()}" class="nota-resumen" th:text="'📝 ' + ${carrito.nota}"></p>
+
+        <div class="total">
+            <span>Total a pagar</span>
+            <strong th:text="'$' + ${#numbers.formatDecimal(total, 1, 'POINT', 0, 'COMMA')}"></strong>
+        </div>
+        <small class="aclaracion">Importes en pesos argentinos</small>
+
+        <button type="submit" class="boton-flecha">
+            <span th:text="'Pagar $' + ${#numbers.formatDecimal(total, 1, 'POINT', 0, 'COMMA')}"></span> 🔒
+        </button>
+        <small class="aclaracion">🛡️ Pago seguro · Al pagar, aceptás los términos y condiciones.</small>
+    </section>
+</form>
+
+</body>
+</html>

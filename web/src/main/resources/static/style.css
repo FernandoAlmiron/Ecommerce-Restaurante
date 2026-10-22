@@ -1,41 +1,19 @@
-/* =====================================================================
-   LA NONA - Estilos del front web
-   ---------------------------------------------------------------------
-   Índice
-     1. Fuentes y colores (variables)
-     2. Base: lo que comparten todas las páginas
-     3. Componentes comunes: logo, botones, inputs, alertas
-     4. CLIENTE · Landing (carta pública)
-     5. CLIENTE · Login
-     6. CLIENTE · Crear cuenta
-     7. CLIENTE · Elegir presencial / delivery
-     8. Celular (pantallas angostas)
-     9. CLIENTE · Barra de navegación de abajo
-    10. CLIENTE · Mis reservas
-    11. CLIENTE · Registrar reserva
-
-   Las páginas del cliente tienen <body class="cliente">, así estos
-   estilos no se mezclan con los del panel de admin.
-
-   ⚠️ ADAPTADO AL BACKEND = el diseño de Figma se cambió para que
-   coincida con lo que el backend guarda y valida (sin tocar la API).
-   ===================================================================== */
 
 
-/* =====================================================================
-   1. FUENTES Y COLORES
-   Se definen una sola vez como variables (--nombre) y se usan con
-   var(--nombre). Si cambia un color, se cambia solo acá.
-   ===================================================================== */
+/*
+   GENERAL FUENTES Y COLORES */
 
 @import url('https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;700;800&family=Oswald:wght@500&display=swap');
 
 :root {
     --dorado:        #A0753A;   /* botones principales */
     --dorado-oscuro: #87612E;   /* botón al pasar el mouse */
-    --beige:         #BC9B70;   /* tarjetas (pedidos, reservas) */
-    --beige-claro:   #F3E9DC;   /* fondos suaves */
-    --marron:        #9A6243;   /* "PRESENCIAL", "DELIVERY", títulos con color */
+    --dorado-texto:  #7A5A2E;   /* textos dorados sobre fondo claro */
+    --beige:         #BC9B70;   /* tarjetas de reservas y pedidos */
+    --beige-claro:   #F3E9DC;   /* fondos suaves, contadores */
+    --crema:         #FBF8F4;   /* fondo de las páginas anchas */
+    --borde-suave:   #EBD9C3;   /* bordes de tarjetas y paneles */
+    --marron:        #9A6243;   /* "PRESENCIAL", "DELIVERY" */
     --gris-input:    #E6E6E6;   /* fondo de los campos */
     --gris-texto:    #6B6B6B;   /* textos chicos y aclaraciones */
     --negro:         #1A1A1A;
@@ -47,13 +25,11 @@
     --fuente:        'Lexend', system-ui, sans-serif;
     --fuente-titulo: 'Oswald', 'Lexend', sans-serif;
 
-    --radio:         8px;       /* esquinas redondeadas de botones e inputs */
+    --radio:         8px;       /* esquinas de botones e inputs */
 }
 
 
-/* =====================================================================
-   2. BASE
-   ===================================================================== */
+/*  BASE */
 
 *,
 *::before,
@@ -71,7 +47,7 @@ body.cliente {
     font-size: 15px;
     line-height: 1.5;
 
-    /* todo centrado en una columna, como en Figma */
+    /* centrado en columna */
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -88,12 +64,42 @@ body.cliente a:hover {
     text-decoration: underline;
 }
 
+/* las imágenes no se salen de su caja */
+body.cliente img {
+    max-width: 100%;
+}
 
-/* =====================================================================
-   3. COMPONENTES COMUNES
-   ===================================================================== */
+/* páginas con la barra de abajo: dejan lugar para que no tape nada */
+body.cliente.con-nav {
+    padding-bottom: 110px;
+}
 
-/* --- Logo (es una imagen: static/img/logo.png) --- */
+body.cliente.ancho {
+    align-items: stretch;
+    background: var(--crema);
+}
+
+body.cliente.sin-padding {
+    padding: 0;
+}
+
+body.cliente .aclaracion {
+    margin: 0;
+    color: var(--gris-texto);
+    font-size: 12px;
+    text-align: center;
+}
+
+body.cliente .vacio {
+    text-align: center;
+    color: var(--gris-texto);
+}
+
+
+/* COMPONENTES COMUNES */
+
+/* Logo */
+
 body.cliente .logo {
     display: block;
     width: 230px;
@@ -102,8 +108,19 @@ body.cliente .logo {
     margin: 0 auto;
 }
 
-/* --- Botón principal dorado ---
-   Sirve para <button> y para links con class="boton" */
+body.cliente.ancho > header {
+    text-align: center;
+    margin-bottom: 16px;
+}
+
+body.cliente.ancho > header .logo {
+    width: 150px;
+}
+
+
+/* Botones */
+
+/* siver para botones y para los que estan asigandos con clase boton */
 body.cliente button,
 body.cliente .boton {
     display: inline-block;
@@ -127,8 +144,99 @@ body.cliente .boton:hover {
     text-decoration: none;
 }
 
-/* --- Campos de texto: gris claro, sin borde, como en Figma --- */
-body.cliente input {
+/* dorado con flecha de continuar pago  → */
+body.cliente .boton-flecha {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 18px;
+    border-radius: 12px;
+    color: var(--blanco);
+    font-weight: 500;
+}
+
+/* beige con sombra: "+ Nueva Reserva", "+ Nuevo pedido" */
+body.cliente .boton-beige {
+    padding: 8px 28px;
+    border-radius: 999px;
+    background: var(--beige);
+    color: var(--negro);
+    font-weight: 400;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+body.cliente .boton-beige:hover {
+    text-decoration: none;
+    filter: brightness(1.05);
+}
+
+/* blanco redondo, dentro de las tarjetas: "Ver Detalles", "Cancelar" */
+body.cliente .boton-blanco {
+    display: block;
+    width: 100%;
+    padding: 8px;
+    border-radius: 999px;
+    background: var(--blanco);
+    color: var(--negro);
+    text-align: center;
+    font-size: 13px;
+    font-weight: 400;
+    cursor: pointer;
+    list-style: none;   /* le saca el triangulito cuando es un <summary> */
+}
+
+body.cliente button.boton-blanco:hover,
+body.cliente a.boton-blanco:hover {
+    background: var(--beige-claro);
+    text-decoration: none;
+}
+
+body.cliente .texto-rojo {
+    color: #D62F22;
+}
+
+/* blanco con borde dorado: "Cancelar", "Contactar al restaurante" */
+body.cliente .boton-borde {
+    display: block;
+    padding: 9px;
+    border: 1px solid var(--dorado);
+    border-radius: var(--radio);
+    text-align: center;
+    font-weight: 400;
+}
+
+body.cliente .boton-borde:hover {
+    background: var(--beige-claro);
+    text-decoration: none;
+}
+
+/* apagado, no se puede tocar (como: Continuar al pago" con el carrito vacío no aparece) */
+body.cliente .deshabilitado {
+    opacity: 0.45;
+    pointer-events: none;
+}
+
+/* Cerrar sesion discreto, subrayado */
+body.cliente .cerrar-sesion button {
+    width: auto;
+    margin-top: 24px;
+    background: none;
+    color: var(--gris-texto);
+    font-size: 13px;
+    text-decoration: underline;
+}
+
+body.cliente .cerrar-sesion button:hover {
+    background: none;
+    color: var(--negro);
+}
+
+
+/*Campos de texto */
+
+body.cliente input,
+body.cliente select,
+body.cliente textarea {
     width: 100%;
     padding: 10px 12px;
     border: 1px solid transparent;
@@ -139,21 +247,40 @@ body.cliente input {
     color: var(--negro);
 }
 
-body.cliente input::placeholder {
+body.cliente input::placeholder,
+body.cliente textarea::placeholder {
     color: var(--gris-texto);
 }
 
 /* al hacer click en un campo se marca con el dorado */
-body.cliente input:focus {
+body.cliente input:focus,
+body.cliente select:focus,
+body.cliente textarea:focus {
     outline: none;
     border-color: var(--dorado);
     background: var(--blanco);
 }
 
-/* --- Mensajes de aviso ---
-   ⚠️ ADAPTADO AL BACKEND: no están en Figma. Muestran lo que responde el
-   backend: "Email o contraseña incorrectos", "Las contraseñas no
-   coinciden", "Ese DNI ya tiene una cuenta", etc. */
+/* dos campos en la misma fila (nombre y apellido) */
+body.cliente .fila {
+    display: flex;
+    gap: 8px;
+}
+
+/* sacar las flechitas de los campos numericos (DNI, comensales) */
+body.cliente input[type="number"]::-webkit-inner-spin-button,
+body.cliente input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+body.cliente input[type="number"] {
+    -moz-appearance: textfield;
+}
+
+
+/* Avisos */
+
 body.cliente .alerta {
     width: 100%;
     margin: 0 0 12px;
@@ -174,11 +301,297 @@ body.cliente .alerta.ok {
 }
 
 
-/* =====================================================================
-   4. CLIENTE · LANDING (cliente/landing.html)
-   La carta pública: los platos en zigzag (texto - foto / foto - texto)
-   y el botón "Iniciar / Registrarme" abajo.
-   ===================================================================== */
+/*  Etiquetas redondeadas pj platos cuando pedis,  ● Abierto ahora */
+
+body.cliente .chip {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: var(--beige-claro);
+    color: var(--dorado-texto);
+    font-size: 12px;
+    font-weight: 500;
+}
+
+body.cliente .chip.verde {
+    background: #E8F5E9;
+    color: var(--ok);
+}
+
+
+/* Contador − 2 + (carta del delivery y "Tu pedido")  */
+
+body.cliente .contador {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px;
+    border-radius: 10px;
+    background: var(--beige-claro);
+}
+
+body.cliente .contador button {
+    width: 30px;
+    padding: 4px 0;
+    background: none;
+    color: var(--dorado-texto);
+    font-size: 17px;
+}
+
+body.cliente .contador button:hover {
+    background: rgba(0, 0, 0, 0.06);
+}
+
+body.cliente .contador span {
+    min-width: 20px;
+    text-align: center;
+    font-weight: 500;
+}
+
+body.cliente .contador.chico {
+    align-self: flex-start;
+}
+
+body.cliente .contador.chico button {
+    width: 24px;
+    font-size: 15px;
+}
+
+
+/* Lista de platos con total
+   La usamos en Tu pedido, el pago y la confirmación: foto chica, nombre,
+   "2 × $13.500" y el subtotal a la derecha. */
+
+body.cliente .lineas {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+body.cliente .lineas li {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+body.cliente .lineas img {
+    width: 54px;
+    height: 54px;
+    flex-shrink: 0;
+    border-radius: 10px;
+    object-fit: cover;
+    background: var(--beige-claro);
+}
+
+body.cliente .linea-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    font-size: 13px;
+}
+
+body.cliente .linea-info strong {
+    font-weight: 500;
+}
+
+body.cliente .linea-info small {
+    color: var(--gris-texto);
+}
+
+/* título con dato a la derecha: "Tu pedido ........ 3 platos" */
+body.cliente .panel-titulo,
+body.cliente .resumen-titulo {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* "Total de lo peidio $43.500" */
+body.cliente .total {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding-top: 14px;
+    border-top: 1px solid #EFE6DA;
+}
+
+body.cliente .total span {
+    font-size: 17px;
+    font-weight: 500;
+}
+
+body.cliente .total strong {
+    font-size: 24px;
+    font-weight: 700;
+}
+
+
+/* Barra de navegación de abajo
+   INICIO · PEDIDOS · RESERVAS · PERFIL. pagina q estamos marcada en ddorado */
+
+body.cliente .nav-inferior {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);   /* centrada */
+    display: flex;
+    gap: 4px;
+    padding: 4px;
+    background: #F2F2F5;
+    border: 1px solid var(--negro);
+    border-radius: 999px;
+    z-index: 10;
+}
+
+body.cliente .nav-inferior a {
+    padding: 8px 18px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--negro);
+}
+
+body.cliente .nav-inferior a:hover {
+    text-decoration: none;
+    background: var(--beige-claro);
+}
+
+body.cliente .nav-inferior a.activo,
+body.cliente .nav-inferior a.activo:hover {
+    background: var(--dorado);
+}
+
+
+/* Tarjetas beige (Mis reservas y Mis pedidos)*/
+
+/* título centrado con un botón a la derecha */
+body.cliente .titulo-con-boton {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 8px 0 28px;
+}
+
+body.cliente .titulo-con-boton h1 {
+    margin: 0;
+    font-size: 30px;
+    font-weight: 400;
+}
+
+body.cliente .titulo-con-boton .boton-beige {
+    position: absolute;
+    right: 0;
+}
+
+/* las tarjetas se acomodan solas en columnas de 220px minimo de tamanio */
+body.cliente .tarjetas {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 16px;
+}
+
+body.cliente .tarjeta {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 14px;
+    border-radius: 20px;
+    background: var(--beige);
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
+}
+
+/* fecha y hora más oscuras */
+body.cliente .tarjeta-fecha {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+}
+
+body.cliente .tarjeta-fecha span {
+    padding: 2px 10px;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.08);
+    font-size: 13px;
+}
+
+/* el estado, en mayúsculas y con color (los colores van en cada página) */
+body.cliente .estado {
+    margin: 0;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+/* comensales / zona / seña (o artículos / dirección / total) con ícono */
+body.cliente .tarjeta-datos {
+    margin: 0;
+    padding: 0 6px;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    font-size: 13px;
+}
+
+body.cliente .tarjeta-datos .icono {
+    display: inline-block;
+    width: 26px;
+}
+
+
+/*Botón de personita que seria el sobre nosotros en todas las paginas. */
+
+body.cliente .boton-nosotros {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    z-index: 20;
+    width: 42px;
+    height: 42px;
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--borde-suave);
+    border-radius: 10px;
+    background: var(--blanco);
+    color: var(--dorado-texto);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: background 0.2s, transform 0.2s;
+}
+
+body.cliente .boton-nosotros:hover {
+    background: var(--beige-claro);
+    transform: scale(1.06);
+    text-decoration: none;
+}
+
+
+/* ----------------
+----------------
+---------------
+--------------
+------------
+------------
+--------------
+----------------
+-----------------
+------------------
+ */
+
+
+/* PARTE 2 · PÁGINA POR PÁGINA  TERMINAR DE ANALIZAR */
+
+
+/* ===================================================================
+   -- LANDING --                                 cliente/landing.html
+   La carta pública: platos en zigzag (texto · foto / foto · texto)
+   y el botón "Iniciar / Registrarme" FIJO abajo.
+   =================================================================== */
 
 body.cliente header {
     margin-bottom: 32px;
@@ -200,27 +613,24 @@ body.cliente .plato {
 }
 
 /* zigzag: en los platos impares (1°, 3°, 5°...) el texto va a la
-   izquierda y la foto a la derecha. En los pares queda al revés.
-   En el HTML siempre va primero la foto y después el texto;
-   el orden visual lo da el CSS. */
+   izquierda y la foto a la derecha. En el HTML siempre va primero
+   la foto: el orden visual lo da el CSS. */
 body.cliente .plato:nth-child(odd) {
     flex-direction: row-reverse;
 }
 
-/* la foto con forma ovalada, como en Figma.
-   object-fit: cover recorta la foto sin deformarla.
-   ⚠️ ADAPTADO AL BACKEND: el plato (Menu) no guarda imagen. Cada foto se
-   busca por el número del plato: static/img/platos/1.jpg, 2.jpg... */
+/* la foto ovalada. object-fit: cover la recorta sin deformarla.
+   ⚠️ ADAPTADO AL BACKEND: el plato (Menu) no guarda imagen. Cada foto
+   se busca por el número del plato: static/img/platos/1.jpg, 2.jpg... */
 body.cliente .plato img {
     flex: 1;
     width: 50%;
     aspect-ratio: 3 / 2;
     object-fit: cover;
     border-radius: 50%;
-    background: var(--beige-claro);   /* se ve si todavía no hay foto */
+    background: var(--beige-claro);
 }
 
-/* el texto del plato, centrado */
 body.cliente .plato div {
     flex: 1;
     text-align: center;
@@ -241,13 +651,24 @@ body.cliente .plato strong {
     font-weight: 700;
 }
 
-/* botón "Iniciar / Registrarme" y el textito de abajo */
+/* --- "Iniciar / Registrarme" fijo abajo ---
+   position: fixed lo deja pegado a la pantalla: cuando bajás con el
+   scroll, los platos pasan por detrás y el botón queda siempre a mano. */
 body.cliente .acciones {
-    margin-top: 32px;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 10;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
+    padding: 14px 16px 18px;
+    /* blanco semitransparente con desenfoque: se ve que hay contenido detrás */
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(6px);
+    border-top: 1px solid #F0EAE2;
 }
 
 body.cliente .acciones .boton {
@@ -261,11 +682,19 @@ body.cliente .acciones small {
     font-size: 13px;
 }
 
+/* lugar abajo para que el último plato no quede tapado por el botón */
+body.cliente:has(> .acciones) {
+    padding-bottom: 130px;
+}
 
-/* =====================================================================
-   5 y 6. CLIENTE · LOGIN y CREAR CUENTA (cliente/login.html, registro.html)
-   Las dos usan <main class="auth">: una columna angosta y centrada.
-   ===================================================================== */
+
+/* ===================================================================
+   -- LOGIN --                                     cliente/login.html
+   Columna angosta y centrada (<main class="auth">), logo grande.
+   ⚠️ ADAPTADO AL BACKEND: en Figma solo está el email y "Continuar".
+   Se agregó la contraseña porque Spring Security valida los dos juntos.
+   Tampoco está "¿Olvidaste tu correo?": el backend no manda mails.
+   =================================================================== */
 
 body.cliente .auth {
     width: 100%;
@@ -283,7 +712,6 @@ body.cliente .auth form {
     gap: 10px;
 }
 
-/* --- LOGIN: logo grande y mucho aire arriba, como en Figma --- */
 body.cliente .auth .logo {
     width: 280px;
     margin: 40px auto 56px;
@@ -295,17 +723,23 @@ body.cliente .auth h1 {
     font-weight: 400;
 }
 
-/* ⚠️ ADAPTADO AL BACKEND: en Figma el login tiene solo el email y
-   "Continuar". Se agregó el campo contraseña en la misma pantalla
-   porque Spring Security valida email + contraseña juntos.
-   Tampoco está "¿Olvidaste tu correo?": el backend no manda mails. */
+/* link "Crear cuenta" / "Ya tengo cuenta", a la derecha */
 body.cliente .auth > a {
     align-self: flex-end;
     margin-top: 12px;
     font-size: 13px;
 }
 
-/* --- CREAR CUENTA: logo más chico y título grande en negrita --- */
+
+/* ===================================================================
+   -- CREAR CUENTA --                           cliente/registro.html
+   Usa la misma columna que el login, con logo chico y título grande.
+   (Se reconoce porque tiene el campo "password2").
+   ⚠️ ADAPTADO AL BACKEND: en Figma el último campo es "Fecha de
+   nacimiento". Se cambió por DNI: el cliente no guarda fecha de
+   nacimiento y el DNI es obligatorio. El email se usa como usuario.
+   =================================================================== */
+
 body.cliente .auth:has(input[name="password2"]) .logo {
     width: 180px;
     margin: 0 auto 24px;
@@ -317,21 +751,10 @@ body.cliente .auth:has(input[name="password2"]) h1 {
     font-weight: 800;
 }
 
-/* nombre y apellido en la misma fila */
-body.cliente .fila {
-    display: flex;
-    gap: 8px;
-}
-
 /* separación extra antes de la contraseña, como en Figma */
 body.cliente .auth input[name="password"] {
     margin-top: 8px;
 }
-
-/* ⚠️ ADAPTADO AL BACKEND: en Figma el último campo es "Fecha de
-   nacimiento". Se cambió por DNI porque el cliente (Persona) no guarda
-   fecha de nacimiento y el DNI es obligatorio para registrarse.
-   Además el email se usa como usuario para iniciar sesión. */
 
 /* textito de términos y condiciones */
 body.cliente .auth small {
@@ -341,22 +764,11 @@ body.cliente .auth small {
     text-align: left;
 }
 
-/* sacar las flechitas del campo DNI (input number) */
-body.cliente input[type="number"]::-webkit-inner-spin-button,
-body.cliente input[type="number"]::-webkit-outer-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-}
 
-body.cliente input[type="number"] {
-    -moz-appearance: textfield;
-}
-
-
-/* =====================================================================
-   7. CLIENTE · ELEGIR (cliente/elegir.html)
+/* ===================================================================
+   -- ELEGIR --                                   cliente/elegir.html
    Dos opciones grandes una debajo de la otra: PRESENCIAL y DELIVERY.
-   ===================================================================== */
+   =================================================================== */
 
 body.cliente .elegir {
     display: flex;
@@ -394,174 +806,20 @@ body.cliente .opcion span {
     color: var(--marron);
 }
 
-/* "Cerrar sesión": discreto, no compite con las dos opciones */
-body.cliente > form button {
-    width: auto;
+body.cliente .elegir + .cerrar-sesion button {
     margin-top: 48px;
-    background: none;
-    color: var(--gris-texto);
-    font-size: 13px;
-    text-decoration: underline;
-}
-
-body.cliente > form button:hover {
-    background: none;
-    color: var(--negro);
 }
 
 
-/* =====================================================================
-   8. CELULAR
-   En pantallas angostas los platos se apilan: foto arriba, texto abajo.
-   ===================================================================== */
-
-@media (max-width: 600px) {
-    body.cliente .plato,
-    body.cliente .plato:nth-child(odd) {
-        flex-direction: column;
-    }
-
-    body.cliente .plato img {
-        width: 100%;
-    }
-
-    body.cliente .auth:has(input[name="password2"]) h1 {
-        font-size: 28px;
-    }
-}
-
-
-/* =====================================================================
-   9. CLIENTE · BARRA DE NAVEGACIÓN (fragments/cliente/layout.html)
-   La "pastilla" de abajo: INICIO · PEDIDOS · RESERVAS · PERFIL.
-   Queda fija abajo de la pantalla; el botón de la página actual
-   (clase "activo") va pintado de dorado.
-   ===================================================================== */
-
-/* las páginas con barra dejan lugar abajo para que no tape nada */
-body.cliente.con-nav {
-    padding-bottom: 110px;
-}
-
-body.cliente .nav-inferior {
-    position: fixed;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);   /* centrada */
-    display: flex;
-    gap: 4px;
-    padding: 4px;
-    background: #F2F2F5;
-    border: 1px solid var(--negro);
-    border-radius: 999px;          /* bordes totalmente redondos */
-    z-index: 10;
-}
-
-body.cliente .nav-inferior a {
-    padding: 8px 18px;
-    border-radius: 999px;
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--negro);
-}
-
-body.cliente .nav-inferior a.activo {
-    background: var(--dorado);
-}
-
-body.cliente .nav-inferior a:hover {
-    text-decoration: none;
-    background: var(--beige-claro);
-}
-
-body.cliente .nav-inferior a.activo:hover {
-    background: var(--dorado);
-}
-
-
-/* =====================================================================
-   10. CLIENTE · MIS RESERVAS (cliente/reservas.html)
-   Título con botón "+ Nueva Reserva" y tarjetas beige en fila.
-   ===================================================================== */
+/* ===================================================================
+   -- MIS RESERVAS --                           cliente/reservas.html
+   Título con "+ Nueva Reserva" y las tarjetas beige (ver 3.9).
+   Acá solo van los colores de cada estado de la reserva.
+   =================================================================== */
 
 body.cliente .mis-reservas {
     width: 100%;
     max-width: 860px;
-}
-
-/* título centrado y el botón a la derecha */
-body.cliente .titulo-con-boton {
-    position: relative;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin: 8px 0 28px;
-}
-
-body.cliente .titulo-con-boton h1 {
-    margin: 0;
-    font-size: 30px;
-    font-weight: 400;
-}
-
-body.cliente .titulo-con-boton .boton-beige {
-    position: absolute;
-    right: 0;
-}
-
-/* botón beige con sombra ("+ Nueva Reserva") */
-body.cliente .boton-beige {
-    padding: 8px 28px;
-    border-radius: 999px;
-    background: var(--beige);
-    color: var(--negro);
-    font-weight: 400;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
-}
-
-body.cliente .boton-beige:hover {
-    text-decoration: none;
-    filter: brightness(1.05);
-}
-
-/* las tarjetas: se acomodan solas en columnas de 220px como mínimo */
-body.cliente .tarjetas {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 16px;
-}
-
-body.cliente .tarjeta {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    padding: 14px;
-    border-radius: 20px;
-    background: var(--beige);
-    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
-}
-
-/* fecha y hora en "pastillas" más oscuras */
-body.cliente .tarjeta-fecha {
-    display: flex;
-    justify-content: center;
-    gap: 6px;
-}
-
-body.cliente .tarjeta-fecha span {
-    padding: 2px 10px;
-    border-radius: 999px;
-    background: rgba(0, 0, 0, 0.08);
-    font-size: 13px;
-}
-
-/* el estado, con un color distinto para cada uno */
-body.cliente .estado {
-    margin: 0;
-    text-align: center;
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 0.5px;
 }
 
 body.cliente .estado-confirmada  { color: #C6F29B; }   /* verde */
@@ -569,44 +827,6 @@ body.cliente .estado-pendiente   { color: #FFC24B; }   /* naranja */
 body.cliente .estado-cancelada   { color: #B3261E; }   /* rojo */
 body.cliente .estado-finalizada  { color: #FFFFFF; }   /* blanco */
 body.cliente .estado-ausente     { color: #5A3E26; }   /* marrón */
-
-/* comensales, zona y seña con su ícono */
-body.cliente .tarjeta-datos {
-    margin: 0;
-    padding: 0 6px;
-    list-style: none;
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-    font-size: 13px;
-}
-
-body.cliente .tarjeta-datos .icono {
-    display: inline-block;
-    width: 26px;
-}
-
-/* botones blancos de las tarjetas ("Ver Detalles", "Cancelar") */
-body.cliente .boton-blanco {
-    display: block;
-    width: 100%;
-    padding: 8px;
-    border-radius: 999px;
-    background: var(--blanco);
-    color: var(--negro);
-    text-align: center;
-    font-size: 13px;
-    cursor: pointer;
-    list-style: none;   /* le saca el triangulito al <summary> */
-}
-
-body.cliente button.boton-blanco:hover {
-    background: var(--beige-claro);
-}
-
-body.cliente .texto-rojo {
-    color: #D62F22;
-}
 
 /* "Ver Detalles": un <details> de HTML, se abre y cierra sin JavaScript */
 body.cliente .tarjeta-detalle summary::-webkit-details-marker {
@@ -618,17 +838,15 @@ body.cliente .tarjeta-detalle p {
     font-size: 12px;
 }
 
-body.cliente .vacio {
-    text-align: center;
-    color: var(--gris-texto);
-}
 
-
-/* =====================================================================
-   11. CLIENTE · REGISTRAR RESERVA (cliente/reserva-nueva.html)
+/* ===================================================================
+   -- REGISTRAR RESERVA --                 cliente/reserva-nueva.html
    Cada campo es una caja con borde: el nombre a la izquierda y el
    valor a la derecha, separados por una línea (como en Figma).
-   ===================================================================== */
+   ⚠️ ADAPTADO AL BACKEND: en Figma también estaban "Num Reserva",
+   "Cliente" y "Num Restaurante". No se piden: el número lo genera la
+   base, el cliente sale del login y el restaurante es uno solo.
+   =================================================================== */
 
 body.cliente .registrar-reserva {
     width: 100%;
@@ -677,7 +895,6 @@ body.cliente .campo select {
     border: none;
     border-radius: 0;
     background: var(--blanco);
-    font-family: var(--fuente);
     font-size: 12px;
 }
 
@@ -685,15 +902,8 @@ body.cliente .campo:focus-within {
     border-color: var(--dorado);
 }
 
-body.cliente .aclaracion {
-    margin: 0;
-    color: var(--gris-texto);
-    font-size: 12px;
-    text-align: center;
-}
-
 /* ⚠️ ADAPTADO AL BACKEND: la seña no está en Figma. El backend no deja
-   reservar sin una seña con tarjeta vigente. Se muestra en una caja beige
+   reservar sin una seña con tarjeta vigente. Va en una caja beige
    para que se note que es algo aparte. */
 body.cliente .senia {
     margin: 4px 0;
@@ -717,26 +927,799 @@ body.cliente .senia small {
     font-size: 11px;
 }
 
-/* ⚠️ ADAPTADO AL BACKEND: en Figma también estaban "Num Reserva", "Cliente"
-   y "Num Restaurante". No se piden: el número lo genera la base, el cliente
-   sale del login y el restaurante es uno solo. */
 
-/* botón "Cancelar": blanco con borde dorado */
-body.cliente .boton-borde {
-    display: block;
-    padding: 9px;
-    border: 1px solid var(--dorado);
-    border-radius: var(--radio);
-    text-align: center;
-    font-weight: 400;
-}
+/* ===================================================================
+   -- DELIVERY: CARTA --                        cliente/delivery.html
+   Arriba la portada; abajo la grilla de platos (izquierda) y el panel
+   "Tu pedido" (derecha), que se queda quieto al bajar con el scroll.
+   =================================================================== */
 
-body.cliente .boton-borde:hover {
+/* --- portada beige con foto (static/img/hero.jpg) --- */
+body.cliente .hero {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto 28px;
+    display: grid;
+    grid-template-columns: 3fr 2fr;
+    border-radius: 16px;
+    overflow: hidden;
     background: var(--beige-claro);
-    text-decoration: none;
 }
+
+body.cliente .hero-texto {
+    padding: 32px;
+}
+
+body.cliente .hero-texto h1 {
+    margin: 14px 0 8px;
+    font-size: 34px;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+body.cliente .hero-texto p {
+    margin: 0 0 10px;
+    color: var(--gris-texto);
+}
+
+body.cliente .hero-texto .hero-datos {
+    color: var(--negro);
+}
+
+/* si no está hero.jpg, queda el bloque beige */
+body.cliente .hero-foto {
+    min-height: 200px;
+    background: var(--beige) url('/img/fotoPedidos.png') center / cover no-repeat;
+}
+
+/* --- las dos columnas --- */
+body.cliente .delivery {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    gap: 28px;
+    align-items: start;
+}
+
+body.cliente .buscador {
+    margin-bottom: 20px;
+    padding: 12px 16px;
+    border: 1px solid #E6DED3;
+    border-radius: 12px;
+    background: var(--blanco);
+}
+
+body.cliente .seccion {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 500;
+}
+
+body.cliente .sub {
+    margin: 2px 0 16px;
+    color: var(--gris-texto);
+    font-size: 14px;
+}
+
+/* --- grilla de tarjetas de platos --- */
+body.cliente .grid-platos {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 18px;
+}
+
+body.cliente .card-plato {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--borde-suave);
+    border-radius: 14px;
+    background: var(--blanco);
+    overflow: hidden;
+}
+
+/* la foto entera, sin recortar el plato */
+body.cliente .card-plato img {
+    width: 100%;
+    aspect-ratio: 16 / 8;
+    object-fit: contain;
+    padding-top: 8px;
+    background: var(--blanco);
+}
+
+body.cliente .card-cuerpo {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 14px 16px;
+}
+
+body.cliente .card-cuerpo h3 {
+    margin: 0 0 6px;
+    font-size: 16px;
+    font-weight: 500;
+}
+
+body.cliente .card-cuerpo p {
+    flex: 1;
+    margin: 0 0 14px;
+    color: var(--gris-texto);
+    font-size: 13px;
+}
+
+body.cliente .card-pie {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+body.cliente .card-pie strong {
+    font-size: 17px;
+    font-weight: 500;
+}
+
+/* botón "+ Agregar" */
+body.cliente button.agregar {
+    width: auto;
+    padding: 6px 14px;
+    background: #FBF3E9;
+    color: var(--dorado-texto);
+    font-weight: 500;
+}
+
+body.cliente button.agregar:hover {
+    background: var(--beige-claro);
+}
+
+/* --- panel "Tu pedido" (sticky: queda quieto arriba al bajar) --- */
+body.cliente .panel-pedido {
+    position: sticky;
+    top: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 20px;
+    border: 1px solid var(--borde-suave);
+    border-radius: 16px;
+    background: var(--blanco);
+}
+
+body.cliente .panel-titulo h2 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 500;
+}
+
+/* ⚠️ ADAPTADO AL BACKEND: en Figma se puede elegir "Retiro en local".
+   El backend solo hace envíos a domicilio: queda fijo "Delivery". */
+body.cliente .modo-entrega {
+    padding: 10px;
+    border-radius: 10px;
+    background: #F6F1EA;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+/* "Agregar una nota a la cocina" */
+body.cliente .nota summary {
+    color: var(--dorado-texto);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+body.cliente .nota textarea {
+    margin-top: 8px;
+    padding: 8px;
+    border: 1px solid #E6DED3;
+    border-radius: 8px;
+    background: var(--blanco);
+    font-size: 13px;
+    resize: vertical;
+}
+
+body.cliente .pie {
+    display: block;
+    width: 100%;
+    max-width: 1200px;
+    margin: 24px auto 0;
+    color: var(--gris-texto);
+    font-size: 12px;
+}
+
+
+/* ===================================================================
+   -- DELIVERY: PAGO --                    cliente/delivery-pago.html
+   Tres columnas: medio de pago (beige) · entrega y tarjeta · resumen.
+   ⚠️ ADAPTADO AL BACKEND: el pago es SIMULADO. Los datos de la tarjeta
+   no se envían ni se guardan; el backend solo guarda el método
+   (TARJETA, QR o EFECTIVO). Mercado Pago y MODO van como QR.
+   =================================================================== */
+
+body.cliente .pago {
+    width: 100%;
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 320px 1fr 360px;
+    background: var(--blanco);
+}
+
+body.cliente .pago > section {
+    padding: 36px 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+body.cliente .pago h3 {
+    margin: 10px 0 4px;
+    font-size: 17px;
+    font-weight: 500;
+}
+
+/* --- columna izquierda: medio de pago --- */
+body.cliente .pago-medios {
+    background: #F6F1EA;
+}
+
+body.cliente .pago-medios .chip {
+    align-self: flex-start;
+}
+
+body.cliente .pago-medios h1 {
+    margin: 4px 0 0;
+    font-size: 30px;
+    font-weight: 500;
+    line-height: 1.3;
+}
+
+body.cliente .pago-medios p {
+    margin: 0 0 12px;
+    color: var(--gris-texto);
+    font-size: 14px;
+}
+
+/* cada medio es una caja que se marca al elegirla */
+body.cliente .medio {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border: 1px solid #E6DED3;
+    border-radius: 12px;
+    background: var(--blanco);
+    cursor: pointer;
+}
+
+body.cliente .medio input {
+    order: 3;                 /* el circulito queda a la derecha, como en Figma */
+    width: 18px;
+    height: 18px;
+    padding: 0;
+    accent-color: var(--dorado);
+}
+
+body.cliente .medio div {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    font-size: 13px;
+}
+
+body.cliente .medio small {
+    color: var(--gris-texto);
+    font-size: 11px;
+}
+
+/* :has() = "la caja que TIENE adentro el circulito marcado" */
+body.cliente .medio:has(input:checked) {
+    border: 2px solid var(--dorado);
+    background: var(--beige-claro);
+}
+
+/* --- columna del centro: entrega y tarjeta --- */
+body.cliente .pago-datos {
+    position: relative;
+}
+
+body.cliente .pago-datos .logo.chico {
+    width: 90px;
+}
+
+body.cliente .pago-datos h2 {
+    margin: 0 0 8px;
+    text-align: center;
+    font-size: 18px;
+    font-weight: 500;
+}
+
+body.cliente .pago-datos label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+body.cliente .pago-datos input {
+    padding: 12px;
+    border: 1px solid #EFE6DA;
+    background: var(--crema);
+}
+
+/* flechita "←" para volver a la carta */
+body.cliente .volver {
+    position: absolute;
+    top: 32px;
+    left: 32px;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: var(--beige-claro);
+    display: grid;
+    place-items: center;
+}
+
+body.cliente .visa {
+    float: right;
+    color: var(--dorado-texto);
+    font-weight: 700;
+    font-style: italic;
+}
+
+/* los datos de la tarjeta solo se ven si está elegida "Tarjeta" */
+body.cliente .datos-tarjeta {
+    display: none;
+    flex-direction: column;
+    gap: 12px;
+}
+
+body.cliente .pago:has(input[value="TARJETA"]:checked) .datos-tarjeta {
+    display: flex;
+}
+
+body.cliente .datos-tarjeta .fila label {
+    flex: 1;
+}
+
+/* --- columna derecha: resumen --- */
+body.cliente .pago-resumen {
+    border-left: 1px solid #EFE6DA;
+}
+
+body.cliente .pago-resumen h3 {
+    margin: 0;
+}
+
+body.cliente .pago-resumen button {
+    margin-top: 8px;
+    justify-content: center;
+    gap: 10px;
+}
+
+body.cliente .nota-resumen {
+    margin: 0;
+    padding: 8px 10px;
+    border-radius: 8px;
+    background: var(--crema);
+    font-size: 12px;
+}
+
+
+/* ===================================================================
+   -- DELIVERY: CONFIRMACIÓN --                    cliente/pedido.html
+   Izquierda: "¡Pedido confirmado!" + "Así va tu pedido".
+   Derecha: dirección y detalle.
+   ⚠️ ADAPTADO AL BACKEND: en Figma la entrega estimada es una hora
+   exacta. El envío no guarda la hora del pedido: va "30 – 45 min".
+   =================================================================== */
+
+body.cliente .confirmacion {
+    width: 100%;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 28px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 48px;
+    border-radius: 16px;
+    background: var(--blanco);
+}
+
+body.cliente .confirmacion > section:first-child {
+    text-align: center;
+}
+
+body.cliente .check {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 12px;
+    border-radius: 50%;
+    background: var(--beige-claro);
+    color: var(--dorado);
+    display: grid;
+    place-items: center;
+    font-size: 26px;
+}
+
+body.cliente .confirmacion h1 {
+    margin: 0 0 8px;
+    font-size: 26px;
+    font-weight: 500;
+}
+
+body.cliente .entrega-estimada {
+    margin: 16px 0 24px;
+    padding: 18px 20px;
+    border-radius: 16px;
+    background: #F0E4D4;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    text-align: left;
+    color: var(--dorado-texto);
+}
+
+body.cliente .entrega-estimada strong {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--negro);
+}
+
+/* --- "Así va tu pedido": la línea de pasos --- */
+body.cliente .seguimiento {
+    text-align: left;
+}
+
+body.cliente .seguimiento-titulo {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+body.cliente .seguimiento-titulo h3 {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 500;
+}
+
+body.cliente .en-vivo {
+    color: var(--ok);
+    font-size: 12px;
+}
+
+body.cliente .pasos {
+    margin: 16px 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+/* los pasos que todavía no llegaron se ven apagados */
+body.cliente .pasos li {
+    position: relative;
+    display: flex;
+    gap: 16px;
+    padding-bottom: 22px;
+    opacity: 0.45;
+}
+
+/* la rayita vertical que une los círculos */
+body.cliente .pasos li:not(:last-child)::after {
+    content: "";
+    position: absolute;
+    left: 19px;
+    top: 40px;
+    bottom: 2px;
+    width: 2px;
+    background: #E6DED3;
+}
+
+body.cliente .pasos li.hecho,
+body.cliente .pasos li.actual {
+    opacity: 1;
+}
+
+body.cliente .pasos li.hecho::after {
+    background: var(--dorado);
+}
+
+body.cliente .punto {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--beige-claro);
+    display: grid;
+    place-items: center;
+    font-size: 16px;
+}
+
+/* el paso actual: círculo dorado y texto dorado */
+body.cliente .pasos li.actual .punto {
+    background: var(--dorado);
+}
+
+body.cliente .pasos li.actual strong {
+    color: #8A5A1E;
+}
+
+body.cliente .pasos li div {
+    display: flex;
+    flex-direction: column;
+    font-size: 14px;
+}
+
+body.cliente .pasos li strong {
+    font-weight: 500;
+}
+
+body.cliente .pasos li small {
+    color: var(--gris-texto);
+    font-size: 12px;
+}
+
+/* --- columna derecha --- */
+body.cliente .confirmacion-detalle {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+body.cliente .direccion {
+    display: flex;
+    gap: 14px;
+}
+
+body.cliente .direccion div {
+    display: flex;
+    flex-direction: column;
+    font-size: 13px;
+}
+
+body.cliente .direccion small {
+    color: var(--gris-texto);
+}
+
+body.cliente .icono-caja {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: var(--beige-claro);
+    display: grid;
+    place-items: center;
+}
+
+body.cliente .confirmacion-detalle .boton-borde {
+    color: var(--dorado-texto);
+    font-weight: 500;
+}
+
+
+/* ===================================================================
+   -- MIS PEDIDOS --                             cliente/pedidos.html
+   Las mismas tarjetas que Mis reservas (ver 3.9).
+   Acá solo van los colores de cada estado del envío.
+   ⚠️ ADAPTADO AL BACKEND: el envío no guarda la fecha (va el número)
+   y el cliente no puede cancelarlo (solo el restaurante o el repartidor).
+   =================================================================== */
+
+body.cliente .envio-pendiente  { color: #FFFFFF; }   /* en preparación */
+body.cliente .envio-en_camino  { color: #FFC24B; }   /* naranja */
+body.cliente .envio-entregado  { color: #C6F29B; }   /* verde */
+body.cliente .envio-cancelado  { color: #B3261E; }   /* rojo */
+
+
+/* ===================================================================
+   -- PERFIL --                                   cliente/perfil.html
+   ⚠️ ADAPTADO AL BACKEND: en Figma hay una foto. El cliente no guarda
+   imagen: se muestran sus iniciales en un círculo.
+   =================================================================== */
+
+body.cliente .perfil {
+    width: 100%;
+    max-width: 280px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+body.cliente .perfil h1 {
+    margin: 0;
+    font-size: 36px;
+    font-weight: 800;
+}
+
+body.cliente .perfil > p {
+    margin: 0 0 8px;
+}
+
+body.cliente .avatar {
+    width: 120px;
+    height: 120px;
+    margin-bottom: 16px;
+    border-radius: 50%;
+    border: 8px solid #FBF3E9;
+    background: var(--beige);
+    color: var(--blanco);
+    display: grid;
+    place-items: center;
+    font-size: 42px;
+    font-weight: 500;
+}
+
+body.cliente .perfil .fila {
+    width: 100%;
+}
+
+body.cliente .perfil input[readonly] {
+    color: var(--gris-texto);
+    font-size: 12px;
+}
+
+
+/* ===================================================================
+   -- SOBRE NOSOTROS --                         cliente/nosotros.html
+   Los 4 integrantes del grupo en tarjetas, con sus mails.
+   Página pública: se llega con el botón de la persona (arriba a la derecha).
+   =================================================================== */
+
+body.cliente .nosotros {
+    width: 100%;
+    max-width: 920px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+body.cliente .nosotros h1 {
+    margin: 0 0 10px;
+    font-size: 36px;
+    font-weight: 800;
+}
+
+body.cliente .nosotros .intro {
+    max-width: 560px;
+    margin: 0 0 36px;
+    color: var(--gris-texto);
+}
+
+/* las 4 tarjetas: 4 en una fila en compu (de a 2 o de a 1 en celular) */
+body.cliente .equipo {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
+}
+
+body.cliente .integrante {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 24px 14px;
+    border-radius: 20px;
+    background: var(--beige-claro);
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.06);
+}
+
+/* las iniciales en un círculo, como en el perfil */
+body.cliente .iniciales {
+    width: 78px;
+    height: 78px;
+    margin-bottom: 6px;
+    border-radius: 50%;
+    border: 6px solid var(--blanco);
+    background: var(--beige);
+    color: var(--blanco);
+    display: grid;
+    place-items: center;
+    font-size: 26px;
+    font-weight: 500;
+}
+
+body.cliente .integrante h2 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 500;
+}
+
+/* el mail: al tocarlo abre el correo (mailto:) */
+body.cliente .integrante a {
+    color: var(--dorado-texto);
+    font-size: 12px;
+    font-weight: 400;
+    word-break: break-all;    /* los mails largos se cortan y no se salen */
+}
+
+body.cliente .tecnologias {
+    margin: 36px 0 20px;
+    color: var(--gris-texto);
+    font-size: 13px;
+}
+
+body.cliente .volver-atras {
+    padding: 9px 28px;
+}
+
+
+/* ███████████████████████████████████████████████████████████████████
+   PARTE 3 · RESPONSIVE
+   Todo lo que cambia según el tamaño de la pantalla, junto acá.
+   @media (max-width: X) = "aplicá esto solo si la pantalla mide X o menos".
+   ███████████████████████████████████████████████████████████████████ */
+
+
+/* ===================================================================
+   TABLET (hasta 900px): las páginas de varias columnas pasan a una
+   =================================================================== */
+
+@media (max-width: 900px) {
+
+    /* -- DELIVERY: CARTA -- portada arriba de todo, panel debajo de la carta */
+    body.cliente .hero,
+    body.cliente .delivery {
+        grid-template-columns: 1fr;
+    }
+
+    body.cliente .hero-foto {
+        min-height: 160px;
+    }
+
+    body.cliente .panel-pedido {
+        position: static;
+    }
+
+    /* -- DELIVERY: PAGO -- las tres columnas, una debajo de la otra */
+    body.cliente .pago {
+        grid-template-columns: 1fr;
+    }
+
+    body.cliente .pago-resumen {
+        border-left: none;
+        border-top: 1px solid #EFE6DA;
+    }
+
+    /* -- DELIVERY: CONFIRMACIÓN -- */
+    body.cliente .confirmacion {
+        grid-template-columns: 1fr;
+        gap: 32px;
+    }
+
+    /* -- SOBRE NOSOTROS -- las tarjetas de a 2 */
+    body.cliente .equipo {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+
+/* ===================================================================
+   CELULAR (hasta 600px)
+   =================================================================== */
 
 @media (max-width: 600px) {
+
+    /* -- GENERAL -- menos margen a los costados */
+    body.cliente {
+        padding: 16px 16px 32px;
+    }
+
+    /* barra de abajo más angosta para que entre */
+    body.cliente .nav-inferior {
+        bottom: 12px;
+        max-width: calc(100% - 24px);
+    }
+
+    body.cliente .nav-inferior a {
+        padding: 8px 12px;
+        font-size: 11px;
+    }
+
+    /* título y botón uno debajo del otro (Mis reservas / Mis pedidos) */
     body.cliente .titulo-con-boton {
         flex-direction: column;
         gap: 12px;
@@ -744,5 +1727,115 @@ body.cliente .boton-borde:hover {
 
     body.cliente .titulo-con-boton .boton-beige {
         position: static;
+    }
+
+    body.cliente .titulo-con-boton h1 {
+        font-size: 26px;
+    }
+
+    /* -- LANDING -- los platos se apilan: foto arriba, texto abajo */
+    body.cliente .plato,
+    body.cliente .plato:nth-child(odd) {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    body.cliente .plato img {
+        width: 85%;
+    }
+
+    body.cliente .acciones .boton {
+        width: 100%;
+    }
+
+    /* -- LOGIN -- logo un poco más chico */
+    body.cliente .auth .logo {
+        width: 220px;
+        margin: 24px auto 36px;
+    }
+
+    /* -- CREAR CUENTA -- */
+    body.cliente .auth:has(input[name="password2"]) h1 {
+        font-size: 28px;
+    }
+
+    /* -- ELEGIR -- */
+    body.cliente .elegir {
+        gap: 40px;
+    }
+
+    body.cliente .opcion img {
+        width: 110px;
+        height: 110px;
+    }
+
+    /* -- REGISTRAR RESERVA -- */
+    body.cliente .registrar-reserva {
+        max-width: 100%;
+    }
+
+    body.cliente .registrar-reserva h1 {
+        margin: 16px 0 24px;
+    }
+
+    /* -- DELIVERY: CARTA -- */
+    body.cliente .hero-texto {
+        padding: 22px;
+    }
+
+    body.cliente .hero-texto h1 {
+        font-size: 26px;
+    }
+
+    body.cliente .grid-platos {
+        grid-template-columns: 1fr;
+    }
+
+    /* -- DELIVERY: PAGO -- */
+    body.cliente .pago > section {
+        padding: 24px 18px;
+    }
+
+    body.cliente .pago-medios h1 {
+        font-size: 24px;
+    }
+
+    body.cliente .volver {
+        top: 22px;
+        left: 18px;
+    }
+
+    /* -- DELIVERY: CONFIRMACIÓN -- */
+    body.cliente .confirmacion {
+        padding: 20px 16px;
+    }
+
+    body.cliente .entrega-estimada strong {
+        font-size: 26px;
+    }
+
+    /* -- PERFIL -- */
+    body.cliente .perfil h1 {
+        font-size: 30px;
+    }
+
+    /* -- SOBRE NOSOTROS -- */
+    body.cliente .nosotros h1 {
+        font-size: 30px;
+    }
+
+    /* botón de la persona un poco más chico */
+    body.cliente .boton-nosotros {
+        top: 12px;
+        right: 12px;
+        width: 38px;
+        height: 38px;
+    }
+}
+
+/* celulares muy angostos: las tarjetas del equipo de a 1 */
+@media (max-width: 400px) {
+    body.cliente .equipo {
+        grid-template-columns: 1fr;
     }
 }

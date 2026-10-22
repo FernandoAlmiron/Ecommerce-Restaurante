@@ -24,18 +24,12 @@ public class SeguridadWebConfig {
                 .csrf(AbstractHttpConfigurer::disable)
 
                 .authorizeHttpRequests(auth -> auth
-
                         // páginas públicas: cualquiera, sin login
-
-                        .requestMatchers("/", "/login", "/registro", "/error").permitAll()
+                        .requestMatchers("/", "/login", "/registro", "/nosotros", "/error").permitAll()
                         .requestMatchers("/errores.js", "/style.css", "/css/**", "/img/**").permitAll()
-
                         // panel del restaurante
-
                         .requestMatchers("/admin/**").hasRole("ADMIN")
-
                         // todo lo demás: cliente logueado
-
                         .anyRequest().hasRole("CLIENTE")
                 )
 
@@ -43,7 +37,6 @@ public class SeguridadWebConfig {
                         .loginPage("/login")              // nuestra página, no la de Spring
                         .usernameParameter("email")       // el input se llama "email"
                         .failureUrl("/login?error")
-
                         // según quién entra, a dónde lo mando
                         .successHandler((request, response, auth) -> {
                             boolean esAdmin = auth.getAuthorities().stream()

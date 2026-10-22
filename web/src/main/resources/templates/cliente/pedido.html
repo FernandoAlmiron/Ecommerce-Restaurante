@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Tu pedido - La Nona</title>
+    <link rel="stylesheet" th:href="@{/style.css}">
+    <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+</head>
+<body class="cliente con-nav ancho">
+
+<!-- botón "Sobre nosotros" (arriba a la derecha, en todas las páginas) -->
+<a th:replace="~{fragments/cliente/layout :: boton-nosotros}"></a>
+
+<header th:replace="~{fragments/cliente/layout :: logo}"></header>
+
+<div class="confirmacion">
+
+    <!-- ===== izquierda: confirmado + seguimiento ===== -->
+    <section>
+        <div class="check">✓</div>
+        <h1 th:text="${e.estado.name() == 'CANCELADO'} ? 'Pedido cancelado' : '¡Pedido confirmado!'"></h1>
+        <p class="sub">La cocina de La Nona ya está en marcha.<br>Tus pastas están en buenas manos.</p>
+        <p class="sub">
+            <span th:text="'Pedido #' + ${e.idEnvio}"></span>
+            <span class="chip verde" th:text="${e.metodoPago.name() == 'EFECTIVO'} ? 'Pagás al recibir' : 'Pago aprobado'"></span>
+        </p>
+
+        <!-- ⚠️ ADAPTADO AL BACKEND: en Figma la entrega estimada es una hora exacta
+             (20:16 – 20:26). El envío no guarda la hora en que se pidió, así que
+             se muestra el tiempo aproximado. -->
+        <div class="entrega-estimada" th:if="${paso >= 2 and paso <= 4}">
+            <small>🕒 ENTREGA ESTIMADA</small>
+            <strong>30 – 45 min</strong>
+            <small>Puede variar según el tránsito</small>
+        </div>
+
+        <section th:replace="~{fragments/cliente/seguimiento :: seguimiento}"></section>
+    </section>
+
+    <!-- ===== derecha: dirección y detalle ===== -->
+    <section class="confirmacion-detalle">
+        <div class="direccion">
+            <span class="icono-caja">📍</span>
+            <div>
+                <small>Entregar en casa</small>
+                <strong th:text="${e.direccionEntrega}"></strong>
+                <small th:text="${e.nombreReceptor}"></small>
+            </div>
+        </div>
+
+        <div class="resumen-titulo">
+            <h3>Tu pedido</h3>
+            <small th:text="${e.ticket.pedidos.size()} + ' platos'"></small>
+        </div>
+        <ul class="lineas">
+            <li th:each="p : ${e.ticket.pedidos}">
+                <img th:src="@{/img/platos/{id}.jpg(id=${p.menu.idMenu})}" alt="">
+                <div class="linea-info">
+                    <strong th:text="${p.menu.nombre}"></strong>
+                    <small th:text="${p.cantidad} + ' × $' + ${#numbers.formatDecimal(p.precioUnitario, 1, 'POINT', 0, 'COMMA')}"></small>
+                    <small th:if="${p.observaciones != null}" th:text="'📝 ' + ${p.observaciones}"></small>
+                </div>
+                <strong th:text="'$' + ${#numbers.formatDecimal(p.calcularSubtotal(), 1, 'POINT', 0, 'COMMA')}"></strong>
+            </li>
+        </ul>
+
+        <div class="total">
+            <span>Total</span>
+            <strong th:text="'$' + ${#numbers.formatDecimal(e.ticket.calcularTotal(), 1, 'POINT', 0, 'COMMA')}"></strong>
+        </div>
+        <small class="aclaracion" th:text="'Medio de pago: ' + ${e.metodoPago}"></small>
+
+        <a th:href="'tel:' + ${e.ticket.restaurante.telefono}" class="boton-borde">Contactar al restaurante 💬</a>
+        <small class="aclaracion">Gracias por compartir la mesa con La Nona.</small>
+    </section>
+</div>
+
+<nav th:replace="~{fragments/cliente/layout :: nav('pedidos')}"></nav>
+
+</body>
+</html>

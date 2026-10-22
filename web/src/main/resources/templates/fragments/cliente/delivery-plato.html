@@ -1,0 +1,43 @@
+<!-- =========================================================
+     Tarjetas de la carta del delivery.
+       "plato"  = UNA tarjeta (foto, nombre, precio y + Agregar / − 2 +)
+       "platos" = la grilla con todas (la usa la página y el buscador)
+     ========================================================= -->
+
+<!-- UNA tarjeta. Con oob=true viene "por afuera" en la respuesta de + y −,
+     y HTMX la reemplaza buscando el mismo id (plato-5, plato-7...) -->
+<article th:fragment="plato" class="card-plato"
+         th:id="'plato-' + ${m.idMenu}"
+         th:hx-swap-oob="${oob} ? 'true'">
+
+    <img th:src="@{/img/platos/{id}.jpg(id=${m.idMenu})}" th:alt="${m.nombre}">
+
+    <div class="card-cuerpo">
+        <h3 th:text="${m.nombre}"></h3>
+        <p th:text="${m.descripcion}"></p>
+
+        <div class="card-pie" th:with="cant=${carrito.cantidad(m.idMenu)}">
+            <strong th:text="'$' + ${#numbers.formatDecimal(m.precio, 1, 'POINT', 0, 'COMMA')}"></strong>
+
+            <!-- todavía no está en el pedido: botón "+ Agregar" -->
+            <button th:if="${cant == 0}" class="agregar"
+                    th:hx-post="@{/delivery/{id}/sumar(id=${m.idMenu})}"
+                    hx-swap="none">+ Agregar</button>
+
+            <!-- ya está en el pedido: contador − 2 + -->
+            <div th:if="${cant > 0}" class="contador">
+                <button th:hx-post="@{/delivery/{id}/restar(id=${m.idMenu})}" hx-swap="none">−</button>
+                <span th:text="${cant}"></span>
+                <button th:hx-post="@{/delivery/{id}/sumar(id=${m.idMenu})}" hx-swap="none">+</button>
+            </div>
+        </div>
+    </div>
+</article>
+
+<!-- TODAS las tarjetas -->
+<div th:fragment="platos" id="platos" class="grid-platos">
+    <th:block th:each="m : ${platos}">
+        <article th:replace="~{fragments/cliente/delivery-plato :: plato}"></article>
+    </th:block>
+    <p th:if="${platos.isEmpty()}" class="vacio">No encontramos ese plato 😕</p>
+</div>

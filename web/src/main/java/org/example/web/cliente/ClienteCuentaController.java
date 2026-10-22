@@ -35,6 +35,8 @@ public class ClienteCuentaController {
                             @RequestParam(required = false) String celular,
                             @RequestParam String password, @RequestParam String password2,
                             Model model) {
+
+       // manejo de excepciones
         try {
             if (!password.equals(password2)) {
                 throw new IllegalArgumentException("Las contraseñas no coinciden");
@@ -49,11 +51,11 @@ public class ClienteCuentaController {
             cliente.setPassword(password);       // ClienteService la encripta
             cliente.setRestaurante(restauranteService.listarTodos().get(0));   // hay un solo local
 
-            clienteService.guardar(cliente);     // valida DNI, contraseña de 6+, usuario repetido...
+            clienteService.guardar(cliente);     //validaciones
             return "redirect:/login?registrado";
 
         } catch (IllegalArgumentException | IllegalStateException e) {
-            // vuelve al formulario con el mensaje (los datos cargados se mantienen con ${param...})
+            // vuelve al formulario con el mensaje de error
             model.addAttribute("error", e.getMessage());
             return "cliente/registro";
         }

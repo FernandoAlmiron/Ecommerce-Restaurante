@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Delivery - La Nona</title>
+    <link rel="stylesheet" th:href="@{/style.css}">
+    <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+    <script th:src="@{/errores.js}" defer></script>
+</head>
+<body class="cliente con-nav ancho">
+
+<!-- botón "Sobre nosotros" (arriba a la derecha, en todas las páginas) -->
+<a th:replace="~{fragments/cliente/layout :: boton-nosotros}"></a>
+
+<header th:replace="~{fragments/cliente/layout :: logo}"></header>
+
+<!-- portada beige con foto (static/img/hero.jpg) -->
+<section class="hero">
+    <div class="hero-texto">
+        <span class="chip verde">● Abierto ahora</span> <small>La Nona · Pastas caseras</small>
+        <h1>De nuestra cocina a tu mesa.</h1>
+        <p>Pastas hechas a mano, con el sabor de siempre.</p>
+        <!-- ⚠️ ADAPTADO AL BACKEND: sin "Envío $2.500" ni "4,8 (120 opiniones)":
+             el backend no tiene costo de envío ni calificaciones. -->
+        <p class="hero-datos">🕒 <strong>30–45 min</strong></p>
+    </div>
+    <div class="hero-foto"></div>
+</section>
+
+<div id="mensaje-error" class="alerta error" hidden></div>
+
+<div class="delivery">
+    <main>
+        <!-- buscador en vivo, igual que el de Clientes en admin -->
+        <input type="search" name="q" class="buscador" placeholder="🔍  ¿Qué se te antoja hoy?"
+               hx-get="/delivery/buscar"
+               hx-trigger="input changed delay:300ms, search"
+               hx-target="#platos"
+               hx-swap="outerHTML">
+
+        <!-- ⚠️ ADAPTADO AL BACKEND: en Figma hay filtros (Pastas, Al horno, Postres,
+             Bebidas). Los platos (Menu) no tienen categoría, así que se usa el buscador. -->
+
+        <h2 class="seccion">Los favoritos de la Nona</h2>
+        <p class="sub">Porciones generosas, preparadas en el momento.</p>
+
+        <div th:replace="~{fragments/cliente/delivery-plato :: platos}"></div>
+    </main>
+
+    <aside th:replace="~{fragments/cliente/delivery-pedido :: panel}"></aside>
+</div>
+
+<small class="pie">Precios en pesos argentinos. Las imágenes son ilustrativas.</small>
+
+<nav th:replace="~{fragments/cliente/layout :: nav('inicio')}"></nav>
+
+</body>
+</html>
