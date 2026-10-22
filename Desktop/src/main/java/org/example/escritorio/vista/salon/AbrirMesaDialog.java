@@ -21,7 +21,7 @@ import java.util.Optional;
 /**
  * Ventana para abrir una mesa (RF-19): crea un ticket de salón vacío, con o sin reserva
  * (sin reserva se registra antes un walk-in, para que la mesa ocupe lugar en su zona).
- * Las reservas que se ofrecen son las confirmadas de hoy que todavía no tienen mesa abierta.
+ * Las reservas que se ofrecen son las de hoy (confirmadas o que ya asistieron) que todavía no tienen mesa.
  */
 public class AbrirMesaDialog extends DialogoFormulario {
 
@@ -63,7 +63,7 @@ public class AbrirMesaDialog extends DialogoFormulario {
     protected JComponent armarCuerpo() {
         Formulario.estilizar(cmbReserva);
         return Formulario.cuerpo(
-                Formulario.opcion(chkConReserva, "Tildalo para asociar la mesa a una reserva confirmada de hoy."),
+                Formulario.opcion(chkConReserva, "Tildalo para asociar la mesa a una reserva de hoy."),
                 Formulario.campo("Reserva", cmbReserva, null),
                 lblAyuda);
     }
@@ -82,7 +82,7 @@ public class AbrirMesaDialog extends DialogoFormulario {
         if (reservas.isEmpty()) {
             chkConReserva.setSelected(false);
             chkConReserva.setEnabled(false);
-            lblAyuda.setText("No hay reservas confirmadas de hoy sin mesa: se pide la zona y los comensales.");
+            lblAyuda.setText("No hay reservas de hoy sin mesa: se pide la zona y los comensales.");
         } else {
             chkConReserva.setEnabled(true);
             lblAyuda.setText("Sin reserva: se pide la zona y los comensales para descontarlos del lugar libre.");

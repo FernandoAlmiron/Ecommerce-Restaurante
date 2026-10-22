@@ -20,9 +20,10 @@ import java.util.List;
 
 /**
  * Lógica del cierre de caja (RF-47) con CierreCajaService.
- * Lo esperado en efectivo y la diferencia los calcula el backend; la cajera es el usuario logueado.
- * Tarjeta y QR del día se suman con la misma consulta que usa el backend para el efectivo
- * (FacturacionRepository.sumarPagos: facturaciones de salón pagadas esa fecha).
+ * Lo esperado en efectivo y la diferencia que quedan guardados los calcula el backend; la cajera es el
+ * usuario logueado. Antes de cerrar, la pantalla muestra lo que se cobró hoy en efectivo, tarjeta y QR con
+ * la misma consulta que usa el backend (FacturacionRepository.sumarPagos: facturaciones de salón pagadas
+ * esa fecha), así la cajera sabe cuánto tiene que haber en la caja.
  */
 public class CierreCajaControlador {
 
@@ -36,16 +37,17 @@ public class CierreCajaControlador {
         this.facturacionRepository = Contexto.get(FacturacionRepository.class);
     }
 
-    /** Lo que muestra la pantalla: lo cobrado hoy con tarjeta y QR, y los cierres anteriores. */
-    private record Datos(BigDecimal tarjetaHoy, BigDecimal qrHoy, List<CierreFila> cierres) {
+    /** Lo que muestra la pantalla: lo cobrado hoy con cada método, y los cierres anteriores. */
+    private record Datos(BigDecimal efectivoHoy, BigDecimal tarjetaHoy, BigDecimal qrHoy, List<CierreFila> cierres) {
     }
 
-    /** Lo cobrado hoy con tarjeta y QR, y los cierres anteriores del restaurante del empleado. */
+    /** Lo cobrado hoy en efectivo, tarjeta y QR, y los cierres anteriores del restaurante del empleado. */
     public void cargar() {
         int restaurante = Sesion.nroRestaurante();
         LocalDate hoy = LocalDate.now();
         Tarea.ejecutar(vista.getBotonActualizar(),
                 () -> new Datos(
+                        cobrado(restaurante, hoy, MetodoPago.EFECTIVO),
                         cobrado(restaurante, hoy, MetodoPago.TARJETA),
                         cobrado(restaurante, hoy, MetodoPago.QR),
                         cierreCajaService.listarTodos().stream()
@@ -54,7 +56,7 @@ public class CierreCajaControlador {
                                 .map(c -> conTotales(c, restaurante))
                                 .toList()),
                 datos -> {
-                    vista.mostrarCobradoHoy(datos.tarjetaHoy(), datos.qrHoy());
+                    vista.mostrarCobradoHoy(datos.efectivoHoy(), datos.tarjetaHoy(), datos.qrHoy());
                     vista.mostrarCierres(datos.cierres());
                 });
     }
@@ -65,7 +67,17 @@ public class CierreCajaControlador {
             vista.mostrarError("Escribí el monto contado con números, por ejemplo 150000,00.");
             return;
         }
-        if (!vista.confirmar("¿Cerrar la caja de hoy con " + Formatos.pesos(contado) + " contados en efectivo?")) {
+        BigDecimal esperado = vista.getEfectivoEsperado();
+        String pregunta = "¿Cerrar la caja de hoy con " + Formatos.pesos(contado) + " contados en efectivo?";
+        if (esperado != null && contado.compareTo(esperado) != 0) {
+            BigDecimal diferencia = contado.subtract(esperado);
+            pregunta = "Tendría que haber " + Formatos.pesos(esperado) + " en efectivo y contaste "
+                    + Formatos.pesos(contado) + ": " + (diferencia.signum() > 0 ? "sobran " : "faltan ")
+                    + Formatos.pesos(diferencia.abs()) + ".\n"
+                    + (vista.getObservaciones().isEmpty() ? "Conviene anotar el motivo en Observaciones.\n" : "")
+                    + "¿Cerrar la caja igual?";
+        }
+        if (!vista.confirmar(pregunta)) {
             return;
         }
 

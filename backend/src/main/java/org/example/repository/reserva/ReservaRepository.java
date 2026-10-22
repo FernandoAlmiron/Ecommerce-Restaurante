@@ -18,8 +18,11 @@ public interface ReservaRepository extends JpaRepository<Reserva, Integer> {
             "WHERE r.zona.idZona = :idZona AND r.fechaReserva = :fecha " +
             "AND r.horaReserva >= :desde AND r.horaReserva < :hasta " +
             "AND r.estado <> :excluido " +
-            // la mesa ya se cobró: la gente se fue y el lugar vuelve a estar libre
-            "AND NOT EXISTS (SELECT f FROM Facturacion f WHERE f.ticket.reserva = r)")
+            // el que no vino no ocupa lugar
+            "AND r.estado <> org.example.Modelo.enums.EstadoReserva.AUSENTE " +
+            // la mesa ya se cobró (pago confirmado): la gente se fue y el lugar vuelve a estar libre
+            "AND NOT EXISTS (SELECT f FROM Facturacion f WHERE f.ticket.reserva = r " +
+            "AND f.estadoPago = org.example.Modelo.enums.EstadoPago.PAGADO)")
     Long sumarComensales(@Param("idZona") int idZona,
                          @Param("fecha") LocalDate fecha,
                          @Param("desde") LocalTime desde,

@@ -41,9 +41,9 @@ import java.util.Locale;
 
 /**
  * Cierre de caja del día (RF-47).
- * A la izquierda se carga el efectivo contado; a la derecha el resumen del día: tarjeta y QR los suma el sistema.
- * El efectivo esperado lo calcula el backend y no se muestra antes de contar: aparece, con la diferencia,
- * después de cerrar. Abajo, los cierres anteriores.
+ * A la izquierda se carga el efectivo contado; a la derecha el resumen del día: el efectivo que tendría que
+ * haber en la caja (lo cobrado hoy en efectivo), la diferencia con lo contado mientras se escribe,
+ * y lo cobrado con tarjeta y QR. Abajo, los cierres anteriores.
  */
 public class CierreCajaPanel extends JPanel {
 
@@ -62,11 +62,13 @@ public class CierreCajaPanel extends JPanel {
     private final JLabel lblContado = valor();
     private final Estilo.Pildora lblDiferencia = new Estilo.Pildora("", Estilo.GRIS_FONDO, Estilo.GRIS_TEXTO,
             Estilo.fuente(Font.BOLD, 14f), -1);
-    private final JLabel lblArqueoPendiente = Formulario.nota(new JLabel("El efectivo esperado y la diferencia se ven al cerrar la caja."));
+    private final JLabel lblArqueoPendiente = Formulario.nota(new JLabel("No cuadra: anotá el motivo en Observaciones."));
     private final JPanel filasArqueo = Estilo.transparente(new GridBagLayout());
     private final JLabel lblTarjeta = valor();
     private final JLabel lblQr = valor();
     private final JLabel lblTotalDia = new JLabel("—");
+    /** Lo cobrado hoy en efectivo (lo que tendría que haber en la caja); null hasta que carga. */
+    private BigDecimal esperado;
 
     private final CierreTableModel modelo = new CierreTableModel();
     private final JTable tabla = new JTable(modelo) {
@@ -116,7 +118,7 @@ public class CierreCajaPanel extends JPanel {
         JLabel titulo = new JLabel("Cierre de caja de hoy");
         titulo.setFont(Estilo.fuente(Font.BOLD, 26f));
         titulo.setForeground(Estilo.TEXTO);
-        JLabel ayuda = Formulario.nota(new JLabel("Contá el efectivo y cargalo. Tarjeta y QR los suma el sistema."));
+        JLabel ayuda = Formulario.nota(new JLabel("Contá el efectivo y cargalo: a la derecha ves si cuadra con lo cobrado."));
 
         // el efectivo contado va grande, con el signo $ adelante
         spnContado.setEditor(new JSpinner.NumberEditor(spnContado, "#,##0.##"));
@@ -130,6 +132,14 @@ public class CierreCajaPanel extends JPanel {
                 hijo.setVisible(false);
             }
         }
+        // la diferencia se actualiza mientras se escribe, no recién al salir del campo
+        spnContado.addChangeListener(e -> actualizarArqueo());
+        ((JSpinner.DefaultEditor) spnContado.getEditor()).getTextField().getDocument()
+                .addDocumentListener(new javax.swing.event.DocumentListener() {
+                    @Override public void insertUpdate(javax.swing.event.DocumentEvent e) { actualizarArqueo(); }
+                    @Override public void removeUpdate(javax.swing.event.DocumentEvent e) { actualizarArqueo(); }
+                    @Override public void changedUpdate(javax.swing.event.DocumentEvent e) { actualizarArqueo(); }
+                });
         JLabel signo = new JLabel("$");
         signo.setFont(Estilo.fuente(Font.BOLD, 26f));
         signo.setForeground(Estilo.CAFE);
@@ -161,7 +171,7 @@ public class CierreCajaPanel extends JPanel {
         return tarjeta;
     }
 
-    /** Tarjeta de la derecha: arqueo del efectivo (después de cerrar), tarjeta, QR y total del día. */
+    /** Tarjeta de la derecha: arqueo del efectivo (esperado, contado y diferencia), tarjeta, QR y total del día. */
     private JComponent armarResumen() {
         JLabel titulo = new JLabel("Resumen del día");
         titulo.setFont(Estilo.fuente(Font.BOLD, 20f));
@@ -170,12 +180,11 @@ public class CierreCajaPanel extends JPanel {
         lblDiferencia.setBorder(Estilo.relleno(5, 14, 5, 14));
         GridBagConstraints c = new GridBagConstraints();
         c.gridy = 0;
-        fila(filasArqueo, c, "Efectivo esperado", lblEsperado);
+        fila(filasArqueo, c, "Efectivo cobrado hoy", lblEsperado);
         c.gridy = 1;
         fila(filasArqueo, c, "Efectivo contado", lblContado);
         c.gridy = 2;
         fila(filasArqueo, c, "Diferencia", lblDiferencia);
-        filasArqueo.setVisible(false);
 
         Estilo.Tarjeta arqueo = new Estilo.Tarjeta(new BorderLayout(0, 6), 16);
         arqueo.setBackground(Estilo.FILA_SELECCIONADA);
@@ -197,7 +206,6 @@ public class CierreCajaPanel extends JPanel {
         lblTotalDia.setFont(Estilo.fuente(Font.BOLD, 30f));
         lblTotalDia.setForeground(Estilo.CAFE_OSCURO);
         lblTotalDia.setBorder(Estilo.relleno(0, 0, 0, 6));
-        mostrarTotalPendiente();
         JPanel filaTotal = Estilo.transparente(new BorderLayout());
         filaTotal.setBorder(BorderFactory.createCompoundBorder(new Estilo.LineaPunteada(true), Estilo.relleno(14, 0, 0, 0)));
         filaTotal.add(total, BorderLayout.WEST);
@@ -315,38 +323,69 @@ public class CierreCajaPanel extends JPanel {
         repaint();
     }
 
-    /** Lo cobrado hoy en salón con tarjeta y QR, antes de cerrar la caja. */
-    public void mostrarCobradoHoy(BigDecimal tarjeta, BigDecimal qr) {
+    /** Lo cobrado hoy en salón con cada método: el efectivo es lo que tendría que haber en la caja. */
+    public void mostrarCobradoHoy(BigDecimal efectivo, BigDecimal tarjeta, BigDecimal qr) {
+        esperado = efectivo;
+        lblEsperado.setText(Tablas.pesosCortos(efectivo));
         lblTarjeta.setText(Tablas.pesosCortos(tarjeta));
         lblQr.setText(Tablas.pesosCortos(qr));
+        lblTotalDia.setText(Tablas.pesosCortos(efectivo.add(tarjeta).add(qr)));
+        actualizarArqueo();
     }
 
-    /** Muestra el resultado del cierre recién hecho y limpia el formulario. */
-    public void mostrarResultado(CierreFila fila) {
-        CierreCaja cierre = fila.cierre();
-        lblEsperado.setText(Tablas.pesosCortos(cierre.getMontoEsperado()));
-        lblContado.setText(Tablas.pesosCortos(cierre.getMontoContado()));
-        Tablas.Insignia d = diferencia(cierre.getDiferencia());
+    /** Lo cobrado hoy en efectivo, como se muestra (null si todavía no cargó). */
+    public BigDecimal getEfectivoEsperado() {
+        return esperado;
+    }
+
+    /** Contado y diferencia con lo que se está escribiendo; si todavía no es un número, queda "—". */
+    private void actualizarArqueo() {
+        BigDecimal contado = contadoEscrito();
+        lblContado.setText(contado == null ? "—" : Tablas.pesosCortos(contado));
+        if (contado == null || esperado == null) {
+            pintarDiferencia(new Tablas.Insignia("—", Estilo.GRIS_FONDO, Estilo.GRIS_TEXTO), false);
+        } else {
+            BigDecimal d = contado.subtract(esperado);
+            pintarDiferencia(diferencia(d), d.signum() != 0);
+        }
+    }
+
+    /** Lee lo escrito en el campo sin confirmarlo (para no mover el cursor mientras se escribe). */
+    private BigDecimal contadoEscrito() {
+        JSpinner.NumberEditor editor = (JSpinner.NumberEditor) spnContado.getEditor();
+        String texto = editor.getTextField().getText().trim();
+        if (texto.isEmpty()) {
+            return null;
+        }
+        java.text.ParsePosition pos = new java.text.ParsePosition(0);
+        Number n = editor.getFormat().parse(texto, pos);
+        if (n == null || pos.getIndex() != texto.length() || n.doubleValue() < 0) {
+            return null;
+        }
+        return BigDecimal.valueOf(n.doubleValue()).setScale(2, RoundingMode.HALF_UP);
+    }
+
+    private void pintarDiferencia(Tablas.Insignia d, boolean noCuadra) {
         lblDiferencia.setText(d.texto());
         lblDiferencia.setFondo(d.fondo());
         lblDiferencia.setForeground(d.color());
-        filasArqueo.setVisible(true);
-        lblArqueoPendiente.setVisible(false);
+        lblArqueoPendiente.setVisible(noCuadra);
+    }
+
+    /**
+     * Muestra el cierre recién hecho con lo que guardó el backend y limpia las observaciones.
+     * El contado queda escrito, así se sigue viendo el arqueo de ese cierre.
+     */
+    public void mostrarResultado(CierreFila fila) {
+        CierreCaja cierre = fila.cierre();
+        esperado = cierre.getMontoEsperado();
+        lblEsperado.setText(Tablas.pesosCortos(esperado));
+        spnContado.setValue(cierre.getMontoContado().doubleValue());
+        actualizarArqueo();
         lblTarjeta.setText(Tablas.pesosCortos(fila.tarjeta()));
         lblQr.setText(Tablas.pesosCortos(fila.qr()));
         lblTotalDia.setText(Tablas.pesosCortos(fila.totalDelDia()));
-        lblTotalDia.setFont(Estilo.fuente(Font.BOLD, 30f));
-        lblTotalDia.setForeground(Estilo.CAFE_OSCURO);
-
-        spnContado.setValue(0d);
         txtObservaciones.setText("");
-    }
-
-    /** Antes de cerrar no se sabe el efectivo esperado, así que tampoco el total del día. */
-    private void mostrarTotalPendiente() {
-        lblTotalDia.setText("Al cerrar la caja");
-        lblTotalDia.setFont(Estilo.fuente(Font.PLAIN, 15f));
-        lblTotalDia.setForeground(Estilo.TEXTO_SUAVE);
     }
 
     public void mostrarError(String mensaje) {

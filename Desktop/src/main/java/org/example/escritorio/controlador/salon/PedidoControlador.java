@@ -116,6 +116,7 @@ public class PedidoControlador {
         }
         List<Renglon> aCargar = List.copyOf(renglones);
         AtomicInteger guardados = new AtomicInteger();
+        vista.bloquear(true);
         Tarea.ejecutar(vista.getBotonCargar(), () -> {
             for (Renglon r : aCargar) {
                 pedidoService.guardar(pedidoDe(r));
@@ -124,8 +125,10 @@ public class PedidoControlador {
             return aCargar.size();
         }, total -> {
             renglones.clear();
+            vista.bloquear(false);
             vista.cerrarCargado();
         }, mensaje -> {
+            vista.bloquear(false);
             int ok = guardados.get();
             renglones.subList(0, ok).clear();
             vista.mostrarRenglones(List.copyOf(renglones));

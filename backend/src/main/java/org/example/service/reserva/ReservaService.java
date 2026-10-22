@@ -29,6 +29,7 @@ public class ReservaService {
 
 
     private static final int DURACION_RESERVA_HORAS = 2;
+    private static final LocalTime FIN_DEL_DIA = LocalTime.of(23, 59, 59);
     @Value("${reservas.monto-senia:30000}")
     private BigDecimal montoSenia;
 
@@ -201,15 +202,21 @@ public class ReservaService {
             throw new IllegalStateException("La zona no esta activa o no admite esa cantidad de comensales");
         }
 
+        if (comensalesOcupados(zona.getIdZona(), fecha, hora) + comensales > zona.getCapacidadMaxima()) {
+            throw new IllegalStateException("No hay lugar en esa zona para ese horario");
+        }
+    }
+
+    /**
+     * Comensales que ocupan la zona a esa hora: las reservas de DURACION_RESERVA_HORAS antes y después,
+     * sin las canceladas, las ausentes ni las mesas ya cobradas. La ventana no pasa de un día al otro.
+     */
+    public long comensalesOcupados(int idZona, LocalDate fecha, LocalTime hora) {
         LocalTime desde = hora.minusHours(DURACION_RESERVA_HORAS);
         desde = desde.isAfter(hora) ? LocalTime.MIN : desde.plusMinutes(1);
         LocalTime hasta = hora.plusHours(DURACION_RESERVA_HORAS);
-        hasta = hasta.isBefore(hora) ? LocalTime.MAX : hasta;
-
-        long ocupados = reservaRepository.sumarComensales(
-                zona.getIdZona(), fecha, desde, hasta, EstadoReserva.CANCELADA);
-        if (ocupados + comensales > zona.getCapacidadMaxima()) {
-            throw new IllegalStateException("No hay lugar en esa zona para ese horario");
-        }
+        // LocalTime.MAX no sirve: MySQL lo guarda como 00:00:00 y la consulta no encontraba nada
+        hasta = hasta.isBefore(hora) ? FIN_DEL_DIA : hasta;
+        return reservaRepository.sumarComensales(idZona, fecha, desde, hasta, EstadoReserva.CANCELADA);
     }
 }

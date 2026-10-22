@@ -36,7 +36,10 @@ public class AbrirMesaControlador {
         this.reservaService = Contexto.get(ReservaService.class);
     }
 
-    /** Reservas confirmadas de hoy, del restaurante del empleado, que todavía no tienen ticket. */
+    /**
+     * Reservas de hoy del restaurante del empleado que todavía no tienen ticket: las confirmadas
+     * y las que Recepción ya marcó "Asistió" (FINALIZADA), que son justo las que se sientan.
+     */
     public void cargarReservas() {
         int restaurante = Sesion.nroRestaurante();
         LocalDate hoy = LocalDate.now();
@@ -48,7 +51,8 @@ public class AbrirMesaControlador {
                     .collect(Collectors.toSet());
 
             return reservaService.listarTodos().stream()
-                    .filter(r -> r.getEstado() == EstadoReserva.CONFIRMADA)
+                    .filter(r -> r.getEstado() == EstadoReserva.CONFIRMADA
+                            || r.getEstado() == EstadoReserva.FINALIZADA)
                     .filter(r -> hoy.equals(r.getFechaReserva()))
                     .filter(r -> r.getRestaurante() != null
                             && r.getRestaurante().getNroRestaurante() == restaurante)

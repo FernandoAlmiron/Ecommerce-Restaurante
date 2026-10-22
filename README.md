@@ -16,6 +16,7 @@ API REST en Java 25 y Spring Boot 4.1 para un restaurante: reservas con seña, s
    3. `db/data.sql` – carga los datos de prueba
 
    Si ya tenían la base cargada de antes y no quieren borrarla, alcanza con ejecutar `db/migracion_cuentas_clientes.sql`.
+   Si en Recepción fallan "Asistió" o "No asistió" (`Data truncated for column 'estado'`), ejecutar `db/migracion_estados_reserva.sql`.
 2. **Aplicación.** Abrir el proyecto en IntelliJ y ejecutar la clase `org.example.Main`.
    Está lista cuando la consola muestra `Tomcat started on port 8080`.
 3. **Pruebas.** En Postman, importar los archivos de la carpeta `postman/` (la colección *Restaurante - Endpoints por rol* tiene una carpeta por rol) y seleccionar el environment **Restaurante local** (arriba a la derecha).

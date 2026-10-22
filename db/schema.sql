@@ -133,7 +133,7 @@ CREATE TABLE Reserva (
     cantComensales INT NOT NULL,
     fechaReserva   DATE NOT NULL,
     horaReserva    TIME NOT NULL,
-    estado         ENUM('PENDIENTE','CONFIRMADA','CANCELADA') NOT NULL DEFAULT 'PENDIENTE',
+    estado         ENUM('PENDIENTE','CONFIRMADA','CANCELADA','FINALIZADA','AUSENTE') NOT NULL DEFAULT 'PENDIENTE',
     idCliente      INT NOT NULL,
     idZona         INT NOT NULL,
     nroRestaurante INT NOT NULL,

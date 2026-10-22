@@ -56,6 +56,8 @@ public class PedidoDialog extends DialogoFormulario {
 
     private final PedidoControlador controlador;
     private boolean huboCambios;
+    /** true mientras se guarda la lista: no se puede tocar nada ni cerrar la ventana. */
+    private boolean guardando;
 
     public PedidoDialog(Window padre, int nroTicket) {
         super(padre, "Salón · Ticket #T-" + nroTicket, "Agregar pedido",
@@ -257,6 +259,27 @@ public class PedidoDialog extends DialogoFormulario {
         cmbMenu.requestFocusInWindow();
     }
 
+    /**
+     * Mientras se guarda la lista no se puede agregar, cambiar ni sacar nada (si no, lo que se toca
+     * en ese momento se perdería o se sacaría el plato equivocado). El botón Cargar lo maneja Tarea.
+     */
+    public void bloquear(boolean bloqueado) {
+        guardando = bloqueado;
+        for (JComponent c : new JComponent[]{cmbMenu, spnCantidad, txtObservaciones, btnAgregar, btnCancelar}) {
+            c.setEnabled(!bloqueado);
+        }
+        habilitarTodo(filas, !bloqueado);
+    }
+
+    private static void habilitarTodo(java.awt.Container contenedor, boolean habilitado) {
+        for (Component c : contenedor.getComponents()) {
+            c.setEnabled(habilitado);
+            if (c instanceof java.awt.Container hijo) {
+                habilitarTodo(hijo, habilitado);
+            }
+        }
+    }
+
     /** Algunos platos ya quedaron guardados (la pantalla de Salón tiene que recargar). */
     public void marcarCambios() {
         huboCambios = true;
@@ -268,9 +291,12 @@ public class PedidoDialog extends DialogoFormulario {
         dispose();
     }
 
-    /** Si quedan platos sin cargar, se pregunta antes de cerrar (Cancelar o la X). */
+    /** Si quedan platos sin cargar, se pregunta antes de cerrar (Cancelar o la X); mientras guarda, no se cierra. */
     @Override
     public void dispose() {
+        if (guardando) {
+            return;
+        }
         if (isShowing() && controlador.hayPendientes()
                 && !Dialogos.confirmar(this, "Hay platos en la lista que todavía no se cargaron. ¿Descartarlos?")) {
             return;
