@@ -1,16 +1,14 @@
-<!-- =========================================================
+<!--
      Piezas que se repiten en todas las páginas del cliente.
      Se escriben UNA vez acá y cada página las incluye con:
        <header th:replace="~{fragments/cliente/layout :: logo}"></header>
-       <nav th:replace="~{fragments/cliente/layout :: nav('reservas')}"></nav>
-     ========================================================= -->
+       <nav th:replace="~{fragments/cliente/layout :: nav('reservas')}"></nav>-->
 
-<!-- logo de arriba -->
-<header th:fragment="logo">
-    <a th:href="@{/elegir}"><img th:src="@{/img/logo.png}" alt="La Nona - pastas caseras" class="logo"></a>
-</header>
-
-<!-- barra de abajo: "activo" dice qué botón va pintado de dorado -->
+<!-- botón sobre nosotros -->
+<a th:fragment="boton-nosotros" th:href="@{/nosotros}" class="boton-nosotros">
+    Sobre nosotros
+</a>
+<!-- barra de abajo del todo, activo dice qué botón va pintado de dorado -->
 <nav th:fragment="nav(activo)" class="nav-inferior">
     <a th:href="@{/elegir}"   th:classappend="${activo == 'inicio'}   ? 'activo'">INICIO</a>
     <a th:href="@{/pedidos}"  th:classappend="${activo == 'pedidos'}  ? 'activo'">PEDIDOS</a>
@@ -19,13 +17,5 @@
 </nav>
 
 
-<!-- botón cuadradito con un ícono de persona: lleva a "Sobre nosotros".
-     Queda fijo arriba a la derecha (position: fixed en el CSS). -->
-<a th:fragment="boton-nosotros" th:href="@{/nosotros}" class="boton-nosotros"
-   title="Sobre nosotros" aria-label="Sobre nosotros">
-    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor"
-         stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <circle cx="12" cy="8" r="4"/>
-        <path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/>
     </svg>
 </a>

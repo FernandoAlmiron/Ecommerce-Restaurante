@@ -552,10 +552,10 @@ body.cliente .boton-nosotros {
     top: 16px;
     right: 16px;
     z-index: 20;
-    width: 42px;
-    height: 42px;
-    display: grid;
-    place-items: center;
+    padding: 9px 16px;          /* ahora el tamaño lo da el texto */
+    font-size: 13px;
+    font-weight: 500;
+    white-space: nowrap;        /* que no se parta en dos renglones */
     border: 1px solid var(--borde-suave);
     border-radius: 10px;
     background: var(--blanco);
@@ -962,7 +962,7 @@ body.cliente .hero-texto p {
     color: var(--gris-texto);
 }
 
-body.cliente .hero-texto .hero-datos {
+body.cliente .hero-texto .hero-datos {c
     color: var(--negro);
 }
 
@@ -1824,12 +1824,12 @@ body.cliente .volver-atras {
         font-size: 30px;
     }
 
-    /* botón de la persona un poco más chico */
+    /* botón "Sobre nosotros" un poco más chico */
     body.cliente .boton-nosotros {
         top: 12px;
         right: 12px;
-        width: 38px;
-        height: 38px;
+        padding: 7px 12px;
+        font-size: 12px;
     }
 }
 
