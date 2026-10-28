@@ -97,8 +97,6 @@ public class PedidoDialog extends DialogoFormulario {
     @Override
     protected JComponent armarCuerpo() {
         Formulario.estilizar(cmbMenu);
-        // el ancho lo da la ventana: si no, un plato de nombre largo agranda el combo y aplasta la lista
-        cmbMenu.setPreferredSize(new Dimension(100, cmbMenu.getPreferredSize().height));
         Formulario.estilizar(spnCantidad);
         Formulario.estilizar(txtObservaciones, "Ej.: sin queso, poco picante");
         btnAgregar.setBorder(Estilo.relleno(11, 18, 11, 20));
@@ -222,12 +220,18 @@ public class PedidoDialog extends DialogoFormulario {
     public void mostrarMenus(List<Menu> menus) {
         cmbMenu.removeAllItems();
         menus.forEach(cmbMenu::addItem);
+        // se mide con los platos ya cargados: el ancho lo da la ventana (un nombre largo no lo agranda)
+        // y el mínimo es igual al normal, así no se achica si la ventana queda justa de alto
+        cmbMenu.setPreferredSize(null);
+        Dimension tamanio = new Dimension(100, cmbMenu.getPreferredSize().height);
+        cmbMenu.setPreferredSize(tamanio);
+        cmbMenu.setMinimumSize(tamanio);
+        cmbMenu.revalidate();
         btnAgregar.setEnabled(!menus.isEmpty());
         if (menus.isEmpty()) {
             mostrarError("No hay platos disponibles en el menú.");
         }
     }
-
     /** Redibuja la lista de platos para cargar, con su total. */
     public void mostrarRenglones(List<Renglon> renglones) {
         filas.removeAll();
