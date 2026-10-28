@@ -124,8 +124,7 @@ public class CierreCajaPanel extends JPanel {
         spnContado.setEditor(new JSpinner.NumberEditor(spnContado, "#,##0.##"));
         spnContado.setFont(Estilo.fuente(Font.BOLD, 28f));
         Estilo.flat(spnContado, "arc: 16; padding: 12,14,12,14; buttonStyle: none;"
-                + " focusWidth: 3; innerFocusWidth: 0; focusColor: #EFE7DF;"
-                + " borderColor: #E0D6CC; focusedBorderColor: #8C5E35");
+                + " " + Estilo.bordeCampo(3));
         // sin flechitas: el efectivo se escribe
         for (java.awt.Component hijo : spnContado.getComponents()) {
             if (hijo instanceof JButton) {

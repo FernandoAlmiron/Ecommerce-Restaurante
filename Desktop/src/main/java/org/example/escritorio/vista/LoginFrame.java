@@ -31,9 +31,6 @@ import java.awt.GridLayout;
 public class LoginFrame extends JFrame {
 
     private static final int ANCHO_FORMULARIO = 420;
-    private static final String ESTILO_CAMPO = "arc: 16; focusWidth: 4; innerFocusWidth: 0;"
-            + " focusColor: #EFE7DF; borderColor: #E0D6CC; focusedBorderColor: #8C5E35;"
-            + " margin: 12,14,12,14; iconTextGap: 12";
 
     private final JTextField txtUsuario = new JTextField(22);
     private final JPasswordField txtClave = new JPasswordField(22);
@@ -100,14 +97,14 @@ public class LoginFrame extends JFrame {
         centrado.add(logo);
 
         JPanel marca = new JPanel(new BorderLayout());
-        marca.setBackground(Estilo.CAFE);
+        marca.setBackground(Estilo.MENU_FONDO);
         marca.setBorder(Estilo.relleno(24, 24, 36, 24));
         marca.add(centrado, BorderLayout.CENTER);
         marca.add(pie, BorderLayout.SOUTH);
         return marca;
     }
 
-    /** Mitad blanca con el formulario centrado. */
+    /** Mitad blanca con el formulario centrado y, arriba a la derecha, el botón de tema claro/oscuro. */
     private JComponent armarFormulario() {
         JLabel titulo = new JLabel("Iniciar sesión");
         titulo.setFont(Estilo.fuente(Font.BOLD, 34f));
@@ -146,10 +143,31 @@ public class LoginFrame extends JFrame {
         agregar(formulario, ayuda, 0);
         formulario.setPreferredSize(new Dimension(ANCHO_FORMULARIO, formulario.getPreferredSize().height));
 
-        JPanel lado = new JPanel(new GridBagLayout());
+        JPanel centrado = Estilo.transparente(new GridBagLayout());
+        centrado.add(formulario);
+
+        JButton tema = Boton.soloIcono(Estilo.esOscuro() ? Icono.Tipo.SOL : Icono.Tipo.LUNA, Estilo.TEXTO,
+                Estilo.esOscuro() ? "Pasar al tema claro" : "Pasar al tema oscuro");
+        tema.addActionListener(e -> cambiarTema());
+        JPanel arriba = Estilo.transparente(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 0, 0));
+        arriba.add(tema);
+
+        JPanel lado = new JPanel(new BorderLayout());
         lado.setBackground(Estilo.BLANCO);
-        lado.add(formulario);
+        lado.setBorder(Estilo.relleno(20, 20, 20, 20));
+        lado.add(arriba, BorderLayout.NORTH);
+        lado.add(centrado, BorderLayout.CENTER);
         return lado;
+    }
+
+    /** Cambia el tema y vuelve a armar la ventana (los colores se toman al armarla). */
+    private void cambiarTema() {
+        Estilo.cambiarTema();
+        LoginFrame nueva = new LoginFrame();
+        nueva.setBounds(getBounds());
+        nueva.setExtendedState(getExtendedState());
+        nueva.setVisible(true);
+        dispose();
     }
 
     private static void agregar(JPanel panel, JComponent componente, int espacioDespues) {
@@ -173,7 +191,7 @@ public class LoginFrame extends JFrame {
         campo.setForeground(Estilo.TEXTO);
         campo.putClientProperty("JTextField.placeholderText", placeholder);
         campo.putClientProperty("JTextField.leadingIcon", new Icono(icono, 22, Estilo.CAFE));
-        Estilo.flat(campo, ESTILO_CAMPO);
+        Estilo.flat(campo, "arc: 16; " + Estilo.bordeCampo(4) + "; margin: 12,14,12,14; iconTextGap: 12");
     }
 
     /** Botón del ojito: muestra u oculta la contraseña. */

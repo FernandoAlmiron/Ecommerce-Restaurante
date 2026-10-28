@@ -17,7 +17,7 @@ public class Icono implements Icon {
 
     public enum Tipo {
         CALENDARIO, MAS_CIRCULO, OLLA, BILLETE, BICI, PERSONAS, ENGRANAJE,
-        SALIR, LUPA, ACTUALIZAR, MAS, MENOS, USUARIO, CANDADO, OJO, OJO_TACHADO, TILDE, IZQUIERDA, DERECHA, UBICACION, TELEFONO, LAPIZ, COPA, SOBRE, INFO, TACHO, DOCUMENTO, RELOJ
+        SALIR, LUPA, ACTUALIZAR, MAS, MENOS, USUARIO, CANDADO, OJO, OJO_TACHADO, TILDE, IZQUIERDA, DERECHA, UBICACION, TELEFONO, LAPIZ, COPA, SOBRE, INFO, TACHO, DOCUMENTO, RELOJ, SOL, LUNA
     }
 
     private final Tipo tipo;
@@ -164,6 +164,20 @@ public class Icono implements Icon {
                 g2.drawRoundRect(2, 4, 16, 12, 3, 3);
                 g2.drawLine(6, 8, 14, 8);
                 g2.drawLine(6, 12, 11, 12);
+            }
+            case SOL -> {
+                g2.drawOval(6, 6, 8, 8);
+                for (int i = 0; i < 8; i++) {
+                    double angulo = Math.PI / 4 * i;
+                    g2.draw(new java.awt.geom.Line2D.Double(10 + 6.2 * Math.cos(angulo), 10 + 6.2 * Math.sin(angulo),
+                            10 + 8.2 * Math.cos(angulo), 10 + 8.2 * Math.sin(angulo)));
+                }
+            }
+            case LUNA -> {
+                // un círculo al que se le come otro corrido: la medialuna
+                java.awt.geom.Area luna = new java.awt.geom.Area(new java.awt.geom.Ellipse2D.Double(3, 3, 14, 14));
+                luna.subtract(new java.awt.geom.Area(new java.awt.geom.Ellipse2D.Double(7.5, 0.5, 12, 12)));
+                g2.draw(luna);
             }
             case RELOJ -> {
                 g2.drawOval(2, 2, 16, 16);

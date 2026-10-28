@@ -42,7 +42,8 @@ import java.util.Map;
 
 /**
  * Ventana principal: barra lateral café con el logo, las áreas (solo las de su rol; ADMIN ve todas)
- * y el empleado logueado abajo; en el centro, el panel del área elegida.
+ * y el empleado logueado abajo, con los botones de tema claro/oscuro y de cerrar sesión;
+ * en el centro, el panel del área elegida.
  */
 public class PrincipalFrame extends JFrame {
 
@@ -51,23 +52,30 @@ public class PrincipalFrame extends JFrame {
     private final CardLayout tarjetas = new CardLayout();
     private final JPanel contenido = new JPanel(tarjetas);
     private final Map<Area, JComponent> panelesCreados = new EnumMap<>(Area.class);
+    private Area areaActual;
 
     public PrincipalFrame() {
+        this(null);
+    }
+
+    /** @param inicial el área que se muestra al abrir (null = la primera del rol). */
+    public PrincipalFrame(Area inicial) {
         super("La Nona - " + Sesion.rol().descripcion());
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         List<Area> areas = Area.permitidasPara(Sesion.rol());
+        Area primera = inicial != null && areas.contains(inicial) ? inicial : areas.isEmpty() ? null : areas.get(0);
 
         contenido.setBackground(Estilo.FONDO);
 
         JPanel raiz = new JPanel(new BorderLayout());
         raiz.setBackground(Estilo.FONDO);
-        raiz.add(armarMenu(areas), BorderLayout.WEST);
+        raiz.add(armarMenu(areas, primera), BorderLayout.WEST);
         raiz.add(contenido, BorderLayout.CENTER);
         setContentPane(raiz);
 
-        if (!areas.isEmpty()) {
-            mostrar(areas.get(0));
+        if (primera != null) {
+            mostrar(primera);
         }
 
         setSize(1360, 840);
@@ -99,13 +107,29 @@ public class PrincipalFrame extends JFrame {
             contenido.add(panel, area.name());
         }
         tarjetas.show(contenido, area.name());
+        areaActual = area;
+    }
+
+    /**
+     * Cambia entre el tema claro y el oscuro. Los colores se toman al armar cada pantalla,
+     * así que se arma la ventana de nuevo (en la misma área y del mismo tamaño) y se cierra esta.
+     * Cada pantalla vuelve a pedir sus datos.
+     */
+    private void cambiarTema() {
+        Estilo.cambiarTema();
+        PrincipalFrame nueva = new PrincipalFrame(areaActual);
+        nueva.setExtendedState(JFrame.NORMAL);
+        nueva.setBounds(getBounds());
+        nueva.setExtendedState(getExtendedState());
+        nueva.setVisible(true);
+        dispose();
     }
 
     // ---------- barra lateral ----------
 
-    private JPanel armarMenu(List<Area> areas) {
+    private JPanel armarMenu(List<Area> areas, Area elegida) {
         JPanel menu = new JPanel(new BorderLayout());
-        menu.setBackground(Estilo.CAFE);
+        menu.setBackground(Estilo.MENU_FONDO);
         menu.setBorder(Estilo.relleno(36, 18, 28, 18));
         menu.setPreferredSize(new Dimension(ANCHO_MENU, 0));
 
@@ -115,16 +139,14 @@ public class PrincipalFrame extends JFrame {
         arriba.add(Box.createVerticalStrut(40));
 
         ButtonGroup grupo = new ButtonGroup();
-        boolean primero = true;
         for (Area area : areas) {
             ItemMenu item = new ItemMenu(area.titulo(), new Icono(iconoDe(area), 20));
             item.addActionListener(e -> mostrar(area));
             grupo.add(item);
             arriba.add(item);
             arriba.add(Box.createVerticalStrut(6));
-            if (primero) {
+            if (area == elegida) {
                 item.setSelected(true);
-                primero = false;
             }
         }
 
@@ -170,7 +192,7 @@ public class PrincipalFrame extends JFrame {
         return logo;
     }
 
-    /** Tarjeta de abajo: iniciales, nombre, rol y el botón para cerrar sesión. */
+    /** Tarjeta de abajo: iniciales, nombre, rol y los botones de tema y de cerrar sesión. */
     private JComponent armarUsuario() {
         Estilo.Tarjeta tarjeta = new Estilo.Tarjeta(new GridBagLayout(), 18) {
             @Override
@@ -178,7 +200,7 @@ public class PrincipalFrame extends JFrame {
                 // sin borde: solo el fondo más oscuro
             }
         };
-        tarjeta.setBackground(Estilo.CAFE_OSCURO);
+        tarjeta.setBackground(Estilo.MENU_TARJETA);
         tarjeta.setBorder(Estilo.relleno(14, 16, 14, 12));
 
         JComponent avatar = new Avatar(iniciales(Sesion.nombreCompleto()));
@@ -196,15 +218,14 @@ public class PrincipalFrame extends JFrame {
         textos.add(nombre);
         textos.add(rol);
 
-        JButton salir = new JButton(new Icono(Icono.Tipo.SALIR, 20, Color.WHITE));
-        salir.setContentAreaFilled(false);
-        salir.setBorderPainted(false);
-        salir.setFocusPainted(false);
-        salir.setOpaque(false);
-        salir.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        salir.setToolTipText("Cerrar sesión");
-        salir.putClientProperty("JButton.buttonType", "borderless");
+        JButton tema = botonBarra(Estilo.esOscuro() ? Icono.Tipo.SOL : Icono.Tipo.LUNA,
+                Estilo.esOscuro() ? "Pasar al tema claro" : "Pasar al tema oscuro");
+        tema.addActionListener(e -> cambiarTema());
+        JButton salir = botonBarra(Icono.Tipo.SALIR, "Cerrar sesión");
         salir.addActionListener(e -> cerrarSesion());
+        JPanel botones = Estilo.transparente(new java.awt.GridLayout(2, 1, 0, 2));
+        botones.add(tema);
+        botones.add(salir);
 
         GridBagConstraints c = new GridBagConstraints();
         c.gridy = 0;
@@ -220,8 +241,22 @@ public class PrincipalFrame extends JFrame {
         c.weightx = 0;
         c.fill = GridBagConstraints.NONE;
         c.insets = new Insets(0, 0, 0, 0);
-        tarjeta.add(salir, c);
+        tarjeta.add(botones, c);
         return tarjeta;
+    }
+
+    /** Botón chico de un solo ícono blanco, para la tarjeta del usuario. */
+    private static JButton botonBarra(Icono.Tipo icono, String ayuda) {
+        JButton b = new JButton(new Icono(icono, 20, Color.WHITE));
+        b.setContentAreaFilled(false);
+        b.setBorderPainted(false);
+        b.setFocusPainted(false);
+        b.setOpaque(false);
+        b.setMargin(new Insets(2, 2, 2, 2));
+        b.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        b.setToolTipText(ayuda);
+        b.putClientProperty("JButton.buttonType", "borderless");
+        return b;
     }
 
     private static String iniciales(String nombreCompleto) {
@@ -267,7 +302,7 @@ public class PrincipalFrame extends JFrame {
         }
 
         private void actualizarColores() {
-            setForeground(isSelected() ? Estilo.CAFE : Color.WHITE);
+            setForeground(isSelected() ? Estilo.MENU_ELEGIDO_TEXTO : Color.WHITE);
             setFont(Estilo.fuente(isSelected() ? Font.BOLD : Font.PLAIN, 17f));
         }
 
@@ -280,7 +315,7 @@ public class PrincipalFrame extends JFrame {
         protected void paintComponent(Graphics g) {
             Graphics2D g2 = Estilo.suave(g);
             if (isSelected()) {
-                g2.setColor(Color.WHITE);
+                g2.setColor(Estilo.MENU_ELEGIDO);
                 g2.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 16, 16);
             } else if (getModel().isRollover()) {
                 g2.setColor(new Color(255, 255, 255, 28));
@@ -308,7 +343,7 @@ public class PrincipalFrame extends JFrame {
             Graphics2D g2 = Estilo.suave(g);
             g2.setColor(Color.WHITE);
             g2.fillOval(0, 0, getWidth() - 1, getHeight() - 1);
-            g2.setColor(Estilo.CAFE_OSCURO);
+            g2.setColor(Estilo.MENU_TARJETA);
             g2.setFont(getFont());
             FontMetrics fm = g2.getFontMetrics();
             int x = (getWidth() - fm.stringWidth(iniciales)) / 2;

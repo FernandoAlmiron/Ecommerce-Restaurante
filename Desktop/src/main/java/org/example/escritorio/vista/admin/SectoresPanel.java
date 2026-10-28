@@ -63,8 +63,7 @@ public class SectoresPanel extends PanelAbm<Sector> {
     @Override
     protected JComponent armarNota() {
         JLabel nota = new JLabel("Un sector con empleados no se puede eliminar: desactivalo con el interruptor. "
-                + "El tacho aparece cuando el sector queda vacío. Los sectores del sistema (los que dan permisos) "
-                + "no se pueden renombrar ni eliminar.");
+                + "Los del sistema (los que dan permisos) no se renombran ni se borran.");
         nota.setIcon(new Icono(Icono.Tipo.INFO, 18, Estilo.TEXTO_SUAVE));
         nota.setIconTextGap(12);
         nota.setFont(Estilo.fuente(Font.PLAIN, 15f));

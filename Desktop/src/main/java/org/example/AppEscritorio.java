@@ -3,6 +3,7 @@ package org.example;
 import org.example.escritorio.Contexto;
 import org.example.escritorio.vista.LoginFrame;
 import org.example.escritorio.vista.comun.Dialogos;
+import org.example.escritorio.vista.comun.Estilo;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.AutoConfigurationExcludeFilter;
@@ -18,7 +19,6 @@ import javax.swing.JLabel;
 import javax.swing.JWindow;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
 
 /**
  * Arranca la app de escritorio.
@@ -97,16 +97,11 @@ public class AppEscritorio {
         return ventana[0];
     }
 
-    /** Usa FlatLaf si está en el classpath; si no, el aspecto del sistema operativo. */
+    /**
+     * Usa FlatLaf con el tema (claro u oscuro) que se eligió la última vez en esta PC;
+     * si FlatLaf no está en el classpath, el aspecto del sistema operativo.
+     */
     private static void aplicarAspecto() {
-        try {
-            UIManager.setLookAndFeel("com.formdev.flatlaf.FlatLightLaf");
-        } catch (Exception sinFlatLaf) {
-            try {
-                UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-            } catch (Exception ignorado) {
-                // queda el aspecto por defecto de Swing
-            }
-        }
+        Estilo.usarTema(Estilo.temaGuardadoEsOscuro());
     }
 }
