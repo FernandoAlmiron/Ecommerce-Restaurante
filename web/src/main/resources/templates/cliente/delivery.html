@@ -6,11 +6,14 @@
     <link rel="stylesheet" th:href="@{/style.css}">
     <script src="https://unpkg.com/htmx.org@2.0.4"></script>
     <script th:src="@{/errores.js}" defer></script>
+    <script th:src="@{/tema.js}"></script>
 </head>
 <body class="cliente con-nav ancho">
 
 <!-- botón "Sobre nosotros" (arriba a la derecha, en todas las páginas) -->
 <a th:replace="~{fragments/cliente/layout :: boton-nosotros}"></a>
+<button th:replace="~{fragments/cliente/layout :: boton-tema}"></button>
+
 
 <header th:replace="~{fragments/cliente/layout :: logo}"></header>
 
