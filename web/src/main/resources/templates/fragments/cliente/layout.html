@@ -2,20 +2,23 @@
      Piezas que se repiten en todas las páginas del cliente.
      Se escriben UNA vez acá y cada página las incluye con:
        <header th:replace="~{fragments/cliente/layout :: logo}"></header>
-       <nav th:replace="~{fragments/cliente/layout :: nav('reservas')}"></nav>-->
+       <nav th:replace="~{fragments/cliente/layout :: nav('reservas')}"></nav>
+-->
+
+<!-- logo de arriba, lleva al inicio -->
+<a th:fragment="logo" th:href="@{/inicio}" class="logo">
+    <img th:src="@{/img/logo.png}" alt="Logo">
+</a>
 
 <!-- botón sobre nosotros -->
 <a th:fragment="boton-nosotros" th:href="@{/nosotros}" class="boton-nosotros">
     Sobre nosotros
 </a>
+
 <!-- barra de abajo del todo, activo dice qué botón va pintado de dorado -->
 <nav th:fragment="nav(activo)" class="nav-inferior">
-    <a th:href="@{/elegir}"   th:classappend="${activo == 'inicio'}   ? 'activo'">INICIO</a>
+    <a th:href="@{/inicio}"   th:classappend="${activo == 'inicio'}   ? 'activo'">INICIO</a>
     <a th:href="@{/pedidos}"  th:classappend="${activo == 'pedidos'}  ? 'activo'">PEDIDOS</a>
     <a th:href="@{/reservas}" th:classappend="${activo == 'reservas'} ? 'activo'">RESERVAS</a>
     <a th:href="@{/perfil}"   th:classappend="${activo == 'perfil'}   ? 'activo'">PERFIL</a>
 </nav>
-
-
-    </svg>
-</a>

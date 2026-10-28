@@ -545,7 +545,8 @@ body.cliente .tarjeta-datos .icono {
 }
 
 
-/*Botón de personita que seria el sobre nosotros en todas las paginas. */
+
+/*boton sobre nosotros */
 
 body.cliente .boton-nosotros {
     position: fixed;
@@ -561,13 +562,72 @@ body.cliente .boton-nosotros {
     background: var(--blanco);
     color: var(--dorado-texto);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    transition: background 0.2s, transform 0.2s;
+    transition: background 0.2s;
 }
 
 body.cliente .boton-nosotros:hover {
     background: var(--beige-claro);
-    transform: scale(1.06);
     text-decoration: none;
+}
+
+/* ---------- Página de inicio: platos en zigzag ---------- */
+
+body.cliente .menu-inicio {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 24px 16px 120px;   /* abajo deja lugar para la barra fija */
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+}
+
+body.cliente .plato {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+    gap: 24px;
+}
+
+/* en las filas invertidas la imagen va a la izquierda */
+body.cliente .plato.invertido .plato-imagen {
+    order: -1;
+}
+
+body.cliente .plato-texto {
+    text-align: center;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+body.cliente .plato-texto h3 {
+    margin: 0 0 4px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+body.cliente .plato-texto p {
+    margin: 0 0 4px;
+}
+
+body.cliente .plato-texto .precio {
+    font-weight: 600;
+}
+
+body.cliente .plato-imagen {
+    width: 100%;
+    aspect-ratio: 3 / 2;
+    object-fit: cover;          /* recorta la foto sin deformarla */
+    border-radius: 50%;         /* forma ovalada como en Figma */
+}
+
+/* en celular: una columna, imagen arriba y texto abajo */
+@media (max-width: 600px) {
+    body.cliente .plato {
+        grid-template-columns: 1fr;
+    }
+    body.cliente .plato .plato-imagen {
+        order: -1;
+    }
 }
 
 
@@ -962,19 +1022,19 @@ body.cliente .hero-texto p {
     color: var(--gris-texto);
 }
 
-body.cliente .hero-texto .hero-datos {c
+body.cliente .hero-texto .hero-datos {
     color: var(--negro);
 }
 
 /* si no está hero.jpg, queda el bloque beige */
 body.cliente .hero-foto {
     min-height: 200px;
-    background: var(--beige) url('/img/fotoPedidos.png') center / cover no-repeat;
+    background: var(--beige) url('img/fotoPedidos.png') center / cover no-repeat;
 }
 
 /* --- las dos columnas --- */
 body.cliente .delivery {
-    width: 100%;
+    width: 100%; n
     max-width: 1200px;
     margin: 0 auto;
     display: grid;

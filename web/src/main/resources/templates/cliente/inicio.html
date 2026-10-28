@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>La Nona</title>
+    <link rel="stylesheet" th:href="@{/style.css}">
+</head>
+<body class="cliente">
+
+<a th:replace="~{fragments/cliente/layout :: boton-nosotros}"></a>
+
+<header class="encabezado">
+    <a th:replace="~{fragments/cliente/layout :: logo}"></a>
+</header>
+
+<main class="menu-inicio">
+
+    <article class="plato"
+             th:each="plato, stat : ${platos}"
+             th:classappend="${stat.even} ? 'invertido'">
+
+        <div class="plato-texto">
+            <h3 th:text="${plato.nombre}">Nombre del plato</h3>
+            <p th:text="${plato.descripcion}">Descripción</p>
+            <span class="precio"
+                  th:text="'$ ' + ${#numbers.formatDecimal(plato.precio, 1, 'POINT', 0, 'COMMA')}">$ 30.000</span>
+        </div>
+
+        <img th:src="@{/img/platos/{id}.jpg(id=${plato.idMenu})}" th:alt="${plato.nombre}" class="plato-imagen">
+    </article>
+
+    <p th:if="${platos.isEmpty()}" class="vacio">Todavía no hay platos en la carta 😕</p>
+
+</main>
+
+<nav th:replace="~{fragments/cliente/layout :: nav('inicio')}"></nav>
+
+</body>
+</html>
