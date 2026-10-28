@@ -12,32 +12,101 @@
 <a th:replace="~{fragments/cliente/layout :: boton-nosotros}"></a>
 <button th:replace="~{fragments/cliente/layout :: boton-tema}"></button>
 
-
 <header class="encabezado">
     <a th:replace="~{fragments/cliente/layout :: logo}"></a>
 </header>
 
-<main class="menu-inicio">
+<main class="inicio">
 
-    <article class="plato"
-             th:each="plato, stat : ${platos}"
-             th:classappend="${stat.even} ? 'invertido'">
-
-        <div class="plato-texto">
-            <h3 th:text="${plato.nombre}">Nombre del plato</h3>
-            <p th:text="${plato.descripcion}">Descripción</p>
-            <span class="precio"
-                  th:text="'$ ' + ${#numbers.formatDecimal(plato.precio, 1, 'POINT', 0, 'COMMA')}">$ 30.000</span>
+    <!-- ===== Carta: todos los platos disponibles en grilla ===== -->
+    <section class="favoritos">
+        <div class="seccion-titulo">
+            <h2>Los favoritos de la Nona</h2>
+            <p>Porciones generosas, preparadas en el momento.</p>
         </div>
 
-        <img th:src="@{/img/platos/{id}.jpg(id=${plato.idMenu})}" th:alt="${plato.nombre}" class="plato-imagen">
-    </article>
+        <div class="grid-favoritos">
+            <article class="card-fav" th:each="plato : ${platos}">
+                <img th:src="@{/img/platos/{id}.jpg(id=${plato.idMenu})}" th:alt="${plato.nombre}">
+                <h3 th:text="${plato.nombre}">Nombre del plato</h3>
+                <p th:text="${plato.descripcion}">Descripción</p>
+                <span class="precio"
+                      th:text="'$ ' + ${#numbers.formatDecimal(plato.precio, 1, 'POINT', 0, 'COMMA')}">$ 30.000</span>
+            </article>
+        </div>
 
-    <p th:if="${platos.isEmpty()}" class="vacio">Todavía no hay platos en la carta 😕</p>
+        <p th:if="${platos.isEmpty()}" class="vacio">Todavía no hay platos en la carta 😕</p>
+    </section>
+
+    <!-- ===== Sobre La Nona (estático) ===== -->
+    <section class="sobre">
+        <div class="sobre-texto">
+            <h2>Sobre La Nona</h2>
+            <p>[Historia del restaurante: cómo empezó, quién cocina y qué hace distinta a la casa.]</p>
+            <p>Amasamos la pasta todos los días y la servimos con las salsas de siempre:
+                fileto, bolognesa, crema y pesto.</p>
+            <a href="#contacto" class="link-flecha">Escribinos →</a>
+        </div>
+
+        <div class="sobre-proyecto">
+            <span class="etiqueta">Proyecto</span>
+            <p>Sitio hecho para Aplicaciones Interactivas (UADE) por:</p>
+            <ul>
+                <li>Carlos Alvarez Puerta</li>
+                <li>Cruz Lobo</li>
+                <li>Fernando Almirón</li>
+                <li>Joaquín Ramallo</li>
+            </ul>
+        </div>
+    </section>
+
+    <!-- ===== Contacto: datos a la izquierda, formulario a la derecha ===== -->
+    <section class="contacto" id="contacto">
+        <div class="contacto-info">
+            <h2>Contacto</h2>
+            <p>¿Un evento, una consulta o un comentario? Te respondemos por mail.</p>
+            <dl>
+                <dt>Dirección</dt> <dd>Av. Corrientes 1234, CABA</dd>
+                <dt>Teléfono</dt>  <dd>11 4555-1234</dd>
+                <dt>Horario</dt>   <dd>11:00 a 00:00</dd>
+                <dt>Email</dt>     <dd>[email de contacto]</dd>
+            </dl>
+        </div>
+
+        <!-- Solo visual: no tiene action ni name, no se envía al backend -->
+        <form class="contacto-form" id="form-contacto">
+            <div class="fila-3">
+                <label>Nombre   <input type="text"  placeholder="Tu nombre" required></label>
+                <label>Email    <input type="email" placeholder="tu@email.com" required></label>
+                <label>Teléfono <input type="tel"   placeholder="11 5555-5555"></label>
+            </div>
+            <label>Mensaje
+                <textarea rows="4" placeholder="Contanos en qué te podemos ayudar" required></textarea>
+            </label>
+            <button type="submit">Enviar mensaje</button>
+            <p class="contacto-ok" id="contacto-ok" hidden>¡Gracias! Te respondemos pronto.</p>
+        </form>
+    </section>
 
 </main>
 
+</main>
+
+<footer th:replace="~{fragments/cliente/layout :: footer}"></footer>
+
 <nav th:replace="~{fragments/cliente/layout :: nav('inicio')}"></nav>
 
+<nav th:replace="~{fragments/cliente/layout :: nav('inicio')}"></nav>
+
+<script>
+    // Evita que el form recargue la página, lo limpia y muestra el mensaje de gracias
+    document.getElementById('form-contacto').addEventListener('submit', e => {
+        e.preventDefault();
+        e.target.reset();
+        document.getElementById('contacto-ok').hidden = false;
+    });
+</script>
+
 </body>
+
 </html>
