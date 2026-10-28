@@ -14,6 +14,7 @@ import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Window;
 import java.util.Locale;
+import javax.swing.JScrollPane;
 
 /**
  * Base de todas las ventanas de carga de datos (altas, modificaciones, walk-in, abrir mesa...)
@@ -48,6 +49,7 @@ public abstract class DialogoFormulario extends JDialog {
     private final String seccion;
     private final String titulo;
     private final JLabel lblSubtitulo = new JLabel();
+    private JScrollPane scrollCuerpo;
 
     protected DialogoFormulario(Window padre, String seccion, String titulo, String subtitulo, String accionPrincipal) {
         super(padre, titulo, ModalityType.APPLICATION_MODAL);
@@ -77,8 +79,14 @@ public abstract class DialogoFormulario extends JDialog {
         setContentPane(armarContenido());
         getRootPane().setDefaultButton(btnPrincipal);
         pack();
+        // nunca más alta que el espacio libre de la pantalla; si se recorta, aparece la barra de desplazamiento
         java.awt.Rectangle pantalla = java.awt.GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
-        setSize(new Dimension(Math.max(anchoMinimo(), getWidth()), Math.min(getHeight(), pantalla.height - 40)));
+        int alto = Math.min(getHeight(), pantalla.height - 40);
+        int ancho = Math.max(anchoMinimo(), getWidth());
+        if (alto < getHeight()) {
+            ancho += scrollCuerpo.getVerticalScrollBar().getPreferredSize().width; // lugar para la barra
+        }
+        setSize(new Dimension(ancho, alto));
         setResizable(false);
         setLocationRelativeTo(getOwner());
     }
@@ -111,7 +119,12 @@ public abstract class DialogoFormulario extends JDialog {
         JPanel conMargen = Estilo.transparente(new BorderLayout());
         conMargen.setBorder(Estilo.relleno(22, 30, 26, 30));
         conMargen.add(cuerpo, BorderLayout.CENTER);
-        raiz.add(conMargen, BorderLayout.CENTER);
+        // si la ventana no entra en la pantalla, el formulario se desplaza en vez de aplastarse
+        scrollCuerpo = new JScrollPane(conMargen, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        scrollCuerpo.setBorder(BorderFactory.createEmptyBorder());
+        scrollCuerpo.getViewport().setBackground(Estilo.BLANCO);
+        scrollCuerpo.getVerticalScrollBar().setUnitIncrement(16);
+        raiz.add(scrollCuerpo, BorderLayout.CENTER);
 
         raiz.add(armarPie(), BorderLayout.SOUTH);
         return raiz;
