@@ -4,11 +4,14 @@
     <meta charset="UTF-8">
     <title>¿Cómo querés disfrutar? - La Nona</title>
     <link rel="stylesheet" th:href="@{/style.css}">
+    <script th:src="@{/tema.js}"></script>
 </head>
 <body class="cliente">
 
 <!-- botón "Sobre nosotros" (arriba a la derecha, en todas las páginas) -->
 <a th:replace="~{fragments/cliente/layout :: boton-nosotros}"></a>
+<button th:replace="~{fragments/cliente/layout :: boton-tema}"></button>
+
 
 <header><img th:src="@{/img/logo.png}" alt="La Nona - pastas caseras" class="logo"></header>
 

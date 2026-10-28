@@ -15,6 +15,15 @@
     Sobre nosotros
 </a>
 
+<!-- botón para cambiar entre modo claro y oscuro -->
+<button th:fragment="boton-tema" type="button" class="boton-tema"
+        onclick="cambiarTema()" aria-label="Cambiar tema">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>
+    </svg>
+</button>
+
 <!-- barra de abajo del todo, activo dice qué botón va pintado de dorado -->
 <nav th:fragment="nav(activo)" class="nav-inferior">
     <a th:href="@{/inicio}"   th:classappend="${activo == 'inicio'}   ? 'activo'">INICIO</a>

@@ -4,11 +4,14 @@
     <meta charset="UTF-8">
     <title>Finalizá tu pedido - La Nona</title>
     <link rel="stylesheet" th:href="@{/style.css}">
+    <script th:src="@{/tema.js}"></script>
 </head>
 <body class="cliente ancho sin-padding">
 
 <!-- botón "Sobre nosotros" (arriba a la derecha, en todas las páginas) -->
 <a th:replace="~{fragments/cliente/layout :: boton-nosotros}"></a>
+<button th:replace="~{fragments/cliente/layout :: boton-tema}"></button>
+
 
 <!-- un solo formulario para las tres columnas: medio de pago, datos y resumen -->
 <form th:action="@{/delivery/pago}" method="post" class="pago">
