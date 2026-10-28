@@ -136,7 +136,7 @@ public class Selector extends JPanel {
                 Graphics2D g2 = Estilo.suave(g);
                 g2.setColor(new Color(0, 0, 0, 14));
                 g2.fillRoundRect(0, 1, getWidth() - 1, getHeight() - 1, 12, 12);
-                g2.setColor(Color.WHITE);
+                g2.setColor(Estilo.SEGMENTO_ELEGIDO);
                 g2.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 2, 12, 12);
                 g2.dispose();
             }

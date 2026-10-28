@@ -87,7 +87,7 @@ public class EmpleadosPanel extends JPanel {
     // detalle del empleado elegido
     private final Avatar avatarDetalle = new Avatar(84, 28f);
     private final JLabel lblNombre = new JLabel(" ", SwingConstants.CENTER);
-    private final Estilo.Pildora lblSector = new Estilo.Pildora("", Color.WHITE, Estilo.TEXTO,
+    private final Estilo.Pildora lblSector = new Estilo.Pildora("", Estilo.BLANCO, Estilo.TEXTO,
             Estilo.fuente(Font.BOLD, 14f), -1);
     private final JLabel lblLegajo = new JLabel(" ");
     private final JLabel lblDni = valor();

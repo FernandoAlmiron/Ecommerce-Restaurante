@@ -22,9 +22,6 @@ import java.awt.Insets;
  */
 public final class Formulario {
 
-    private static final String BORDE_CAMPO = "focusWidth: 3; innerFocusWidth: 0; focusColor: #EFE7DF;"
-            + " borderColor: #E0D6CC; focusedBorderColor: #8C5E35";
-
     private Formulario() {
     }
 
@@ -116,20 +113,22 @@ public final class Formulario {
         if (placeholder != null) {
             campo.putClientProperty("JTextField.placeholderText", placeholder);
         }
-        Estilo.flat(campo, "arc: 14; margin: 10,14,10,14; " + BORDE_CAMPO);
+        Estilo.flat(campo, "arc: 14; margin: 10,14,10,14; " + Estilo.bordeCampo(3));
         return campo;
     }
 
     public static JSpinner estilizar(JSpinner spinner) {
         spinner.setFont(Estilo.fuente(Font.PLAIN, 16f));
-        Estilo.flat(spinner, "arc: 14; padding: 10,14,10,10; buttonBackground: #FAF8F6; " + BORDE_CAMPO);
+        Estilo.flat(spinner, "arc: 14; padding: 10,14,10,10; buttonBackground: " + Estilo.hex(Estilo.ENCABEZADO_TABLA)
+                + "; " + Estilo.bordeCampo(3));
         return spinner;
     }
 
     public static <T> JComboBox<T> estilizar(JComboBox<T> combo) {
         combo.setFont(Estilo.fuente(Font.PLAIN, 16f));
         combo.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        Estilo.flat(combo, "arc: 14; padding: 10,14,10,10; buttonBackground: #FFFFFF; " + BORDE_CAMPO);
+        Estilo.flat(combo, "arc: 14; padding: 10,14,10,10; buttonBackground: " + Estilo.hex(Estilo.BLANCO)
+                + "; " + Estilo.bordeCampo(3));
         return combo;
     }
 

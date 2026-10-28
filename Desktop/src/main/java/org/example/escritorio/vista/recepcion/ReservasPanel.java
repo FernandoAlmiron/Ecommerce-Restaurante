@@ -138,7 +138,7 @@ public class ReservasPanel extends JPanel {
         txtBuscar.setFont(Estilo.fuente(Font.PLAIN, 15f));
         txtBuscar.setForeground(Estilo.TEXTO);
         Estilo.flat(txtBuscar, "arc: 14; margin: 10,12,10,12; focusWidth: 0; innerFocusWidth: 0;"
-                + " borderColor: #E3DDD6; focusedBorderColor: #8C5E35");
+                + " borderColor: " + Estilo.hex(Estilo.BORDE_CAMPO) + "; focusedBorderColor: " + Estilo.hex(Estilo.CAFE));
 
         chkSoloHoy.setFont(Estilo.fuente(Font.PLAIN, 16f));
         chkSoloHoy.setForeground(Estilo.TEXTO);

@@ -14,8 +14,6 @@ import java.awt.Graphics2D;
  */
 public class Interruptor extends JToggleButton {
 
-    private static final Color APAGADO = new Color(0xE2DAD2);
-
     public Interruptor(boolean prendido) {
         super("", prendido);
         setContentAreaFilled(false);
@@ -40,7 +38,7 @@ public class Interruptor extends JToggleButton {
         int ancho = Math.min(getWidth(), 52) - 2;
         int alto = Math.min(getHeight(), 30) - 2;
         g2.translate((getWidth() - ancho) / 2, (getHeight() - alto) / 2);
-        g2.setColor(isSelected() ? Estilo.CAFE : APAGADO);
+        g2.setColor(isSelected() ? Estilo.CAFE : Estilo.APAGADO);
         g2.fillRoundRect(0, 0, ancho, alto, alto, alto);
         int bolita = alto - 6;
         int x = isSelected() ? ancho - bolita - 3 : 3;

@@ -506,7 +506,7 @@ public class RepartoPanel extends JPanel {
 
             String texto = item.plato();
             if (item.observaciones() != null && !item.observaciones().isBlank()) {
-                texto = "<html>" + item.plato() + "<br><font color='#7D746C'>" + item.observaciones() + "</font></html>";
+                texto = "<html>" + item.plato() + "<br><font color='" + Estilo.hex(Estilo.TEXTO_SUAVE) + "'>" + item.observaciones() + "</font></html>";
             }
             JLabel plato = new JLabel(texto);
             plato.setFont(Estilo.fuente(Font.PLAIN, 16f));

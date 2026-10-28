@@ -618,7 +618,7 @@ public class CobrosPanel extends JPanel {
                 g2.setComposite(java.awt.AlphaComposite.getInstance(java.awt.AlphaComposite.SRC_OVER, 0.5f));
             }
             int arco = getHeight();
-            g2.setColor(elegido ? Estilo.CAFE : Color.WHITE);
+            g2.setColor(elegido ? Estilo.CAFE : Estilo.BLANCO);
             g2.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 1, arco, arco);
             if (!elegido) {
                 g2.setColor(Estilo.BORDE);

@@ -12,26 +12,44 @@ import java.awt.Graphics2D;
 /** Botón redondeado de la estética "La Nona". El tipo define sus colores. */
 public class Boton extends JButton {
 
+    /** Los colores se piden a Estilo cada vez (no se guardan acá), así siguen al tema claro u oscuro. */
     public enum Tipo {
         /** Café con texto blanco (acción principal de la pantalla). */
-        PRIMARIO(Estilo.CAFE, Estilo.CAFE_HOVER, Color.WHITE, null),
+        PRIMARIO,
         /** Casi negro con texto blanco (acción principal de una barra). */
-        OSCURO(Estilo.OSCURO, Estilo.OSCURO_HOVER, Color.WHITE, null),
+        OSCURO,
         /** Blanco con borde y texto oscuro. */
-        CONTORNO(Color.WHITE, Estilo.FONDO, Estilo.TEXTO, Estilo.BORDE),
+        CONTORNO,
         /** Blanco con borde y texto café (acciones que deshacen algo). */
-        CONTORNO_CAFE(Color.WHITE, Estilo.FONDO, Estilo.CAFE, Estilo.BORDE);
+        CONTORNO_CAFE;
 
-        final Color fondo;
-        final Color fondoHover;
-        final Color texto;
-        final Color borde;
+        Color fondo() {
+            return switch (this) {
+                case PRIMARIO -> Estilo.CAFE;
+                case OSCURO -> Estilo.OSCURO;
+                case CONTORNO, CONTORNO_CAFE -> Estilo.BLANCO;
+            };
+        }
 
-        Tipo(Color fondo, Color fondoHover, Color texto, Color borde) {
-            this.fondo = fondo;
-            this.fondoHover = fondoHover;
-            this.texto = texto;
-            this.borde = borde;
+        Color fondoHover() {
+            return switch (this) {
+                case PRIMARIO -> Estilo.CAFE_HOVER;
+                case OSCURO -> Estilo.OSCURO_HOVER;
+                case CONTORNO, CONTORNO_CAFE -> Estilo.FONDO;
+            };
+        }
+
+        Color texto() {
+            return switch (this) {
+                case PRIMARIO, OSCURO -> Color.WHITE;
+                case CONTORNO -> Estilo.TEXTO;
+                case CONTORNO_CAFE -> Estilo.CAFE;
+            };
+        }
+
+        /** null = sin borde. */
+        Color borde() {
+            return this == CONTORNO || this == CONTORNO_CAFE ? Estilo.BORDE : null;
         }
     }
 
@@ -60,7 +78,7 @@ public class Boton extends JButton {
         setFocusPainted(false);
         setOpaque(false);
         setRolloverEnabled(true);
-        setForeground(tipo.texto);
+        setForeground(tipo.texto());
         setFont(Estilo.fuente(tipo == Tipo.PRIMARIO || tipo == Tipo.OSCURO ? Font.BOLD : Font.PLAIN, 15f));
         setIconTextGap(10);
         setMargin(new java.awt.Insets(12, 22, 12, 22));
@@ -69,7 +87,7 @@ public class Boton extends JButton {
         // FlatLaf no tiene que pintar nada propio sobre este botón
         putClientProperty("JButton.buttonType", "borderless");
         // deshabilitado se ve igual pero transparente (ver paintComponent), no con el texto gris de FlatLaf
-        Estilo.flat(this, String.format("disabledText: #%06X", tipo.texto.getRGB() & 0xFFFFFF));
+        Estilo.flat(this, "disabledText: " + Estilo.hex(tipo.texto()));
     }
 
     public Boton conArco(int arco) {
@@ -84,10 +102,10 @@ public class Boton extends JButton {
             g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, OPACIDAD_DESHABILITADO));
         }
         boolean encima = isEnabled() && (getModel().isRollover() || getModel().isPressed());
-        g2.setColor(encima ? tipo.fondoHover : tipo.fondo);
+        g2.setColor(encima ? tipo.fondoHover() : tipo.fondo());
         g2.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 1, arco, arco);
-        if (tipo.borde != null) {
-            g2.setColor(tipo.borde);
+        if (tipo.borde() != null) {
+            g2.setColor(tipo.borde());
             g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, arco, arco);
         }
         g2.dispose();

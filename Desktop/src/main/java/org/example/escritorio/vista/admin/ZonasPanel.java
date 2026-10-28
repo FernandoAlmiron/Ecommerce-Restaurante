@@ -189,7 +189,7 @@ public class ZonasPanel extends PanelAbm<Zona> {
             this.activa = activa;
             this.elegida = elegida;
             setBorder(Estilo.relleno(24, 28, 22, 28));
-            setBackground(activa ? Estilo.BLANCO : new Color(0xFAF8F6));
+            setBackground(activa ? Estilo.BLANCO : Estilo.ENCABEZADO_TABLA);
         }
 
         @Override
@@ -200,7 +200,7 @@ public class ZonasPanel extends PanelAbm<Zona> {
                 g2.setStroke(new BasicStroke(2f));
                 g2.drawRoundRect(1, 1, getWidth() - 3, getHeight() - 3, 22, 22);
             } else if (!activa) {
-                g2.setColor(new Color(0xD9CBBE));
+                g2.setColor(Estilo.PUNTEADO);
                 g2.setStroke(new BasicStroke(1.5f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10f,
                         new float[]{6f, 5f}, 0f));
                 g2.drawRoundRect(1, 1, getWidth() - 3, getHeight() - 3, 22, 22);

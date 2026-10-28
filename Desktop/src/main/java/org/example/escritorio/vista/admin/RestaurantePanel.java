@@ -344,7 +344,7 @@ public class RestaurantePanel extends JPanel {
             }
             int y = fm.getHeight() + 8;
             int alto = 14;
-            g2.setColor(new Color(0xE2DAD2));
+            g2.setColor(Estilo.APAGADO);
             g2.fillRoundRect(0, y, ancho, alto, alto, alto);
             if (abre != null && cierra != null && !abre.equals(cierra)) {
                 g2.setColor(Estilo.CAFE);

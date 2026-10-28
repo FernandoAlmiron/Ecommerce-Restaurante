@@ -54,7 +54,7 @@ public class ProveedoresPanel extends PanelAbm<Proveedores> {
     // detalle
     private final Avatar avatar = new Avatar(68, 22f);
     private final JLabel lblNombre = new JLabel(" ");
-    private final Estilo.Pildora lblCategoria = new Estilo.Pildora("", Color.WHITE, Estilo.TEXTO,
+    private final Estilo.Pildora lblCategoria = new Estilo.Pildora("", Estilo.BLANCO, Estilo.TEXTO,
             Estilo.fuente(Font.BOLD, 14f), -1);
     private final JLabel lblCuit = valor();
     private final JLabel lblTelefono = valor();

@@ -339,7 +339,7 @@ public class ComandasPanel extends JPanel {
 
     /** Si falla el refresco automático no se abre un diálogo cada 10 segundos: se avisa arriba. */
     public void mostrarAviso(String mensaje) {
-        lblEstado.setForeground(new Color(0xC62828));
+        lblEstado.setForeground(Estilo.ROJO_TEXTO);
         lblEstado.setText(" · " + mensaje);
     }
 

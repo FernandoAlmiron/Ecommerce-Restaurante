@@ -15,7 +15,7 @@ import java.awt.Graphics2D;
 public class Avatar extends JComponent {
 
     private String iniciales = "";
-    private Color fondo = Color.WHITE;
+    private Color fondo = Estilo.BLANCO;
     private Color texto = Estilo.CAFE_OSCURO;
 
     public Avatar(int diametro, float tamanioLetra) {
