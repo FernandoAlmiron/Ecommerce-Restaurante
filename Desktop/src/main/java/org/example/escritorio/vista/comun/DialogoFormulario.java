@@ -77,7 +77,8 @@ public abstract class DialogoFormulario extends JDialog {
         setContentPane(armarContenido());
         getRootPane().setDefaultButton(btnPrincipal);
         pack();
-        setSize(new Dimension(Math.max(anchoMinimo(), getWidth()), getHeight()));
+        java.awt.Rectangle pantalla = java.awt.GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
+        setSize(new Dimension(Math.max(anchoMinimo(), getWidth()), Math.min(getHeight(), pantalla.height - 40)));
         setResizable(false);
         setLocationRelativeTo(getOwner());
     }

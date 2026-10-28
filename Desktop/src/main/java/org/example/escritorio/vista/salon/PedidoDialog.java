@@ -143,7 +143,7 @@ public class PedidoDialog extends DialogoFormulario {
         scroll.getViewport().setOpaque(false);
         scroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         scroll.getVerticalScrollBar().setUnitIncrement(16);
-        scroll.setPreferredSize(new Dimension(100, 228));
+        scroll.setPreferredSize(new Dimension(100, 160));
         scroll.setMinimumSize(scroll.getPreferredSize());
 
         Estilo.Tarjeta caja = new Estilo.Tarjeta(new BorderLayout(), 16);
