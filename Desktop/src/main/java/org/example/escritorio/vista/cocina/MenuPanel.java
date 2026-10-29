@@ -129,7 +129,8 @@ public class MenuPanel extends JPanel {
                 v -> Tablas.pesosCortos((BigDecimal) v)));
         Tablas.renderer(tabla, 3, new Tablas.RendererInsignia(v -> Boolean.TRUE.equals(v)
                 ? Tablas.Insignia.verde("Disponible") : Tablas.Insignia.gris("No disponible")));
-        Tablas.anchos(tabla, 260, 420, 140, 170);
+        Tablas.renderer(tabla, 4, new Tablas.RendererTexto(normal, Estilo.TEXTO, String::valueOf));
+        Tablas.anchos(tabla, 260, 360, 140, 170, 130);
 
         Estilo.Tarjeta tarjeta = new Estilo.Tarjeta(new BorderLayout(), 22);
         tarjeta.setBorder(Estilo.relleno(1, 1, 1, 1));

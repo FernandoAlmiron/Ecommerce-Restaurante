@@ -1,5 +1,7 @@
 package org.example.dto;
 
+import java.time.LocalTime;
+
 public class ReservaWalkInDTO {
     private Integer idCliente; // null si es cliente nuevo
     private String nombre;
@@ -9,6 +11,10 @@ public class ReservaWalkInDTO {
     private int nroRestaurante;
     private int idZona;
     private int cantComensales;
+    private LocalTime hora;        // null = ahora; si no, un horario de hoy más tarde
+
+    public LocalTime getHora() { return hora; }
+    public void setHora(LocalTime hora) { this.hora = hora; }
 
     public int getDni(){return dni;}
     public void setDni(int dni){this.dni=dni;}

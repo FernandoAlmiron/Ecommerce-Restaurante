@@ -1,5 +1,6 @@
 package org.example.escritorio.vista.salon;
 
+import org.example.Modelo.enums.CategoriaMenu;
 import org.example.Modelo.menu.Menu;
 import org.example.escritorio.controlador.salon.PedidoControlador;
 import org.example.escritorio.controlador.salon.PedidoControlador.Renglon;
@@ -9,6 +10,7 @@ import org.example.escritorio.vista.comun.Dialogos;
 import org.example.escritorio.vista.comun.Estilo;
 import org.example.escritorio.vista.comun.Formulario;
 import org.example.escritorio.vista.comun.Icono;
+import org.example.escritorio.vista.comun.Selector;
 import org.example.escritorio.vista.comun.Tablas;
 
 import javax.swing.BorderFactory;
@@ -36,7 +38,8 @@ import java.math.BigDecimal;
 import java.util.List;
 
 /**
- * Ventana para cargar pedidos a una mesa (RF-20). Los platos se van juntando en una lista
+ * Ventana para cargar pedidos a una mesa (RF-20). Arriba se elige la categoría (Pastas, Postres, Bebidas...)
+ * y el combo muestra solo los platos de esa categoría, así no hay que recorrer toda la carta. Los platos se van juntando en una lista
  * (se puede cambiar la cantidad o sacar alguno) y se guardan todos al tocar "Cargar pedido";
  * recién ahí el backend descuenta stock y le llegan a la cocina.
  */
@@ -45,6 +48,13 @@ public class PedidoDialog extends DialogoFormulario {
     private final int nroTicket;
 
     private final JComboBox<Menu> cmbMenu = new JComboBox<>();
+    /** Arranca con todas para que la ventana se mida con su ancho; al cargar quedan las que tienen platos. */
+    private final Selector selCategoria = new Selector(java.util.Arrays.stream(CategoriaMenu.values())
+            .map(CategoriaMenu::nombre).toArray(String[]::new));
+    private final JLabel lblCategoria = Formulario.nota(new JLabel(" "));
+    private List<Menu> todosLosPlatos = List.of();
+    /** Las categorías que tienen platos, en el orden de las solapas. */
+    private List<CategoriaMenu> categorias = List.of();
     private final JSpinner spnCantidad = new JSpinner(new SpinnerNumberModel(1, 1, 50, 1));
     private final JTextField txtObservaciones = new JTextField(24);
     private final JButton btnAgregar = new Boton("Agregar a la lista", new Icono(Icono.Tipo.MAS, 16, Estilo.CAFE),
@@ -79,6 +89,7 @@ public class PedidoDialog extends DialogoFormulario {
 
         controlador = new PedidoControlador(this);
 
+        selCategoria.alElegir(i -> mostrarCategoria(categorias.get(i)));
         btnAgregar.addActionListener(e -> controlador.agregar());
         txtObservaciones.addActionListener(e -> controlador.agregar()); // Enter en observaciones = Agregar
         btnPrincipal.addActionListener(e -> controlador.cargar());
@@ -113,7 +124,11 @@ public class PedidoDialog extends DialogoFormulario {
 
         JComponent lista = armarLista();
         mostrarRenglones(List.of()); // con los textos puestos, así la ventana se mide con su alto real
+        JPanel categoria = Estilo.transparente(new BorderLayout(0, 6));
+        categoria.add(selCategoria, BorderLayout.NORTH);
+        categoria.add(lblCategoria, BorderLayout.SOUTH);
         return Formulario.cuerpo(
+                Formulario.campo("Categoría", categoria, null),
                 Formulario.campo("Plato", cmbMenu, null),
                 cantidadYObs,
                 agregar,
@@ -217,9 +232,18 @@ public class PedidoDialog extends DialogoFormulario {
     public JButton getBotonCargar() { return btnPrincipal; }
     public JComboBox<Menu> getComboMenu() { return cmbMenu; }
 
+    /** Los platos disponibles: quedan las solapas de las categorías que tienen alguno y se elige la primera. */
     public void mostrarMenus(List<Menu> menus) {
-        cmbMenu.removeAllItems();
-        menus.forEach(cmbMenu::addItem);
+        todosLosPlatos = menus;
+        categorias = java.util.Arrays.stream(CategoriaMenu.values())
+                .filter(c -> menus.stream().anyMatch(m -> m.getCategoria() == c))
+                .toList();
+        selCategoria.setOpciones(categorias.stream().map(CategoriaMenu::nombre).toArray(String[]::new));
+        if (!categorias.isEmpty()) {
+            mostrarCategoria(categorias.get(0));
+        } else {
+            cmbMenu.removeAllItems();
+        }
         // se mide con los platos ya cargados: el ancho lo da la ventana (un nombre largo no lo agranda)
         // y el mínimo es igual al normal, así no se achica si la ventana queda justa de alto
         cmbMenu.setPreferredSize(null);
@@ -232,6 +256,14 @@ public class PedidoDialog extends DialogoFormulario {
             mostrarError("No hay platos disponibles en el menú.");
         }
     }
+    /** El combo con solo los platos de esa categoría. */
+    private void mostrarCategoria(CategoriaMenu categoria) {
+        cmbMenu.removeAllItems();
+        todosLosPlatos.stream().filter(m -> m.getCategoria() == categoria).forEach(cmbMenu::addItem);
+        lblCategoria.setText(categoria.vaACocina() ? " " : "Las entrega el mozo: no van a la comanda de la cocina.");
+        cmbMenu.requestFocusInWindow();
+    }
+
     /** Redibuja la lista de platos para cargar, con su total. */
     public void mostrarRenglones(List<Renglon> renglones) {
         filas.removeAll();

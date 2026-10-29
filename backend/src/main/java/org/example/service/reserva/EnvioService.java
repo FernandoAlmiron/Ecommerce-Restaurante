@@ -166,6 +166,12 @@ public class EnvioService {
                 || !envio.getRepartidor().getUsername().equals(username))) {
             throw new AccessDeniedException("El envio no esta asignado a este repartidor");
         }
+        // lo que sigue en la comanda no se entrega ni se cobra (se controla antes de tocar nada)
+        int enCocina = envio.getTicket().platosEnCocina();
+        if (enCocina > 0) {
+            throw new IllegalStateException("Todavia hay " + enCocina + (enCocina == 1 ? " plato" : " platos")
+                    + " en la comanda: se entrega cuando la cocina los termine");
+        }
         envio.cambiarEstado(EstadoEnvio.ENTREGADO);   // valida que se pueda entregar antes de cobrar
 
         Facturacion factura = envio.getTicket().getFacturacion();

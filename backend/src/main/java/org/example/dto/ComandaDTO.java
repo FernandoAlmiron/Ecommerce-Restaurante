@@ -26,7 +26,7 @@ public record ComandaDTO(
                 t.getReserva() != null ? t.getReserva().getZona().getNombre() : null,
                 t.getReserva() != null ? t.getReserva().getCantComensales() : null,
                 pedidos.stream()
-                        .filter(p -> !p.isListo())
+                        .filter(Pedido::estaEnCocina)   // lo pendiente de la cocina (las bebidas no van)
                         .map(p -> new Item(p.getIdPedido(), p.getMenu().getNombre(), p.getCantidad(), p.getObservaciones()))
                         .toList()
         );

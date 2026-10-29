@@ -53,7 +53,8 @@ public class PedidoService {
         }
 
         pedido.setIdPedido(0);
-        pedido.setListo(false);                       // todo pedido nuevo entra pendiente para la cocina
+        // lo que no pasa por la cocina (las bebidas, que las entrega el mozo) entra listo: no va a la comanda
+        pedido.setListo(!menu.getCategoria().vaACocina());
         pedido.setMenu(menu);
         pedido.setTicket(ticket);
         pedido.setPrecioUnitario(menu.getPrecio());   // el precio lo pone el menu, no el cliente

@@ -28,6 +28,7 @@ public class MenuService {
         actual.setDescripcion(datos.getDescripcion());
         actual.setPrecio(datos.getPrecio());
         actual.setDisponible(datos.isDisponible());
+        actual.setCategoria(datos.getCategoria());
         return menuRepository.save(actual);
     }
 

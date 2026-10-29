@@ -7,6 +7,7 @@ import org.example.escritorio.controlador.recepcion.WalkInControlador;
 import org.example.escritorio.vista.comun.Boton;
 import org.example.escritorio.vista.comun.DialogoFormulario;
 import org.example.escritorio.vista.comun.Estilo;
+import org.example.escritorio.vista.comun.Formatos;
 import org.example.escritorio.vista.comun.Formulario;
 import org.example.escritorio.vista.comun.Icono;
 
@@ -25,6 +26,7 @@ import javax.swing.event.DocumentListener;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Window;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -32,7 +34,9 @@ import java.util.Optional;
 /**
  * Ventana para ubicar a un cliente que llega sin reserva (RF-17).
  * Primero se busca por DNI: si existe se usan sus datos; si no, se completan nombre y apellido.
- * La usan Recepción ("Nuevo walk-in") y Salón (abrir una mesa sin reserva): cambia solo el encabezado.
+ * La usan Recepción ("Nuevo walk-in") y Salón (abrir una mesa sin reserva).
+ * En Recepción además se elige el horario de hoy: ahora o más tarde, cada 15 minutos hasta el cierre;
+ * en Salón no, porque la mesa se abre en el momento.
  */
 public class WalkInDialog extends DialogoFormulario {
 
@@ -45,18 +49,39 @@ public class WalkInDialog extends DialogoFormulario {
     private final JTextField txtCelular = new JTextField(20);
     private final JComboBox<Zona> cmbZona = new JComboBox<>();
     private final JSpinner spnComensales = new JSpinner(new SpinnerNumberModel(2, 1, 50, 1));
+    private final JComboBox<Horario> cmbHorario = new JComboBox<>();
+    private final boolean conHorario;
+
+    /** Un horario de hoy para el walk-in; sin hora es "ahora". */
+    public record Horario(LocalTime hora) {
+        @Override
+        public String toString() {
+            return hora == null ? "Ahora (" + Formatos.hora(LocalTime.now()) + ")" : Formatos.hora(hora);
+        }
+    }
 
     private final WalkInControlador controlador;
     private ReservaResponseDTO reservaCreada;
     /** Lugares libres ahora en cada zona (por id), para mostrarlos en el combo. */
     private Map<Integer, Integer> libres = Map.of();
 
+    /** Recepción: con el horario (ahora o más tarde, hoy). */
     public WalkInDialog(Window padre) {
-        this(padre, "Recepción", "Nuevo walk-in", "Cliente que llega sin reserva.", "Registrar walk-in");
+        this(padre, "Recepción", "Nuevo walk-in", "Cliente sin reserva: para ahora o más tarde, hoy.",
+                "Registrar walk-in", true);
     }
 
+    /** Sin elegir horario: es para ahora (Salón, al abrir una mesa sin reserva). */
     public WalkInDialog(Window padre, String seccion, String titulo, String subtitulo, String accionPrincipal) {
+        this(padre, seccion, titulo, subtitulo, accionPrincipal, false);
+    }
+
+    private WalkInDialog(Window padre, String seccion, String titulo, String subtitulo, String accionPrincipal,
+                         boolean conHorario) {
         super(padre, seccion, titulo, subtitulo, accionPrincipal);
+        this.conHorario = conHorario;
+        cmbHorario.addItem(new Horario(null));
+        cmbHorario.setMaximumRowCount(8); // se abre como una lista con scroll
 
         cmbZona.setRenderer(new DefaultListCellRenderer() {
             @Override
@@ -82,9 +107,14 @@ public class WalkInDialog extends DialogoFormulario {
             @Override public void changedUpdate(DocumentEvent e) { controlador.alCambiarDni(); }
         });
         btnPrincipal.addActionListener(e -> controlador.registrar());
+        // los lugares libres dependen del horario: se vuelven a contar al cambiarlo
+        cmbHorario.addActionListener(e -> controlador.cargarZonas());
 
         limpiarCliente();
         controlador.cargarZonas();
+        if (conHorario) {
+            controlador.cargarHorarios();
+        }
 
         armar();
     }
@@ -97,6 +127,7 @@ public class WalkInDialog extends DialogoFormulario {
         Formulario.estilizar(txtCelular, "Opcional");
         Formulario.estilizar(cmbZona);
         Formulario.estilizar(spnComensales);
+        Formulario.estilizar(cmbHorario);
         btnBuscar.setBorder(Estilo.relleno(10, 16, 10, 18));
 
         // el DNI con su botón Buscar al lado y, abajo, si el cliente ya existe o es nuevo
@@ -107,15 +138,20 @@ public class WalkInDialog extends DialogoFormulario {
         dni.add(filaDni, BorderLayout.CENTER);
         dni.add(lblCliente, BorderLayout.SOUTH);
 
-        return Formulario.cuerpo(
-                Formulario.campo("DNI", dni, null),
-                Formulario.enFila(
-                        Formulario.campo("Nombre", txtNombre, null),
-                        Formulario.campo("Apellido", txtApellido, null)),
+        JComponent zonaYComensales = Formulario.enFila(
+                Formulario.campo("Zona", cmbZona, null),
+                Formulario.campo("Comensales", spnComensales, null));
+        JComponent cliente = Formulario.enFila(
+                Formulario.campo("Nombre", txtNombre, null),
+                Formulario.campo("Apellido", txtApellido, null));
+        if (!conHorario) {
+            return Formulario.cuerpo(Formulario.campo("DNI", dni, null), cliente,
+                    Formulario.campo("Celular", txtCelular, null), zonaYComensales);
+        }
+        return Formulario.cuerpo(Formulario.campo("DNI", dni, null), cliente,
                 Formulario.campo("Celular", txtCelular, null),
-                Formulario.enFila(
-                        Formulario.campo("Zona", cmbZona, null),
-                        Formulario.campo("Comensales", spnComensales, null)));
+                Formulario.campo("Horario", cmbHorario, "Hoy, cada 15 minutos hasta el cierre del restaurante."),
+                zonaYComensales);
     }
 
     // ---------- lo que usa el controlador ----------
@@ -127,14 +163,33 @@ public class WalkInDialog extends DialogoFormulario {
     public int getComensales() { return (Integer) spnComensales.getValue(); }
     public Zona getZonaSeleccionada() { return (Zona) cmbZona.getSelectedItem(); }
 
+    /** El horario elegido; null es "ahora" (y siempre es ahora en Salón). */
+    public LocalTime getHora() {
+        Horario h = (Horario) cmbHorario.getSelectedItem();
+        return h == null ? null : h.hora();
+    }
+
     public JButton getBotonBuscar() { return btnBuscar; }
     public JButton getBotonRegistrar() { return btnPrincipal; }
     public JComboBox<Zona> getComboZona() { return cmbZona; }
+    public JComboBox<Horario> getComboHorario() { return cmbHorario; }
 
+    /** "Ahora" y los horarios que quedan hoy. */
+    public void mostrarHorarios(List<LocalTime> horarios) {
+        cmbHorario.removeAllItems();
+        cmbHorario.addItem(new Horario(null));
+        horarios.forEach(h -> cmbHorario.addItem(new Horario(h)));
+    }
+
+    /** Las zonas con sus lugares libres; si ya había una elegida, queda elegida. */
     public void mostrarZonas(List<Zona> zonas, Map<Integer, Integer> libres) {
         this.libres = libres;
+        Zona antes = getZonaSeleccionada();
         cmbZona.removeAllItems();
         zonas.forEach(cmbZona::addItem);
+        if (antes != null) {
+            zonas.stream().filter(z -> z.getIdZona() == antes.getIdZona()).findFirst().ifPresent(cmbZona::setSelectedItem);
+        }
     }
 
     public void mostrarClienteExistente(Cliente cliente) {

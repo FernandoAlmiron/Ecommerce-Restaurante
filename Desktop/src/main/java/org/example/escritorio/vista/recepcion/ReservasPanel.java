@@ -191,10 +191,13 @@ public class ReservasPanel extends JPanel {
         Tablas.renderer(tabla, 3, new Tablas.RendererTexto(normal, Estilo.TEXTO, String::valueOf));
         Tablas.renderer(tabla, 4, new Tablas.RendererTexto(normal, Estilo.TEXTO, String::valueOf));
         Tablas.renderer(tabla, 5, new Tablas.RendererTexto(normal, Estilo.TEXTO, String::valueOf));
-        Tablas.renderer(tabla, 6, new Tablas.RendererInsignia(v -> switch ((EstadoReserva) v) {
-            case CONFIRMADA -> Tablas.Insignia.verde("Confirmada");
-            case PENDIENTE -> Tablas.Insignia.amarilla("Pendiente");
-            default -> Tablas.Insignia.gris("Cancelada");
+        Tablas.renderer(tabla, 6, new Tablas.RendererInsignia(v -> switch ((String) v) {
+            case ReservaTableModel.CONFIRMADA -> Tablas.Insignia.verde(ReservaTableModel.CONFIRMADA);
+            case ReservaTableModel.PENDIENTE -> Tablas.Insignia.amarilla(ReservaTableModel.PENDIENTE);
+            case ReservaTableModel.EN_MESA -> Tablas.Insignia.violeta(ReservaTableModel.EN_MESA);
+            case ReservaTableModel.ASISTIO -> Tablas.Insignia.azul(ReservaTableModel.ASISTIO);
+            case ReservaTableModel.NO_ASISTIO -> Tablas.Insignia.roja(ReservaTableModel.NO_ASISTIO);
+            default -> Tablas.Insignia.gris(ReservaTableModel.CANCELADA);
         }));
         Tablas.renderer(tabla, 7, new RendererSenia());
         Tablas.renderer(tabla, 8, new Tablas.RendererTexto(normal, Estilo.TEXTO, String::valueOf));
@@ -234,6 +237,11 @@ public class ReservasPanel extends JPanel {
     }
 
     // ---------- lo que usa el controlador ----------
+
+    /** Las reservas con mesa abierta: se muestran "En mesa" y no se pueden cancelar. */
+    public void setReservasConMesa(java.util.Set<Integer> conMesa) {
+        modelo.setReservasConMesa(conMesa);
+    }
 
     public void mostrarReservas(List<ReservaResponseDTO> reservas) {
         modelo.setFilas(reservas);
@@ -343,6 +351,9 @@ public class ReservasPanel extends JPanel {
                     .getFila(tabla.convertRowIndexToModel(fila));
             if (valor == null) {
                 setText("Sin seña");
+            } else if (r.estado() == EstadoReserva.AUSENTE) {
+                setText(getText() + " · cobrada");
+                setForeground(Estilo.ROJO_TEXTO);
             }
             if (valor == null || r.estado() == EstadoReserva.CANCELADA) {
                 setForeground(Estilo.TEXTO_SUAVE);

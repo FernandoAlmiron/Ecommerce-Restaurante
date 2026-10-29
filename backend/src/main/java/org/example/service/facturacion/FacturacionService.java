@@ -63,6 +63,12 @@ public class FacturacionService {
         if (ticket.getPedidos() == null || ticket.getPedidos().isEmpty()) {
             throw new IllegalStateException("El ticket no tiene pedidos para facturar");
         }
+        // no se cobra lo que no se entregó: la cocina tiene que terminar la comanda antes
+        int enCocina = ticket.platosEnCocina();
+        if (enCocina > 0) {
+            throw new IllegalStateException("Todavia hay " + enCocina + (enCocina == 1 ? " plato" : " platos")
+                    + " en la comanda: se factura cuando la cocina los entregue");
+        }
         // un envio cancelado no se factura
         if (ticket.getOrigen() == OrigenTicket.DELIVERY) {
             envioRepository.findByTicket_NroTicket(ticket.getNroTicket())

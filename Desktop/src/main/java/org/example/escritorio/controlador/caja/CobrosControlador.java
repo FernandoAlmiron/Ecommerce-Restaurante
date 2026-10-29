@@ -95,17 +95,31 @@ public class CobrosControlador {
                 });
     }
 
-    /** RF-40: FacturacionService.crear calcula total y fecha; solo se le pasa el ticket y el método. */
+    /**
+     * RF-40: FacturacionService.crear calcula total y fecha; solo se le pasa el ticket y el método.
+     * Antes de pedir el método se mira en la base si la cocina terminó: la lista puede estar desactualizada
+     * (el backend igual no deja facturar con platos en la comanda).
+     */
     public void facturar() {
         vista.cobroSeleccionado().filter(CobroFila::sePuedeFacturar).ifPresent(cobro ->
-                FacturarDialog.pedirMetodo(vista, cobro).ifPresent(metodo -> {
-                    Ticket ticket = new Ticket();
-                    ticket.setNroTicket(cobro.nroTicket());
-                    Facturacion datos = new Facturacion();
-                    datos.setTicket(ticket);
-                    datos.setMetodoPago(metodo);
-                    ejecutar(vista.getBotonFacturar(), cobro, () -> facturacionService.crear(datos));
-                }));
+                Tarea.ejecutar(vista.getBotonFacturar(),
+                        () -> Transaccion.leer(() -> ticketService.buscarPorId(cobro.nroTicket()).platosEnCocina()),
+                        enCocina -> {
+                            if (enCocina > 0) {
+                                vista.mostrarError("Todavía hay " + enCocina + (enCocina == 1 ? " plato" : " platos")
+                                        + " en la comanda: se factura cuando la cocina los entregue.");
+                                cargar(cobro.nroTicket());
+                                return;
+                            }
+                            FacturarDialog.pedirMetodo(vista, cobro).ifPresent(metodo -> {
+                                Ticket ticket = new Ticket();
+                                ticket.setNroTicket(cobro.nroTicket());
+                                Facturacion datos = new Facturacion();
+                                datos.setTicket(ticket);
+                                datos.setMetodoPago(metodo);
+                                ejecutar(vista.getBotonFacturar(), cobro, () -> facturacionService.crear(datos));
+                            });
+                        }));
     }
 
     /** RF-42. */

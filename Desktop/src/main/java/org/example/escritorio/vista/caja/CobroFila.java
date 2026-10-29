@@ -23,6 +23,8 @@ public record CobroFila(
         OrigenTicket origen,
         String cliente,
         int cantidadPedidos,
+        /** Platos que siguen en la comanda (la cocina no los entregó): mientras haya, no se factura. */
+        int platosEnCocina,
         BigDecimal consumo,
         Integer nroFacturacion,
         Integer porcentajePropina,
@@ -52,9 +54,13 @@ public record CobroFila(
         return pagado() && fechaPago != null && fechaPago.toLocalDate().equals(dia);
     }
 
-    /** Lo que caja tiene que resolver: tickets para facturar y facturaciones sin pagar. */
+    /** Lo que caja tiene que resolver: tickets para facturar (aunque la cocina no haya terminado) y sin pagar. */
     public boolean porCobrar() {
         return sePuedeFacturar() || pendiente();
+    }
+
+    public boolean conPlatosEnCocina() {
+        return platosEnCocina > 0;
     }
 
     /**
@@ -71,6 +77,7 @@ public record CobroFila(
                 ticket.getOrigen(),
                 cliente(ticket, envio),
                 pedidos.size(),
+                ticket.platosEnCocina(),
                 f != null ? f.getMontoTotal() : consumo,
                 f != null ? f.getNroFacturacion() : null,
                 f != null ? f.getPorcentajePropina() : null,

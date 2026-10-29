@@ -86,6 +86,9 @@ public class CierreCajaPanel extends JPanel {
             Boton.Tipo.CONTORNO);
 
     private final CierreCajaControlador controlador;
+    /** Cada cuánto se vuelve a pedir lo cobrado (si en Cobros se cobra algo, aparece solo). */
+    private static final int REFRESCO_MS = 10_000;
+    private final javax.swing.Timer refresco;
 
     public CierreCajaPanel() {
         super(new BorderLayout(0, 26));
@@ -103,7 +106,26 @@ public class CierreCajaPanel extends JPanel {
         btnCerrar.addActionListener(e -> controlador.cerrarCaja());
         btnActualizar.addActionListener(e -> controlador.cargar());
 
+        // solo refresca si la solapa está a la vista; el timer se apaga al cerrar la ventana
+        refresco = new javax.swing.Timer(REFRESCO_MS, e -> {
+            if (isShowing()) {
+                controlador.cargar(false);
+            }
+        });
+
         controlador.cargar();
+    }
+
+    @Override
+    public void addNotify() {
+        super.addNotify();
+        refresco.start();
+    }
+
+    @Override
+    public void removeNotify() {
+        refresco.stop();
+        super.removeNotify();
     }
 
     // ---------- armado ----------

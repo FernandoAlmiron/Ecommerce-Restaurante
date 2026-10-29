@@ -30,4 +30,9 @@ public class Pedido {
     public BigDecimal calcularSubtotal(){
         return precioUnitario.multiply(BigDecimal.valueOf(cantidad));
     }
+
+    /** Sigue en la comanda: la cocina no lo entregó todavía (las bebidas no pasan por la cocina). */
+    public boolean estaEnCocina() {
+        return !listo && menu != null && menu.getCategoria().vaACocina();
+    }
 }

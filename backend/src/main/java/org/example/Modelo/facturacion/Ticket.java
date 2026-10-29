@@ -45,4 +45,9 @@ public class Ticket {
         }
         return total;
     }
+
+    /** Cuántos platos (sumando cantidades) siguen en la comanda; mientras haya, la mesa no se factura. */
+    public int platosEnCocina() {
+        return pedidos == null ? 0 : pedidos.stream().filter(Pedido::estaEnCocina).mapToInt(Pedido::getCantidad).sum();
+    }
 }

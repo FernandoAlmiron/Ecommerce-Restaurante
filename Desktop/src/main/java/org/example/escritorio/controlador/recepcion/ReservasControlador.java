@@ -7,10 +7,13 @@ import org.example.escritorio.vista.comun.Formatos;
 import org.example.escritorio.vista.comun.Tarea;
 import org.example.escritorio.vista.recepcion.ReservasPanel;
 import org.example.escritorio.vista.recepcion.WalkInDialog;
+import org.example.service.facturacion.TicketService;
 import org.example.service.reserva.ReservaService;
 
 import javax.swing.JButton;
 import javax.swing.SwingUtilities;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Callable;
 
 /**
@@ -21,17 +24,27 @@ public class ReservasControlador {
 
     private final ReservasPanel vista;
     private final ReservaService reservaService;
+    private final TicketService ticketService;
+    /** Las reservas con las que ya se abrió una mesa: esas no se pueden cancelar. */
+    private Set<Integer> conMesa = Set.of();
 
     public ReservasControlador(ReservasPanel vista) {
         this.vista = vista;
         this.reservaService = Contexto.get(ReservaService.class);
+        this.ticketService = Contexto.get(TicketService.class);
+    }
+
+    private record Datos(List<ReservaResponseDTO> reservas, Set<Integer> conMesa) {
     }
 
     public void cargar() {
         Tarea.ejecutar(vista.getBotonActualizar(),
-                () -> reservaService.listarTodos().stream().map(ReservaResponseDTO::desde).toList(),
-                reservas -> {
-                    vista.mostrarReservas(reservas);
+                () -> new Datos(reservaService.listarTodos().stream().map(ReservaResponseDTO::desde).toList(),
+                        ticketService.reservasConMesa()),
+                datos -> {
+                    conMesa = datos.conMesa();
+                    vista.setReservasConMesa(conMesa);
+                    vista.mostrarReservas(datos.reservas());
                     alCambiarSeleccion();
                 });
     }
@@ -47,8 +60,11 @@ public class ReservasControlador {
             return;
         }
         boolean confirmar = r.estado() == EstadoReserva.PENDIENTE;
-        boolean cancelar = r.estado() != EstadoReserva.CANCELADA;
-        boolean asistencia = r.estado() == EstadoReserva.CONFIRMADA && r.senia() != null;
+        // como en ReservaService.cancelar: pendiente o confirmada, y sin mesa abierta
+        boolean cancelar = (r.estado() == EstadoReserva.PENDIENTE || r.estado() == EstadoReserva.CONFIRMADA)
+                && !conMesa.contains(r.nroReserva());
+        // también los walk-in (no tienen seña): pueden ser para más tarde y hay que registrar si vinieron
+        boolean asistencia = r.estado() == EstadoReserva.CONFIRMADA;
         vista.habilitarAcciones(confirmar, cancelar, asistencia);
     }
 
@@ -68,10 +84,37 @@ public class ReservasControlador {
         });
     }
 
+    /**
+     * Asistió: la seña no se cobra. No asistió: se cobra la seña a la tarjeta (lo hace el backend).
+     * Los walk-in no tienen seña: solo queda registrado si vino o no.
+     */
     public void marcarAsistencia(boolean asistio) {
         JButton boton = asistio ? vista.getBotonAsistio() : vista.getBotonNoAsistio();
-        vista.reservaSeleccionada().ifPresent(r -> ejecutar(boton,
-                () -> ReservaResponseDTO.desde(reservaService.marcarAsistencia(r.nroReserva(), asistio))));
+        vista.reservaSeleccionada().ifPresent(r -> {
+            boolean conSenia = r.senia() != null;
+            if (!asistio && !vista.confirmar("¿Marcar que " + r.cliente() + " no asistió?\n"
+                    + (conSenia ? "Se le cobra la seña de " + Formatos.pesos(r.senia()) + " a la tarjeta."
+                                : "No tiene seña: no se cobra nada."))) {
+                return;
+            }
+            Tarea.ejecutar(boton,
+                    () -> ReservaResponseDTO.desde(reservaService.marcarAsistencia(r.nroReserva(), asistio)),
+                    actualizada -> {
+                        vista.actualizarReserva(actualizada);
+                        alCambiarSeleccion();
+                        if (!conSenia) {
+                            vista.mostrarInfo(asistio ? "Asistencia registrada." : "Inasistencia registrada.");
+                        } else {
+                            vista.mostrarInfo(asistio
+                                    ? "Asistencia registrada: la seña de " + r.cliente() + " no se cobra."
+                                    : "Inasistencia registrada: se cobró la seña de " + Formatos.pesos(r.senia()) + ".");
+                        }
+                    },
+                    mensaje -> {
+                        vista.mostrarError(mensaje);
+                        cargar();
+                    });
+        });
     }
 
     public void nuevoWalkIn() {
@@ -80,7 +123,7 @@ public class ReservasControlador {
         dialogo.getReservaCreada().ifPresent(r -> {
             cargar();
             vista.mostrarInfo("Walk-in registrado: reserva N° " + r.nroReserva() + " para " + r.cliente()
-                    + " en " + r.zona() + ".");
+                    + " a las " + Formatos.hora(r.hora()) + " en " + r.zona() + ".");
         });
     }
 

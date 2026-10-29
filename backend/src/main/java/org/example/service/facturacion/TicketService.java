@@ -62,6 +62,11 @@ public class TicketService {
         return ticketRepository.findAll();
     }
 
+    /** Los números de reserva con los que ya se abrió una mesa. */
+    public java.util.Set<Integer> reservasConMesa() {
+        return new java.util.HashSet<>(ticketRepository.reservasConMesa());
+    }
+
     public Ticket agregarPedido(int nroTicket, Pedido pedido) {
         Ticket ticket = buscarPorId(nroTicket);
         ticket.agregarPedido(pedido);

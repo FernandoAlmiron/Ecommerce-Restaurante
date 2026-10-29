@@ -398,9 +398,16 @@ public class CobrosPanel extends JPanel {
         String metodo = c.metodoPago() != null ? texto(c.metodoPago())
                 : c.metodoElegidoPorCliente() != null ? "eligió " + texto(c.metodoElegidoPorCliente())
                 : "método al facturar";
-        lblDatos.setText(c.cantidadPedidos() + (c.cantidadPedidos() == 1 ? " pedido" : " pedidos")
+        String datos = c.cantidadPedidos() + (c.cantidadPedidos() == 1 ? " pedido" : " pedidos")
                 + (c.nroFacturacion() != null ? " · factura N° " + c.nroFacturacion() : " · sin facturar")
-                + " · " + metodo);
+                + " · " + metodo;
+        if (c.sinFacturar() && c.conPlatosEnCocina()) {
+            // no se cobra lo que la cocina todavía no entregó
+            datos = "<html>" + datos + "<br><font color='" + Estilo.hex(Estilo.ROJO_TEXTO) + "'>"
+                    + c.platosEnCocina() + (c.platosEnCocina() == 1 ? " plato sigue" : " platos siguen")
+                    + " en la comanda: se factura cuando la cocina los entregue.</font></html>";
+        }
+        lblDatos.setText(datos);
         Tablas.Insignia i = insignia(c.estado());
         lblEstado.setText(i.texto());
         lblEstado.setFondo(i.fondo());

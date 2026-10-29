@@ -94,22 +94,22 @@ FROM (
 ) x JOIN Categoria c ON c.nombre = x.categoria;
 
 -- ---------- Menu (el ultimo esta NO disponible a proposito, para probar la validacion) ----------
-INSERT INTO Menu (nombre, descripcion, precio, disponible, nroRestaurante) VALUES
-    ('Ravioles de ricota y espinaca con fileto', 'Pasta rellena casera con salsa de tomate',          13500.00, TRUE,  1),
-    ('Sorrentinos de jamon y queso con crema',   'Sorrentinos caseros con salsa de crema',            15200.00, TRUE,  1),
-    ('Noquis de papa con bolognesa',             'Noquis caseros con salsa de carne',                 12800.00, TRUE,  1),
-    ('Ravioles a la carbonara',                  'Ravioles de ricota con panceta, crema y parmesano', 14600.00, TRUE,  1),
-    ('Tallarines caseros al pesto',              'Tallarines con albahaca, nueces y parmesano',       12500.00, TRUE,  1),
-    ('Fettuccine con hongos y crema',            'Fettuccine caseros con hongos salteados',           14800.00, TRUE,  1),
-    ('Lasagna de carne',                         'Lasagna casera gratinada',                          16500.00, TRUE,  1),
-    ('Canelones de pollo y verdura',             'Canelones caseros con salsa blanca y fileto',       14500.00, TRUE,  1),
-    ('Tiramisu',                                 'Postre italiano de mascarpone y cafe',               7800.00, TRUE,  1),
-    ('Flan casero con dulce de leche',           'Flan con dulce de leche',                            6900.00, TRUE,  1),
-    ('Agua mineral',                             'Botella 500 cc',                                     3200.00, TRUE,  1),
-    ('Gaseosa',                                  'Botella 500 cc',                                     3800.00, TRUE,  1),
-    ('Copa de vino tinto',                       'Copa de vino tinto de la casa',                      5500.00, TRUE,  1),
-    ('Cerveza artesanal',                        'Botella 473 cc',                                     5200.00, TRUE,  1),
-    ('Sorrentinos de calabaza y nuez',           'Plato de temporada, hoy sin stock de calabaza',     15000.00, FALSE, 1);
+INSERT INTO Menu (nombre, descripcion, precio, disponible, nroRestaurante, categoria) VALUES
+    ('Ravioles de ricota y espinaca con fileto', 'Pasta rellena casera con salsa de tomate',          13500.00, TRUE,  1, 'PASTAS'),
+    ('Sorrentinos de jamon y queso con crema',   'Sorrentinos caseros con salsa de crema',            15200.00, TRUE,  1, 'PASTAS'),
+    ('Noquis de papa con bolognesa',             'Noquis caseros con salsa de carne',                 12800.00, TRUE,  1, 'PASTAS'),
+    ('Ravioles a la carbonara',                  'Ravioles de ricota con panceta, crema y parmesano', 14600.00, TRUE,  1, 'PASTAS'),
+    ('Tallarines caseros al pesto',              'Tallarines con albahaca, nueces y parmesano',       12500.00, TRUE,  1, 'PASTAS'),
+    ('Fettuccine con hongos y crema',            'Fettuccine caseros con hongos salteados',           14800.00, TRUE,  1, 'PASTAS'),
+    ('Lasagna de carne',                         'Lasagna casera gratinada',                          16500.00, TRUE,  1, 'PASTAS'),
+    ('Canelones de pollo y verdura',             'Canelones caseros con salsa blanca y fileto',       14500.00, TRUE,  1, 'PASTAS'),
+    ('Tiramisu',                                 'Postre italiano de mascarpone y cafe',               7800.00, TRUE,  1, 'POSTRES'),
+    ('Flan casero con dulce de leche',           'Flan con dulce de leche',                            6900.00, TRUE,  1, 'POSTRES'),
+    ('Agua mineral',                             'Botella 500 cc',                                     3200.00, TRUE,  1, 'BEBIDAS'),
+    ('Gaseosa',                                  'Botella 500 cc',                                     3800.00, TRUE,  1, 'BEBIDAS'),
+    ('Copa de vino tinto',                       'Copa de vino tinto de la casa',                      5500.00, TRUE,  1, 'BEBIDAS'),
+    ('Cerveza artesanal',                        'Botella 473 cc',                                     5200.00, TRUE,  1, 'BEBIDAS'),
+    ('Sorrentinos de calabaza y nuez',           'Plato de temporada, hoy sin stock de calabaza',     15000.00, FALSE, 1, 'PASTAS');
 
 -- ---------- Recetas: cantidad de cada ingrediente por porcion (misma unidad que el stock) ----------
 INSERT INTO MenuIngrediente (idMenu, idStock, cantidadNecesaria)

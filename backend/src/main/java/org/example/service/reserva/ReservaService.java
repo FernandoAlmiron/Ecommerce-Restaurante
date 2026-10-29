@@ -10,6 +10,7 @@ import org.example.Modelo.reserva.Zona;
 import org.example.dto.ReservaWalkInDTO;
 import org.example.repository.RestauranteRepository;
 import org.example.repository.persona.ClienteRepository;
+import org.example.repository.facturacion.TicketRepository;
 import org.example.repository.reserva.ReservaRepository;
 import org.example.repository.reserva.ZonaRepository;
 import org.springframework.beans.factory.annotation.Value;
@@ -38,15 +39,17 @@ public class ReservaService {
     private final ZonaRepository zonaRepository;
     private final RestauranteRepository restauranteRepository;
     private final ClienteService clienteService;
+    private final TicketRepository ticketRepository;
 
     public ReservaService(ReservaRepository reservaRepository, ClienteRepository clienteRepository,
                           ZonaRepository zonaRepository, RestauranteRepository restauranteRepository,
-                          ClienteService clienteService) {
+                          ClienteService clienteService, TicketRepository ticketRepository) {
         this.reservaRepository = reservaRepository;
         this.clienteRepository = clienteRepository;
         this.zonaRepository = zonaRepository;
         this.restauranteRepository = restauranteRepository;
         this.clienteService = clienteService;
+        this.ticketRepository = ticketRepository;
     }
 
     public Reserva guardar(Reserva reserva) {
@@ -135,11 +138,21 @@ public class ReservaService {
         return reservaRepository.save(reserva);
     }
 
+    /**
+     * Solo se cancela una reserva PENDIENTE o CONFIRMADA, y si todavía no se abrió una mesa con ella:
+     * si el cliente ya vino (asistió o tiene la mesa abierta) o se marcó que no vino, ya no se cancela.
+     */
     @Transactional
     public Reserva cancelar(int nroReserva) {
         Reserva reserva = buscarPorId(nroReserva);
-        if (reserva.getEstado() == EstadoReserva.CANCELADA) {
-            throw new IllegalStateException("La reserva ya esta cancelada");
+        switch (reserva.getEstado()) {
+            case CANCELADA -> throw new IllegalStateException("La reserva ya esta cancelada");
+            case FINALIZADA -> throw new IllegalStateException("El cliente ya asistio: la reserva no se puede cancelar");
+            case AUSENTE -> throw new IllegalStateException("Se marco que el cliente no asistio: la reserva no se puede cancelar");
+            default -> { }
+        }
+        if (ticketRepository.existsByReserva_NroReserva(nroReserva)) {
+            throw new IllegalStateException("Ya se abrio una mesa con esta reserva: no se puede cancelar");
         }
         reserva.cancelar();
         return reservaRepository.save(reserva);
@@ -152,6 +165,10 @@ public class ReservaService {
             throw new IllegalStateException("Solo se puede registrar asistencia en una reserva CONFIRMADA");
         }
         reserva.marcarAsistencia(asistio);
+        // si no vino, se le cobra la seña (si vino, no se cobra)
+        if (!asistio && reserva.getSenia() != null) {
+            reserva.getSenia().cobraPorInasistencia();
+        }
         return reservaRepository.save(reserva);
     }
 
@@ -162,8 +179,15 @@ public class ReservaService {
         Zona zona = zonaRepository.findById(dto.getIdZona())
                 .orElseThrow(() -> new IllegalArgumentException("Zona no encontrada"));
 
+        // el walk-in es de hoy: ahora o más tarde (con unos minutos de margen, por si el horario
+        // elegido pasó mientras se cargaban los datos)
         LocalDate fecha = LocalDate.now();
-        LocalTime hora = LocalTime.now().truncatedTo(ChronoUnit.MINUTES);
+        LocalTime ahora = LocalTime.now().truncatedTo(ChronoUnit.MINUTES);
+        LocalTime hora = dto.getHora() == null ? ahora : dto.getHora().truncatedTo(ChronoUnit.MINUTES);
+        LocalTime margen = ahora.minusMinutes(15);
+        if (!margen.isAfter(ahora) && hora.isBefore(margen)) {
+            throw new IllegalArgumentException("Ese horario ya paso: elegi uno de mas tarde");
+        }
         validarDisponibilidad(restaurante, zona, dto.getCantComensales(), fecha, hora);
 
         Cliente cliente;

@@ -41,11 +41,26 @@ public class CierreCajaControlador {
     private record Datos(BigDecimal efectivoHoy, BigDecimal tarjetaHoy, BigDecimal qrHoy, List<CierreFila> cierres) {
     }
 
+    /** true mientras hay una consulta en curso, para que el refresco automático no las encime. */
+    private boolean cargando;
+
     /** Lo cobrado hoy en efectivo, tarjeta y QR, y los cierres anteriores del restaurante del empleado. */
     public void cargar() {
+        cargar(true);
+    }
+
+    /**
+     * @param pedidoPorUsuario true si lo pidió el usuario (botón, al abrir, al cerrar la caja): los errores se
+     *                         muestran en un diálogo. false para el refresco automático: sin diálogo ni botón ocupado.
+     */
+    public void cargar(boolean pedidoPorUsuario) {
+        if (cargando) {
+            return;
+        }
+        cargando = true;
         int restaurante = Sesion.nroRestaurante();
         LocalDate hoy = LocalDate.now();
-        Tarea.ejecutar(vista.getBotonActualizar(),
+        Tarea.ejecutar(pedidoPorUsuario ? vista.getBotonActualizar() : null,
                 () -> new Datos(
                         cobrado(restaurante, hoy, MetodoPago.EFECTIVO),
                         cobrado(restaurante, hoy, MetodoPago.TARJETA),
@@ -56,8 +71,15 @@ public class CierreCajaControlador {
                                 .map(c -> conTotales(c, restaurante))
                                 .toList()),
                 datos -> {
+                    cargando = false;
                     vista.mostrarCobradoHoy(datos.efectivoHoy(), datos.tarjetaHoy(), datos.qrHoy());
                     vista.mostrarCierres(datos.cierres());
+                },
+                mensaje -> {
+                    cargando = false;
+                    if (pedidoPorUsuario) {
+                        vista.mostrarError(mensaje);
+                    }
                 });
     }
 

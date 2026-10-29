@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.example.Modelo.Restaurante;
+import org.example.Modelo.enums.CategoriaMenu;
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -29,6 +30,13 @@ public class Menu {
     private BigDecimal precio;
     private boolean disponible;
     private boolean eliminado;   // borrado lógico: true = sacado de la carta para siempre
+    @Enumerated(EnumType.STRING)
+    private CategoriaMenu categoria = CategoriaMenu.PASTAS;
+
+    /** Los platos que quedaron sin categoría (de antes de agregarla) cuentan como pastas. */
+    public CategoriaMenu getCategoria() {
+        return categoria == null ? CategoriaMenu.PASTAS : categoria;
+    }
 
     public boolean estaDisponible(){
         return disponible;

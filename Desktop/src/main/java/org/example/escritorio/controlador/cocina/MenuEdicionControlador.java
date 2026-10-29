@@ -38,6 +38,7 @@ public class MenuEdicionControlador {
         datos.setDescripcion(vista.getDescripcion().isEmpty() ? null : vista.getDescripcion());
         datos.setPrecio(precio);
         datos.setDisponible(vista.isDisponible());
+        datos.setCategoria(vista.getCategoria());
 
         Menu original = vista.getPlato();
         int restaurante = Sesion.nroRestaurante();

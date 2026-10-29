@@ -11,7 +11,7 @@ public class MenuTableModel extends ModeloTablaBase<Menu> {
     public static final int COL_NOMBRE = 0;
 
     public MenuTableModel() {
-        super("Plato", "Descripción", "Precio", "Disponible");
+        super("Plato", "Descripción", "Precio", "Disponible", "Categoría");
     }
 
     @Override
@@ -21,6 +21,7 @@ public class MenuTableModel extends ModeloTablaBase<Menu> {
             case 1 -> m.getDescripcion() == null ? "" : m.getDescripcion();
             case 2 -> m.getPrecio();
             case 3 -> m.isDisponible();
+            case 4 -> m.getCategoria().nombre();
             default -> null;
         };
     }

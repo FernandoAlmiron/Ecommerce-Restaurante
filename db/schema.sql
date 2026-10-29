@@ -84,6 +84,8 @@ CREATE TABLE Menu (
     descripcion    VARCHAR(255),
     precio         DECIMAL(10,2) NOT NULL,
     disponible     BOOLEAN NOT NULL DEFAULT TRUE,
+    eliminado      BOOLEAN NOT NULL DEFAULT FALSE,
+    categoria      ENUM('ENTRADAS','PASTAS','POSTRES','BEBIDAS') NOT NULL DEFAULT 'PASTAS',
     nroRestaurante INT NOT NULL,
     CONSTRAINT ck_menu_precio CHECK (precio > 0),
     CONSTRAINT fk_menu_restaurante FOREIGN KEY (nroRestaurante) REFERENCES Restaurante (nroRestaurante)
