@@ -7,12 +7,18 @@ import org.example.Modelo.facturacion.CierreCaja;
 import org.example.dto.CierreCajaDTO;
 import org.example.escritorio.Contexto;
 import org.example.escritorio.sesion.Sesion;
+import org.example.escritorio.Transaccion;
 import org.example.escritorio.vista.caja.CierreCajaPanel;
+import org.example.escritorio.vista.caja.CierreDetalleDialog;
 import org.example.escritorio.vista.caja.CierreFila;
 import org.example.escritorio.vista.comun.Formatos;
 import org.example.escritorio.vista.comun.Tarea;
 import org.example.repository.facturacion.FacturacionRepository;
 import org.example.service.facturacion.CierreCajaService;
+import org.example.service.facturacion.FacturacionService;
+
+import javax.swing.SwingUtilities;
+import java.util.Comparator;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -30,11 +36,35 @@ public class CierreCajaControlador {
     private final CierreCajaPanel vista;
     private final CierreCajaService cierreCajaService;
     private final FacturacionRepository facturacionRepository;
+    private final FacturacionService facturacionService;
 
     public CierreCajaControlador(CierreCajaPanel vista) {
         this.vista = vista;
         this.cierreCajaService = Contexto.get(CierreCajaService.class);
         this.facturacionRepository = Contexto.get(FacturacionRepository.class);
+        this.facturacionService = Contexto.get(FacturacionService.class);
+    }
+
+    /**
+     * Abre el detalle de un cierre anterior: el arqueo y los cobros de salón pagados ese día
+     * (los mismos que suma el cierre: consumo + propina, por fecha de pago).
+     */
+    public void verDetalle(CierreFila fila) {
+        int restaurante = Sesion.nroRestaurante();
+        LocalDate dia = fila.cierre().getFecha();
+        Tarea.ejecutar(vista.getBotonDetalle(),
+                // el ticket de cada facturación es lazy: se lee dentro de la transacción
+                () -> Transaccion.leer(() -> facturacionService.listarTodos().stream()
+                        .filter(f -> f.getEstadoPago() == EstadoPago.PAGADO && f.getFechaPago() != null
+                                && dia.equals(f.getFechaPago().toLocalDate()))
+                        .filter(f -> f.getTicket() != null && f.getTicket().getOrigen() == OrigenTicket.SALON
+                                && f.getTicket().getRestaurante() != null
+                                && f.getTicket().getRestaurante().getNroRestaurante() == restaurante)
+                        .sorted(Comparator.comparing(f -> f.getFechaPago()))
+                        .map(f -> new CierreDetalleDialog.Cobro(f.getTicket().getNroTicket(), f.getFechaPago(),
+                                f.getMetodoPago(), f.getMontoTotal().add(f.getPropina())))
+                        .toList()),
+                cobros -> new CierreDetalleDialog(SwingUtilities.getWindowAncestor(vista), fila, cobros).setVisible(true));
     }
 
     /** Lo que muestra la pantalla: lo cobrado hoy con cada método, y los cierres anteriores. */

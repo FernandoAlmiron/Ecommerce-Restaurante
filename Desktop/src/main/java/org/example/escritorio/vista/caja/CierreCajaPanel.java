@@ -43,7 +43,8 @@ import java.util.Locale;
  * Cierre de caja del día (RF-47).
  * A la izquierda se carga el efectivo contado; a la derecha el resumen del día: el efectivo que tendría que
  * haber en la caja (lo cobrado hoy en efectivo), la diferencia con lo contado mientras se escribe,
- * y lo cobrado con tarjeta y QR. Abajo, los cierres anteriores.
+ * y lo cobrado con tarjeta y QR. Abajo, los cierres anteriores: se filtran por mes y con doble clic
+ * (o "Ver detalle") se abre el cierre como papel, con los cobros de ese día.
  */
 public class CierreCajaPanel extends JPanel {
 
@@ -84,6 +85,13 @@ public class CierreCajaPanel extends JPanel {
     };
     private final JButton btnActualizar = new Boton(null, new Icono(Icono.Tipo.ACTUALIZAR, 20, Estilo.TEXTO),
             Boton.Tipo.CONTORNO);
+    private final JButton btnDetalle = new Boton("Ver detalle", new Icono(Icono.Tipo.DOCUMENTO, 18, Estilo.TEXTO),
+            Boton.Tipo.CONTORNO);
+    /** null = todos los meses. */
+    private final javax.swing.JComboBox<java.time.YearMonth> cmbMes = new javax.swing.JComboBox<>();
+    private final TableRowSorter<CierreTableModel> orden = new TableRowSorter<>(modelo);
+    /** true mientras se rearma el combo de meses: no hay que filtrar por esos cambios. */
+    private boolean armandoMeses;
 
     private final CierreCajaControlador controlador;
     /** Cada cuánto se vuelve a pedir lo cobrado (si en Cobros se cobra algo, aparece solo). */
@@ -105,6 +113,7 @@ public class CierreCajaPanel extends JPanel {
         controlador = new CierreCajaControlador(this);
         btnCerrar.addActionListener(e -> controlador.cerrarCaja());
         btnActualizar.addActionListener(e -> controlador.cargar());
+        btnDetalle.addActionListener(e -> cierreSeleccionado().ifPresent(controlador::verDetalle));
 
         // solo refresca si la solapa está a la vista; el timer se apaga al cerrar la ventana
         refresco = new javax.swing.Timer(REFRESCO_MS, e -> {
@@ -263,10 +272,18 @@ public class CierreCajaPanel extends JPanel {
     }
 
     private JComponent armarHistorial() {
-        TableRowSorter<CierreTableModel> orden = new TableRowSorter<>(modelo);
         orden.setSortKeys(List.of(new RowSorter.SortKey(CierreTableModel.COL_NRO, SortOrder.DESCENDING)));
         tabla.setRowSorter(orden);
-        tabla.setRowSelectionAllowed(false);
+        tabla.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+        tabla.getSelectionModel().addListSelectionListener(e -> btnDetalle.setEnabled(tabla.getSelectedRow() >= 0));
+        tabla.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                if (e.getClickCount() == 2 && tabla.rowAtPoint(e.getPoint()) >= 0) {
+                    cierreSeleccionado().ifPresent(controlador::verDetalle);
+                }
+            }
+        });
         Tablas.estilizar(tabla, ALTO_FILA);
 
         Font normal = Estilo.fuente(Font.PLAIN, 16f);
@@ -293,9 +310,31 @@ public class CierreCajaPanel extends JPanel {
         titulo.setForeground(Estilo.TEXTO);
         btnActualizar.setToolTipText("Actualizar");
         btnActualizar.setBorder(Estilo.relleno(12, 12, 12, 12));
+        btnDetalle.setBorder(Estilo.relleno(11, 16, 11, 18));
+        btnDetalle.setEnabled(false);
+        Formulario.estilizar(cmbMes);
+        cmbMes.setRenderer(new javax.swing.DefaultListCellRenderer() {
+            @Override
+            public java.awt.Component getListCellRendererComponent(javax.swing.JList<?> lista, Object valor, int indice,
+                                                                   boolean elegido, boolean foco) {
+                super.getListCellRendererComponent(lista, valor, indice, elegido, foco);
+                setText(valor == null ? "Todos los meses" : nombreMes((java.time.YearMonth) valor));
+                return this;
+            }
+        });
+        cmbMes.addItem(null);
+        cmbMes.addActionListener(e -> {
+            if (!armandoMeses) {
+                filtrarPorMes();
+            }
+        });
+        JPanel acciones = Estilo.transparente(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 12, 0));
+        acciones.add(cmbMes);
+        acciones.add(btnDetalle);
+        acciones.add(btnActualizar);
         JPanel encabezado = Estilo.transparente(new BorderLayout());
         encabezado.add(titulo, BorderLayout.WEST);
-        encabezado.add(btnActualizar, BorderLayout.EAST);
+        encabezado.add(acciones, BorderLayout.EAST);
 
         Estilo.Tarjeta tarjeta = new Estilo.Tarjeta(new BorderLayout(), 22);
         tarjeta.setBorder(Estilo.relleno(1, 1, 1, 1));
@@ -336,12 +375,67 @@ public class CierreCajaPanel extends JPanel {
     public String getObservaciones() { return txtObservaciones.getText().trim(); }
 
     public JButton getBotonCerrar() { return btnCerrar; }
+    public JButton getBotonDetalle() { return btnDetalle; }
     public JButton getBotonActualizar() { return btnActualizar; }
 
+    /**
+     * Muestra los cierres. Como se vuelve a llamar con el refresco automático, se mantienen el mes
+     * y el cierre elegidos.
+     */
     public void mostrarCierres(List<CierreFila> cierres) {
+        Integer elegido = cierreSeleccionado().map(f -> f.cierre().getIdCierre()).orElse(null);
         modelo.setFilas(cierres);
+        armarMeses(cierres);
+        filtrarPorMes();
+        if (elegido != null) {
+            for (int i = 0; i < tabla.getRowCount(); i++) {
+                if (modelo.getFila(tabla.convertRowIndexToModel(i)).cierre().getIdCierre() == elegido) {
+                    tabla.setRowSelectionInterval(i, i);
+                    break;
+                }
+            }
+        }
         revalidate();
         repaint();
+    }
+
+    /** El cierre elegido en la tabla de cierres anteriores. */
+    public java.util.Optional<CierreFila> cierreSeleccionado() {
+        int fila = tabla.getSelectedRow();
+        return fila < 0 ? java.util.Optional.empty()
+                : java.util.Optional.of(modelo.getFila(tabla.convertRowIndexToModel(fila)));
+    }
+
+    /** "Todos los meses" y los meses que tienen cierres, del más nuevo al más viejo; queda el que estaba elegido. */
+    private void armarMeses(List<CierreFila> cierres) {
+        java.time.YearMonth elegido = (java.time.YearMonth) cmbMes.getSelectedItem();
+        List<java.time.YearMonth> meses = cierres.stream()
+                .map(f -> java.time.YearMonth.from(f.cierre().getFecha()))
+                .distinct()
+                .sorted(java.util.Comparator.reverseOrder())
+                .toList();
+        armandoMeses = true;
+        cmbMes.removeAllItems();
+        cmbMes.addItem(null);
+        meses.forEach(cmbMes::addItem);
+        cmbMes.setSelectedItem(elegido != null && meses.contains(elegido) ? elegido : null);
+        armandoMeses = false;
+    }
+
+    private void filtrarPorMes() {
+        java.time.YearMonth mes = (java.time.YearMonth) cmbMes.getSelectedItem();
+        orden.setRowFilter(mes == null ? null : new javax.swing.RowFilter<CierreTableModel, Integer>() {
+            @Override
+            public boolean include(Entry<? extends CierreTableModel, ? extends Integer> fila) {
+                return java.time.YearMonth.from(modelo.getFila(fila.getIdentifier()).cierre().getFecha()).equals(mes);
+            }
+        });
+    }
+
+    /** "Octubre 2026". */
+    private static String nombreMes(java.time.YearMonth mes) {
+        String nombre = mes.getMonth().getDisplayName(java.time.format.TextStyle.FULL, ARGENTINA);
+        return Character.toUpperCase(nombre.charAt(0)) + nombre.substring(1) + " " + mes.getYear();
     }
 
     /** Lo cobrado hoy en salón con cada método: el efectivo es lo que tendría que haber en la caja. */
