@@ -10,7 +10,6 @@
 
 <!-- botón "Sobre nosotros" (arriba a la derecha, en todas las páginas) -->
 <a th:replace="~{fragments/cliente/layout :: boton-nosotros}"></a>
-<button th:replace="~{fragments/cliente/layout :: boton-tema}"></button>
 
 
 <main class="auth">
@@ -26,7 +25,17 @@
         <button type="submit">Continuar</button>
     </form>
 
-    <a th:href="@{/registro}">Crear cuenta</a>
+
+
+    <div class="links-login">
+        <a class="link-registro link-olvide"
+           href="https://wa.me/5492262XXXXXXX?text=Hola%20La%20Nona!%20Olvid%C3%A9%20mi%20contrase%C3%B1a%20y%20necesito%20recuperarla.%20Mi%20mail%20registrado%20es%3A%20"
+           target="_blank" rel="noopener">
+            ¿Olvidaste tu contraseña?
+        </a>
+
+        <a class="link-registro" href="...">Crear cuenta</a>
+    </div>
 </main>
 
 </body>
