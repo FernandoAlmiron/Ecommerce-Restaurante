@@ -25,14 +25,22 @@
             <input type="number" name="cantComensales" min="1" th:value="${param.cantComensales}" required>
         </label>
 
+        <!-- Fecha: tocando cualquier parte del campo se abre el calendario -->
         <label class="campo">
             <span>Fecha</span>
-            <input type="date" name="fecha" th:min="${hoy}" th:max="${maxFecha}" th:value="${param.fecha}" required>
+            <input type="date" id="fecha" name="fecha" th:min="${hoy}" th:max="${maxFecha}"
+                   th:value="${param.fecha}" onclick="this.showPicker()" required>
         </label>
 
+        <!-- Hora: select con turnos de 15 min dentro del horario del restaurante (lo llena el script de abajo) -->
         <label class="campo">
             <span>Hora</span>
-            <input type="time" name="hora" th:value="${param.hora}" required>
+            <select id="hora" name="hora" required disabled
+                    th:data-apertura="${#temporals.format(restaurante.horarioApertura, 'HH:mm')}"
+                    th:data-cierre="${#temporals.format(restaurante.horarioCierre, 'HH:mm')}">
+                <option value="">Elegí una fecha primero</option>
+            </select>
+            <input type="hidden" id="horaElegida" th:value="${param.hora}">
         </label>
 
         <label class="campo">
@@ -70,6 +78,41 @@
         <a th:href="@{/elegir}" class="boton-borde">Cancelar</a>
     </form>
 </main>
+
+<!-- Genera los turnos de 15 min según la fecha elegida y el horario del restaurante -->
+<script>
+    const PASO = 15;
+    const fecha = document.getElementById('fecha');
+    const hora  = document.getElementById('hora');
+    const aMin  = t => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
+
+    const APERTURA = aMin(hora.dataset.apertura);
+    let CIERRE = aMin(hora.dataset.cierre);
+    if (CIERRE <= APERTURA) CIERRE += 24 * 60;   // 00:00 cuenta como fin del día
+
+    function cargarHoras() {
+        hora.innerHTML = '<option value="">Elegí</option>';
+        if (!fecha.value) { hora.disabled = true; return; }
+
+        let desde = APERTURA;
+        if (fecha.value === new Date().toLocaleDateString('en-CA')) {   // si es hoy, salta lo que ya pasó
+            const ahora = new Date();
+            const min = ahora.getHours() * 60 + ahora.getMinutes();
+            desde = Math.max(APERTURA, Math.ceil((min + 1) / PASO) * PASO);
+        }
+
+        for (let m = desde; m < CIERRE; m += PASO) {
+            const hh = String(Math.floor(m / 60) % 24).padStart(2, '0');
+            const mm = String(m % 60).padStart(2, '0');
+            const opcion = new Option(`${hh}:${mm}`, `${hh}:${mm}`);
+            if (opcion.value === document.getElementById('horaElegida').value) opcion.selected = true;            hora.add(opcion);
+        }
+        hora.disabled = hora.options.length === 1;
+    }
+
+    fecha.addEventListener('change', cargarHoras);
+    cargarHoras();   // por si la página vuelve con una fecha ya cargada (después de un error)
+</script>
 
 </body>
 </html>

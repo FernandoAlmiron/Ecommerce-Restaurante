@@ -31,3 +31,36 @@
     <a th:href="@{/reservas}" th:classappend="${activo == 'reservas'} ? 'activo'">RESERVAS</a>
     <a th:href="@{/perfil}"   th:classappend="${activo == 'perfil'}   ? 'activo'">PERFIL</a>
 </nav>
+
+<!-- Footer: se incluye con ~{fragments/cliente/layout :: footer} -->
+<footer th:fragment="footer" class="footer">
+    <div class="footer-contenido">
+
+        <div class="footer-marca">
+            <strong>La Nona</strong>
+            <p>Pasta casera, amasada todos los días.</p>
+        </div>
+
+        <div>
+            <h4>Visitanos</h4>
+            <p>Av. Corrientes 1234, CABA</p>
+            <p>Todos los días de 11:00 a 00:00</p>
+        </div>
+
+        <div>
+            <h4>Contacto</h4>
+            <p>11 4555-1234</p>
+            <p>[email de contacto]</p>
+        </div>
+
+        <div>
+            <h4>Navegación</h4>
+            <a th:href="@{/inicio}">Inicio</a>
+            <a th:href="@{/reservas/nueva}">Reservar</a>
+            <a th:href="@{/inicio#contacto}">Contacto</a>
+        </div>
+
+    </div>
+
+    <p class="footer-legal">© 2026 La Nona · Proyecto de Aplicaciones Interactivas (UADE)</p>
+</footer>
