@@ -26,9 +26,8 @@ public class SeguridadWebConfig {
                 .authorizeHttpRequests(auth -> auth
                         // páginas públicas: cualquiera, sin login
                         .requestMatchers("/", "/login", "/registro", "/nosotros", "/error").permitAll()
-                        .requestMatchers("/errores.js", "/style.css", "/css/**", "/img/**").permitAll()
-                        // panel del restaurante
-                        .requestMatchers("/admin/**").hasRole("ADMIN")
+                        // archivos estáticos (static/css, static/js, static/img)
+                        .requestMatchers("/css/**", "/js/**", "/img/**").permitAll()
                         // todo lo demás: cliente logueado
                         .anyRequest().hasRole("CLIENTE")
                 )
@@ -37,12 +36,7 @@ public class SeguridadWebConfig {
                         .loginPage("/login")              // nuestra página, no la de Spring
                         .usernameParameter("email")       // el input se llama "email"
                         .failureUrl("/login?error")
-                        // según quién entra, a dónde lo mando
-                        .successHandler((request, response, auth) -> {
-                            boolean esAdmin = auth.getAuthorities().stream()
-                                    .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
-                            response.sendRedirect(esAdmin ? "/admin" : "/inicio");
-                        })
+                        .defaultSuccessUrl("/inicio", true)   // después del login, siempre al inicio
                         .permitAll()
                 )
 
