@@ -1,0 +1,135 @@
+/* ---------- BOTONES ---------- */
+
+/* sirve para los <button> y para los que tienen la clase "boton" */
+body.cliente button,
+body.cliente .boton {
+    display: inline-block;
+    width: 100%;
+    padding: 10px 20px;
+    border: none;
+    border-radius: var(--radio);
+    background: var(--dorado);
+    color: var(--blanco);
+    font-family: var(--fuente);
+    font-size: 15px;
+    font-weight: 400;
+    text-align: center;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+body.cliente button:hover,
+body.cliente .boton:hover {
+    background: var(--dorado-oscuro);
+    text-decoration: none;
+}
+
+/* dorado con flecha: "Continuar al pago →" */
+body.cliente .boton-flecha {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 18px;
+    border-radius: 12px;
+    color: var(--blanco);
+    font-weight: 500;
+}
+
+/* beige con sombra: "+ Nueva Reserva", "+ Nuevo pedido" */
+body.cliente .boton-beige {
+    padding: 8px 28px;
+    border-radius: 999px;
+    background: var(--beige);
+    color: var(--negro);
+    font-weight: 400;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+body.cliente .boton-beige:hover {
+    text-decoration: none;
+    filter: brightness(1.05);
+}
+
+/* blanco redondo, dentro de las tarjetas: "Ver Detalles", "Cancelar" */
+body.cliente .boton-blanco {
+    display: block;
+    width: 100%;
+    padding: 8px;
+    border-radius: 999px;
+    background: var(--blanco);
+    color: var(--negro);
+    text-align: center;
+    font-size: 13px;
+    font-weight: 400;
+    cursor: pointer;
+    list-style: none;   /* le saca el triangulito cuando es un <summary> */
+}
+
+body.cliente button.boton-blanco:hover,
+body.cliente a.boton-blanco:hover {
+    background: var(--beige-claro);
+    text-decoration: none;
+}
+
+body.cliente .texto-rojo {
+    color: #D62F22;
+}
+
+/* blanco con borde dorado: "Cancelar", "Contactar al restaurante" */
+body.cliente .boton-borde {
+    display: block;
+    padding: 9px;
+    border: 1px solid var(--dorado);
+    border-radius: var(--radio);
+    text-align: center;
+    font-weight: 400;
+}
+
+body.cliente .boton-borde:hover {
+    background: var(--beige-claro);
+    text-decoration: none;
+}
+
+/* apagado, no se puede tocar ("Continuar al pago" con el carrito vacío) */
+body.cliente .deshabilitado {
+    opacity: 0.45;
+    pointer-events: none;
+}
+
+/* "Cerrar sesión": discreto y subrayado */
+body.cliente .cerrar-sesion button {
+    width: auto;
+    margin-top: 24px;
+    background: none;
+    color: var(--gris-texto);
+    font-size: 13px;
+    text-decoration: underline;
+}
+
+body.cliente .cerrar-sesion button:hover {
+    background: none;
+    color: var(--negro);
+}
+
+/* botón "Sobre nosotros", fijo arriba a la derecha */
+body.cliente .boton-nosotros {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    z-index: 100;
+    padding: 9px 16px;          /* el tamaño lo da el texto */
+    font-size: 13px;
+    font-weight: 500;
+    white-space: nowrap;        /* que no se parta en dos renglones */
+    border: 1px solid var(--borde-suave);
+    border-radius: 10px;
+    background: var(--blanco);
+    color: var(--dorado-texto);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: background 0.2s;
+}
+
+body.cliente .boton-nosotros:hover {
+    background: var(--beige-claro);
+    text-decoration: none;
+}

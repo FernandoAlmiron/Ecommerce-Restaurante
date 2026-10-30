@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <title>Mis reservas - La Nona</title>
-    <link rel="stylesheet" th:href="@{/style.css}">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
     <script src="https://unpkg.com/htmx.org@2.0.4"></script>
-    <script th:src="@{/errores.js}" defer></script>
-    <script th:src="@{/tema.js}"></script>
+    <script th:src="@{/js/errores.js}" defer></script>
+    <script th:src="@{/js/tema.js}"></script>
 </head>
 <body class="cliente con-nav">
 
@@ -33,6 +33,7 @@
     <p th:if="${reservas.isEmpty()}" class="vacio">Todavía no tenés reservas.</p>
 </main>
 
+<footer th:replace="~{fragments/cliente/layout :: footer(true)}"></footer>
 <nav th:replace="~{fragments/cliente/layout :: nav('reservas')}"></nav>
 
 </body>

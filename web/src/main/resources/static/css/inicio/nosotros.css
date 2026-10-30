@@ -1,0 +1,109 @@
+/* ===================================================================
+   SOBRE NOSOTROS                                cliente/nosotros.html
+   Los 4 integrantes del grupo en tarjetas, con sus mails.
+   Página pública: se llega con el botón de arriba a la derecha.
+   =================================================================== */
+
+body.cliente .nosotros {
+    width: 100%;
+    max-width: 920px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+body.cliente .nosotros h1 {
+    margin: 0 0 10px;
+    font-size: 36px;
+    font-weight: 800;
+}
+
+body.cliente .nosotros .intro {
+    max-width: 560px;
+    margin: 0 0 36px;
+    color: var(--gris-texto);
+}
+
+/* las 4 tarjetas: 4 en una fila en compu (de a 2 o de a 1 en celular) */
+body.cliente .equipo {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
+}
+
+body.cliente .integrante {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 24px 14px;
+    border-radius: 20px;
+    background: var(--beige-claro);
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.06);
+}
+
+/* las iniciales en un círculo, como en el perfil */
+body.cliente .iniciales {
+    width: 78px;
+    height: 78px;
+    margin-bottom: 6px;
+    border-radius: 50%;
+    border: 6px solid var(--blanco);
+    background: var(--beige);
+    color: var(--blanco);
+    display: grid;
+    place-items: center;
+    font-size: 26px;
+    font-weight: 500;
+}
+
+body.cliente .integrante h2 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 500;
+}
+
+/* el mail: al tocarlo abre el correo (mailto:) */
+body.cliente .integrante a {
+    color: var(--dorado-texto);
+    font-size: 12px;
+    font-weight: 400;
+    word-break: break-all;    /* los mails largos se cortan y no se salen */
+}
+
+body.cliente .tecnologias {
+    margin: 36px 0 20px;
+    color: var(--gris-texto);
+    font-size: 13px;
+}
+
+body.cliente .volver-atras {
+    padding: 9px 28px;
+}
+
+
+/* ---------- TABLET: tarjetas de a 2 ---------- */
+
+@media (max-width: 900px) {
+    body.cliente .equipo {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+
+/* ---------- CELULAR ---------- */
+
+@media (max-width: 600px) {
+    body.cliente .nosotros h1 {
+        font-size: 30px;
+    }
+}
+
+/* celulares muy angostos: de a 1 */
+@media (max-width: 400px) {
+    body.cliente .equipo {
+        grid-template-columns: 1fr;
+    }
+}

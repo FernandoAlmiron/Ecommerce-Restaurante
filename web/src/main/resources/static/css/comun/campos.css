@@ -1,0 +1,45 @@
+/* ---------- CAMPOS DE TEXTO ---------- */
+
+body.cliente input,
+body.cliente select,
+body.cliente textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    background: var(--gris-input);
+    font-family: var(--fuente);
+    font-size: 14px;
+    color: var(--negro);
+}
+
+body.cliente input::placeholder,
+body.cliente textarea::placeholder {
+    color: var(--gris-texto);
+}
+
+/* al hacer click en un campo se marca con el dorado */
+body.cliente input:focus,
+body.cliente select:focus,
+body.cliente textarea:focus {
+    outline: none;
+    border-color: var(--dorado);
+    background: var(--blanco);
+}
+
+/* dos campos en la misma fila (nombre y apellido) */
+body.cliente .fila {
+    display: flex;
+    gap: 8px;
+}
+
+/* sacar las flechitas de los campos numéricos (DNI, comensales) */
+body.cliente input[type="number"]::-webkit-inner-spin-button,
+body.cliente input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+body.cliente input[type="number"] {
+    -moz-appearance: textfield;
+}

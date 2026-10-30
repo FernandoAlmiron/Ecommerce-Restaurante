@@ -1,0 +1,12 @@
+/* ===================================================================
+   MIS RESERVAS                                  cliente/reservas.html
+   Título con "+ Nueva Reserva" y las tarjetas beige
+   (las tarjetas están en la PARTE 1 · GENERAL).
+   Acá solo van los colores de cada estado de la reserva.
+   =================================================================== */
+
+body.cliente .estado-confirmada  { color: #C6F29B; }   /* verde */
+body.cliente .estado-pendiente   { color: #FFC24B; }   /* naranja */
+body.cliente .estado-cancelada   { color: #B3261E; }   /* rojo */
+body.cliente .estado-finalizada  { color: #FFFFFF; }   /* blanco */
+body.cliente .estado-ausente     { color: #5A3E26; }   /* marrón */

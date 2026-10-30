@@ -1,0 +1,6049 @@
+diff --git a/web/src/main/java/org/example/web/cliente/ClienteInicioController.java b/web/src/main/java/org/example/web/cliente/ClienteInicioController.java
+index 4e041eb..d3bb693 100644
+--- a/web/src/main/java/org/example/web/cliente/ClienteInicioController.java
++++ b/web/src/main/java/org/example/web/cliente/ClienteInicioController.java
+@@ -2,9 +2,12 @@ package org.example.web.cliente;
+ 
+ import org.example.Modelo.menu.Menu;
+ import org.example.Modelo.persona.Cliente;
++import org.example.Modelo.Restaurante;
++import org.example.service.RestauranteService;
+ import org.example.service.menu.MenuService;
+ import org.example.service.persona.ClienteService;
+ import org.example.service.reserva.ReservaService;
++import org.example.service.reserva.ZonaService;
+ import org.springframework.stereotype.Controller;
+ import org.springframework.ui.Model;
+ import org.springframework.web.bind.annotation.GetMapping;
+@@ -18,18 +21,26 @@ public class ClienteInicioController {
+     private final MenuService menuService;
+     private final ReservaService reservaService;
+     private final ClienteService clienteService;
++    private final ZonaService zonaService;
++    private final RestauranteService restauranteService;
+ 
+     public ClienteInicioController(MenuService menuService, ReservaService reservaService,
+-                                   ClienteService clienteService) {
++                                   ClienteService clienteService, ZonaService zonaService,
++                                   RestauranteService restauranteService) {
+         this.menuService = menuService;
+         this.reservaService = reservaService;
+         this.clienteService = clienteService;
++        this.zonaService = zonaService;
++        this.restauranteService = restauranteService;
+     }
+ 
+-    // landing pública: la carta + "Iniciar / Registrarme"
++    // landing pública: "Iniciar / Registrarme", los favoritos, los espacios, sobre La Nona y contacto
+     @GetMapping("/")
+     public String landing(Model model) {
+-        model.addAttribute("platos", platosDisponibles());
++        Restaurante restaurante = restauranteService.listarTodos().get(0);   // hay un solo local
++        model.addAttribute("platos", platosDisponibles().stream().limit(8).toList());
++        model.addAttribute("zonas", zonaService.listarActivas(restaurante.getNroRestaurante()));
++        model.addAttribute("restaurante", restaurante);
+         return "cliente/landing";
+     }
+ 
+diff --git a/web/src/main/java/org/example/web/cliente/ClientePerfilController.java b/web/src/main/java/org/example/web/cliente/ClientePerfilController.java
+index d4207cd..f82e57f 100644
+--- a/web/src/main/java/org/example/web/cliente/ClientePerfilController.java
++++ b/web/src/main/java/org/example/web/cliente/ClientePerfilController.java
+@@ -1,24 +1,62 @@
+ package org.example.web.cliente;
+ 
++import org.example.Modelo.enums.EstadoEnvio;
++import org.example.Modelo.persona.Cliente;
++import org.example.Modelo.reserva.Envio;
++import org.example.Modelo.reserva.Reserva;
+ import org.example.service.persona.ClienteService;
++import org.example.service.reserva.EnvioService;
++import org.example.service.reserva.ReservaService;
+ import org.springframework.security.core.Authentication;
+ import org.springframework.stereotype.Controller;
+ import org.springframework.ui.Model;
+ import org.springframework.web.bind.annotation.GetMapping;
+ 
++import java.util.Comparator;
++import java.util.List;
++
+ @Controller
+ public class ClientePerfilController {
+ 
++    private static final int ULTIMOS = 3;   // cuántos pedidos y reservas se muestran en "Mi cuenta"
++
+     private final ClienteService clienteService;
++    private final EnvioService envioService;
++    private final ReservaService reservaService;
+ 
+-    public ClientePerfilController(ClienteService clienteService) {
++    public ClientePerfilController(ClienteService clienteService, EnvioService envioService,
++                                   ReservaService reservaService) {
+         this.clienteService = clienteService;
++        this.envioService = envioService;
++        this.reservaService = reservaService;
+     }
+ 
+-    // los datos del cliente logueado (solo lectura)
++    // "Mi cuenta": el pedido en marcha, los últimos pedidos, las últimas reservas y los datos
+     @GetMapping("/perfil")
+     public String perfil(Authentication auth, Model model) {
+-        model.addAttribute("c", clienteService.buscarPorUsername(auth.getName()));
++        Cliente cliente = clienteService.buscarPorUsername(auth.getName());
++
++        // los más nuevos primero
++        List<Envio> envios = envioService.listarPorCliente(cliente.getIdCliente()).stream()
++                .sorted(Comparator.comparing(Envio::getIdEnvio).reversed())
++                .toList();
++        Envio enCurso = envios.stream()
++                .filter(e -> e.getEstado() == EstadoEnvio.PENDIENTE || e.getEstado() == EstadoEnvio.EN_CAMINO)
++                .findFirst()
++                .orElse(null);
++        List<Envio> anteriores = envios.stream().filter(e -> e != enCurso).toList();
++
++        List<Reserva> reservas = reservaService.listarPorCliente(cliente.getIdCliente()).stream()
++                .sorted(Comparator.comparing(Reserva::getFechaReserva)
++                        .thenComparing(Reserva::getHoraReserva).reversed())
++                .toList();
++
++        model.addAttribute("c", cliente);
++        model.addAttribute("enCurso", enCurso);
++        model.addAttribute("envios", anteriores.stream().limit(ULTIMOS).toList());
++        model.addAttribute("hayMasPedidos", anteriores.size() > ULTIMOS);
++        model.addAttribute("reservas", reservas.stream().limit(ULTIMOS).toList());
++        model.addAttribute("hayMasReservas", reservas.size() > ULTIMOS);
+         return "cliente/perfil";
+     }
+ }
+diff --git a/web/src/main/java/org/example/web/config/SeguridadWebConfig.java b/web/src/main/java/org/example/web/config/SeguridadWebConfig.java
+index 4844d9b..995dcd7 100644
+--- a/web/src/main/java/org/example/web/config/SeguridadWebConfig.java
++++ b/web/src/main/java/org/example/web/config/SeguridadWebConfig.java
+@@ -26,7 +26,7 @@ public class SeguridadWebConfig {
+                 .authorizeHttpRequests(auth -> auth
+                         // páginas públicas: cualquiera, sin login
+                         .requestMatchers("/", "/login", "/registro", "/nosotros", "/error").permitAll()
+-                        .requestMatchers("/errores.js", "/style.css", "/css/**", "/img/**").permitAll()
++                        .requestMatchers("/errores.js", "/tema.js", "/style.css", "/nona.css", "/css/**", "/img/**").permitAll()
+                         // panel del restaurante
+                         .requestMatchers("/admin/**").hasRole("ADMIN")
+                         // todo lo demás: cliente logueado
+diff --git a/web/src/main/resources/static/css/base/base.css b/web/src/main/resources/static/css/base/base.css
+new file mode 100644
+index 0000000..ef94492
+--- /dev/null
++++ b/web/src/main/resources/static/css/base/base.css
+@@ -0,0 +1,67 @@
++/* Base: body, links, imágenes, textos chicos */
++
++/*  BASE */
++
++*,
++*::before,
++*::after {
++    box-sizing: border-box;     /* el padding no agranda las cajas */
++}
++
++body.cliente {
++    margin: 0;
++    min-height: 100vh;
++    background: var(--blanco);
++    color: var(--negro);
++    font-family: var(--fuente);
++    font-weight: 300;
++    font-size: 15px;
++    line-height: 1.5;
++
++    /* centrado en columna */
++    display: flex;
++    flex-direction: column;
++    align-items: center;
++    padding: 24px 16px 40px;
++}
++
++body.cliente a {
++    color: var(--negro);
++    font-weight: 500;
++    text-decoration: none;
++}
++
++body.cliente a:hover {
++    text-decoration: underline;
++}
++
++/* las imágenes no se salen de su caja */
++body.cliente img {
++    max-width: 100%;
++}
++
++/* páginas con la barra de abajo: dejan lugar para que no tape nada */
++body.cliente.con-nav {
++    padding-bottom: 110px;
++}
++
++body.cliente.ancho {
++    align-items: stretch;
++    background: var(--crema);
++}
++
++body.cliente.sin-padding {
++    padding: 0;
++}
++
++body.cliente .aclaracion {
++    margin: 0;
++    color: var(--gris-texto);
++    font-size: 12px;
++    text-align: center;
++}
++
++body.cliente .vacio {
++    text-align: center;
++    color: var(--gris-texto);
++}
+diff --git a/web/src/main/resources/static/css/base/variables.css b/web/src/main/resources/static/css/base/variables.css
+new file mode 100644
+index 0000000..00922d4
+--- /dev/null
++++ b/web/src/main/resources/static/css/base/variables.css
+@@ -0,0 +1,29 @@
++/* Fuentes y colores (variables de :root) */
++
++/*
++   GENERAL FUENTES Y COLORES */
++
++@import url('https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;700;800&family=Oswald:wght@500&display=swap');
++
++:root {
++    --dorado:        #A0753A;   /* botones principales */
++    --dorado-oscuro: #87612E;   /* botón al pasar el mouse */
++    --dorado-texto:  #7A5A2E;   /* textos dorados sobre fondo claro */
++    --beige:         #BC9B70;   /* tarjetas de reservas y pedidos */
++    --beige-claro:   #F3E9DC;   /* fondos suaves, contadores */
++    --crema:         #FBF8F4;   /* fondo de las páginas anchas */
++    --borde-suave:   #EBD9C3;   /* bordes de tarjetas y paneles */
++    --marron:        #9A6243;   /* "PRESENCIAL", "DELIVERY" */
++    --gris-input:    #E6E6E6;   /* fondo de los campos */
++    --gris-texto:    #6B6B6B;   /* textos chicos y aclaraciones */
++    --negro:         #1A1A1A;
++    --blanco:        #FFFFFF;
++
++    --error:         #C0392B;
++    --ok:            #2E7D32;
++
++    --fuente:        'Lexend', system-ui, sans-serif;
++    --fuente-titulo: 'Oswald', 'Lexend', sans-serif;
++
++    --radio:         8px;       /* esquinas de botones e inputs */
++}
+diff --git a/web/src/main/resources/static/css/componentes/comunes.css b/web/src/main/resources/static/css/componentes/comunes.css
+new file mode 100644
+index 0000000..8d70c6d
+--- /dev/null
++++ b/web/src/main/resources/static/css/componentes/comunes.css
+@@ -0,0 +1,475 @@
++/* Piezas que usan varias páginas: logo, botones, campos, avisos, contador, barra de abajo, tarjetas */
++
++/* COMPONENTES COMUNES */
++
++/* Logo */
++
++body.cliente .logo {
++    display: block;
++    width: 230px;
++    max-width: 70vw;
++    height: auto;
++    margin: 0 auto;
++}
++
++body.cliente.ancho > header {
++    text-align: center;
++    margin-bottom: 16px;
++}
++
++body.cliente.ancho > header .logo {
++    width: 150px;
++}
++
++
++/* Botones */
++
++/* siver para botones y para los que estan asigandos con clase boton */
++body.cliente button,
++body.cliente .boton {
++    display: inline-block;
++    width: 100%;
++    padding: 10px 20px;
++    border: none;
++    border-radius: var(--radio);
++    background: var(--dorado);
++    color: var(--blanco);
++    font-family: var(--fuente);
++    font-size: 15px;
++    font-weight: 400;
++    text-align: center;
++    cursor: pointer;
++    transition: background 0.2s;
++}
++
++body.cliente button:hover,
++body.cliente .boton:hover {
++    background: var(--dorado-oscuro);
++    text-decoration: none;
++}
++
++/* dorado con flecha de continuar pago  → */
++body.cliente .boton-flecha {
++    display: flex;
++    justify-content: space-between;
++    align-items: center;
++    padding: 14px 18px;
++    border-radius: 12px;
++    color: var(--blanco);
++    font-weight: 500;
++}
++
++/* beige con sombra: "+ Nueva Reserva", "+ Nuevo pedido" */
++body.cliente .boton-beige {
++    padding: 8px 28px;
++    border-radius: 999px;
++    background: var(--beige);
++    color: var(--negro);
++    font-weight: 400;
++    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
++}
++
++body.cliente .boton-beige:hover {
++    text-decoration: none;
++    filter: brightness(1.05);
++}
++
++/* blanco redondo, dentro de las tarjetas: "Ver Detalles", "Cancelar" */
++body.cliente .boton-blanco {
++    display: block;
++    width: 100%;
++    padding: 8px;
++    border-radius: 999px;
++    background: var(--blanco);
++    color: var(--negro);
++    text-align: center;
++    font-size: 13px;
++    font-weight: 400;
++    cursor: pointer;
++    list-style: none;   /* le saca el triangulito cuando es un <summary> */
++}
++
++body.cliente button.boton-blanco:hover,
++body.cliente a.boton-blanco:hover {
++    background: var(--beige-claro);
++    text-decoration: none;
++}
++
++body.cliente .texto-rojo {
++    color: #D62F22;
++}
++
++/* blanco con borde dorado: "Cancelar", "Contactar al restaurante" */
++body.cliente .boton-borde {
++    display: block;
++    padding: 9px;
++    border: 1px solid var(--dorado);
++    border-radius: var(--radio);
++    text-align: center;
++    font-weight: 400;
++}
++
++body.cliente .boton-borde:hover {
++    background: var(--beige-claro);
++    text-decoration: none;
++}
++
++/* apagado, no se puede tocar (como: Continuar al pago" con el carrito vacío no aparece) */
++body.cliente .deshabilitado {
++    opacity: 0.45;
++    pointer-events: none;
++}
++
++/* Cerrar sesion discreto, subrayado */
++body.cliente .cerrar-sesion button {
++    width: auto;
++    margin-top: 24px;
++    background: none;
++    color: var(--gris-texto);
++    font-size: 13px;
++    text-decoration: underline;
++}
++
++body.cliente .cerrar-sesion button:hover {
++    background: none;
++    color: var(--negro);
++}
++
++
++/*Campos de texto */
++
++body.cliente input,
++body.cliente select,
++body.cliente textarea {
++    width: 100%;
++    padding: 10px 12px;
++    border: 1px solid transparent;
++    border-radius: 6px;
++    background: var(--gris-input);
++    font-family: var(--fuente);
++    font-size: 14px;
++    color: var(--negro);
++}
++
++body.cliente input::placeholder,
++body.cliente textarea::placeholder {
++    color: var(--gris-texto);
++}
++
++/* al hacer click en un campo se marca con el dorado */
++body.cliente input:focus,
++body.cliente select:focus,
++body.cliente textarea:focus {
++    outline: none;
++    border-color: var(--dorado);
++    background: var(--blanco);
++}
++
++/* dos campos en la misma fila (nombre y apellido) */
++body.cliente .fila {
++    display: flex;
++    gap: 8px;
++}
++
++/* sacar las flechitas de los campos numericos (DNI, comensales) */
++body.cliente input[type="number"]::-webkit-inner-spin-button,
++body.cliente input[type="number"]::-webkit-outer-spin-button {
++    -webkit-appearance: none;
++    margin: 0;
++}
++
++body.cliente input[type="number"] {
++    -moz-appearance: textfield;
++}
++
++
++/* Avisos */
++
++body.cliente .alerta {
++    width: 100%;
++    margin: 0 0 12px;
++    padding: 10px 14px;
++    border-radius: var(--radio);
++    font-size: 14px;
++    text-align: center;
++}
++
++body.cliente .alerta.error {
++    background: #FDECEA;
++    color: var(--error);
++}
++
++body.cliente .alerta.ok {
++    background: #E8F5E9;
++    color: var(--ok);
++}
++
++
++/*  Etiquetas redondeadas pj platos cuando pedis,  ● Abierto ahora */
++
++body.cliente .chip {
++    display: inline-block;
++    padding: 3px 10px;
++    border-radius: 999px;
++    background: var(--beige-claro);
++    color: var(--dorado-texto);
++    font-size: 12px;
++    font-weight: 500;
++}
++
++body.cliente .chip.verde {
++    background: #E8F5E9;
++    color: var(--ok);
++}
++
++
++/* Contador − 2 + (carta del delivery y "Tu pedido")  */
++
++body.cliente .contador {
++    display: flex;
++    align-items: center;
++    gap: 4px;
++    padding: 3px;
++    border-radius: 10px;
++    background: var(--beige-claro);
++}
++
++body.cliente .contador button {
++    width: 30px;
++    padding: 4px 0;
++    background: none;
++    color: var(--dorado-texto);
++    font-size: 17px;
++}
++
++body.cliente .contador button:hover {
++    background: rgba(0, 0, 0, 0.06);
++}
++
++body.cliente .contador span {
++    min-width: 20px;
++    text-align: center;
++    font-weight: 500;
++}
++
++body.cliente .contador.chico {
++    align-self: flex-start;
++}
++
++body.cliente .contador.chico button {
++    width: 24px;
++    font-size: 15px;
++}
++
++
++/* Lista de platos con total
++   La usamos en Tu pedido, el pago y la confirmación: foto chica, nombre,
++   "2 × $13.500" y el subtotal a la derecha. */
++
++body.cliente .lineas {
++    margin: 0;
++    padding: 0;
++    list-style: none;
++    display: flex;
++    flex-direction: column;
++    gap: 14px;
++}
++
++body.cliente .lineas li {
++    display: flex;
++    align-items: flex-start;
++    gap: 12px;
++}
++
++body.cliente .lineas img {
++    width: 54px;
++    height: 54px;
++    flex-shrink: 0;
++    border-radius: 10px;
++    object-fit: cover;
++    background: var(--beige-claro);
++}
++
++body.cliente .linea-info {
++    flex: 1;
++    display: flex;
++    flex-direction: column;
++    gap: 3px;
++    font-size: 13px;
++}
++
++body.cliente .linea-info strong {
++    font-weight: 500;
++}
++
++body.cliente .linea-info small {
++    color: var(--gris-texto);
++}
++
++/* título con dato a la derecha: "Tu pedido ........ 3 platos" */
++body.cliente .panel-titulo,
++body.cliente .resumen-titulo {
++    display: flex;
++    justify-content: space-between;
++    align-items: center;
++}
++
++/* "Total de lo peidio $43.500" */
++body.cliente .total {
++    display: flex;
++    justify-content: space-between;
++    align-items: baseline;
++    padding-top: 14px;
++    border-top: 1px solid #EFE6DA;
++}
++
++body.cliente .total span {
++    font-size: 17px;
++    font-weight: 500;
++}
++
++body.cliente .total strong {
++    font-size: 24px;
++    font-weight: 700;
++}
++
++
++/* Barra de navegación de abajo
++   INICIO · PEDIDOS · RESERVAS · PERFIL. pagina q estamos marcada en ddorado */
++
++body.cliente .nav-inferior {
++    position: fixed;
++    bottom: 20px;
++    left: 50%;
++    transform: translateX(-50%);   /* centrada */
++    display: flex;
++    gap: 4px;
++    padding: 4px;
++    background: #F2F2F5;
++    border: 1px solid var(--negro);
++    border-radius: 999px;
++    z-index: 10;
++}
++
++body.cliente .nav-inferior a {
++    padding: 8px 18px;
++    border-radius: 999px;
++    font-size: 12px;
++    font-weight: 500;
++    color: var(--negro);
++}
++
++body.cliente .nav-inferior a:hover {
++    text-decoration: none;
++    background: var(--beige-claro);
++}
++
++body.cliente .nav-inferior a.activo,
++body.cliente .nav-inferior a.activo:hover {
++    background: var(--dorado);
++}
++
++
++/* Tarjetas beige (Mis reservas y Mis pedidos)*/
++
++/* título centrado con un botón a la derecha */
++body.cliente .titulo-con-boton {
++    position: relative;
++    display: flex;
++    justify-content: center;
++    align-items: center;
++    margin: 8px 0 28px;
++}
++
++body.cliente .titulo-con-boton h1 {
++    margin: 0;
++    font-size: 30px;
++    font-weight: 400;
++}
++
++body.cliente .titulo-con-boton .boton-beige {
++    position: absolute;
++    right: 0;
++}
++
++/* las tarjetas se acomodan solas en columnas de 220px minimo de tamanio */
++body.cliente .tarjetas {
++    display: grid;
++    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
++    gap: 16px;
++}
++
++body.cliente .tarjeta {
++    display: flex;
++    flex-direction: column;
++    gap: 10px;
++    padding: 14px;
++    border-radius: 20px;
++    background: var(--beige);
++    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
++}
++
++/* fecha y hora más oscuras */
++body.cliente .tarjeta-fecha {
++    display: flex;
++    justify-content: center;
++    gap: 6px;
++}
++
++body.cliente .tarjeta-fecha span {
++    padding: 2px 10px;
++    border-radius: 999px;
++    background: rgba(0, 0, 0, 0.08);
++    font-size: 13px;
++}
++
++/* el estado, en mayúsculas y con color (los colores van en cada página) */
++body.cliente .estado {
++    margin: 0;
++    text-align: center;
++    font-size: 12px;
++    font-weight: 700;
++    letter-spacing: 0.5px;
++}
++
++/* comensales / zona / seña (o artículos / dirección / total) con ícono */
++body.cliente .tarjeta-datos {
++    margin: 0;
++    padding: 0 6px;
++    list-style: none;
++    display: flex;
++    flex-direction: column;
++    gap: 14px;
++    font-size: 13px;
++}
++
++body.cliente .tarjeta-datos .icono {
++    display: inline-block;
++    width: 26px;
++}
++
++
++
++/*boton sobre nosotros */
++
++body.cliente .boton-nosotros {
++    position: fixed;
++    top: 16px;
++    right: 16px;
++    z-index: 20;
++    padding: 9px 16px;          /* ahora el tamaño lo da el texto */
++    font-size: 13px;
++    font-weight: 500;
++    white-space: nowrap;        /* que no se parta en dos renglones */
++    border: 1px solid var(--borde-suave);
++    border-radius: 10px;
++    background: var(--blanco);
++    color: var(--dorado-texto);
++    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
++    transition: background 0.2s;
++}
++
++body.cliente .boton-nosotros:hover {
++    background: var(--beige-claro);
++    text-decoration: none;
++}
+diff --git a/web/src/main/resources/static/css/nona/base.css b/web/src/main/resources/static/css/nona/base.css
+new file mode 100644
+index 0000000..763ea23
+--- /dev/null
++++ b/web/src/main/resources/static/css/nona/base.css
+@@ -0,0 +1,46 @@
++/* 2. Base de las páginas con <body class="nona"> */
++
++/* ---------- 2. Base de la página ---------- */
++
++/* style.css centra todo en una columna angosta: acá se usa el ancho completo */
++body.cliente.nona {
++    display: block;
++    padding: 0 0 110px;            /* lugar para la barra de abajo */
++    background: var(--n-fondo);
++    color: var(--n-texto);
++    font-size: 16px;
++    line-height: 1.55;
++}
++
++body.cliente.nona.publico {
++    padding-bottom: 0;             /* el inicio público no tiene barra de abajo */
++}
++
++body.nona a {
++    color: var(--n-acento-texto);
++}
++
++body.nona img {
++    max-width: 100%;
++}
++
++/* el logo de arriba, con lugar para los botones fijos de tema y "Sobre nosotros" */
++body.nona .cabecera {
++    padding: 64px 16px 8px;
++    text-align: center;
++}
++
++body.nona .cabecera .logo {
++    width: 180px;
++    margin: 0 auto;
++}
++
++/* texto solo para lectores de pantalla */
++body.nona .oculto {
++    position: absolute;
++    width: 1px;
++    height: 1px;
++    overflow: hidden;
++    clip: rect(0 0 0 0);
++    white-space: nowrap;
++}
+diff --git a/web/src/main/resources/static/css/nona/colores.css b/web/src/main/resources/static/css/nona/colores.css
+new file mode 100644
+index 0000000..70dbb2f
+--- /dev/null
++++ b/web/src/main/resources/static/css/nona/colores.css
+@@ -0,0 +1,55 @@
++/* 1. Colores del diseño nuevo, modo claro y modo oscuro */
++
++/* ---------- 1. Colores ---------- */
++
++/* Modo claro. Todo el diseño usa estas variables: para cambiar un color
++   se cambia acá y se actualiza en todas las pantallas. */
++body.nona {
++    --n-fondo:        #FFFFFF;
++    --n-fondo-suave:  #FBF8F4;   /* franjas color crema */
++    --n-beige:        #F3E9DC;   /* franja "Sobre La Nona", contadores */
++    --n-tarjeta:      #FFFFFF;
++    --n-borde:        #EBD9C3;
++    --n-borde-campo:  #D9C7AF;
++    --n-texto:        #1A1A1A;
++    --n-texto-2:      #4A4A4A;   /* bajadas y párrafos */
++    --n-texto-3:      #6B6B6B;   /* aclaraciones chicas */
++    --n-acento:       #87612E;   /* fondo de los botones */
++    --n-sobre-acento: #FFFFFF;   /* texto encima de los botones */
++    --n-acento-texto: #7A5A2E;   /* precios y links */
++    --n-marron:       #9A6243;   /* "PRESENCIAL", "PEDIDO EN CURSO" */
++    --n-pie:          #1A1A1A;
++    --n-pie-texto:    #E8E1D8;
++
++    /* estados: fondo y texto de cada etiqueta */
++    --n-ok-fondo:     #E4F2E6;  --n-ok:     #2E7D32;
++    --n-aviso-fondo:  #FDF0CC;  --n-aviso:  #8A5608;
++    --n-info-fondo:   #E3EEFB;  --n-info:   #1F5FA8;
++    --n-error-fondo:  #FBE3E0;  --n-error:  #B3261E;
++    --n-neutro-fondo: #EDE8E4;  --n-neutro: #5E534B;
++}
++
++/* Modo oscuro: lo activa tema.js poniendo data-tema="oscuro" en <html> */
++[data-tema="oscuro"] body.nona {
++    --n-fondo:        #141210;
++    --n-fondo-suave:  #1B1815;
++    --n-beige:        #2A231C;
++    --n-tarjeta:      #201C18;
++    --n-borde:        #3A322A;
++    --n-borde-campo:  #54493E;
++    --n-texto:        #F1EBE3;
++    --n-texto-2:      #CFC6BA;
++    --n-texto-3:      #A69C90;
++    --n-acento:       #D3A867;   /* dorado claro: en oscuro el botón va con texto oscuro */
++    --n-sobre-acento: #1A1410;
++    --n-acento-texto: #E0BE84;
++    --n-marron:       #D9A27F;
++    --n-pie:          #0C0B09;
++    --n-pie-texto:    #CFC6BA;
++
++    --n-ok-fondo:     #1D3322;  --n-ok:     #8FD19A;
++    --n-aviso-fondo:  #3A2E10;  --n-aviso:  #F2C46B;
++    --n-info-fondo:   #16283D;  --n-info:   #8DB8EE;
++    --n-error-fondo:  #3D1A17;  --n-error:  #F19A92;
++    --n-neutro-fondo: #2C2621;  --n-neutro: #CFC6BA;
++}
+diff --git a/web/src/main/resources/static/css/nona/comunes.css b/web/src/main/resources/static/css/nona/comunes.css
+new file mode 100644
+index 0000000..4029c0f
+--- /dev/null
++++ b/web/src/main/resources/static/css/nona/comunes.css
+@@ -0,0 +1,278 @@
++/* 3. Piezas comunes: contenedor, títulos, botones, campos, estados, tarjeta de plato */
++
++/* ---------- 3. Piezas comunes ---------- */
++
++body.nona .contenedor {
++    max-width: 1200px;
++    margin: 0 auto;
++    padding-inline: 24px;
++}
++
++/* franjas de la página: cada sección es una franja de color */
++body.nona .franja             { padding-block: 88px; }
++body.nona .franja.suave       { background: var(--n-fondo-suave); }
++body.nona .franja.beige       { background: var(--n-beige); }
++
++body.nona .titulo-seccion,
++body.nona .titulo-pagina {
++    margin: 0;
++    font-family: var(--fuente-titulo);
++    font-weight: 600;
++    line-height: 1.1;
++    color: var(--n-texto);
++}
++
++body.nona .titulo-seccion { font-size: 40px; }
++body.nona .titulo-pagina  { font-size: 44px; }
++
++body.nona .bajada {
++    margin: 8px 0 0;
++    max-width: 40em;
++    font-size: 18px;
++    color: var(--n-texto-2);
++}
++
++body.nona .volanta {                 /* textito en mayúsculas arriba de un título */
++    margin: 0;
++    font-size: 13px;
++    font-weight: 600;
++    letter-spacing: 0.08em;
++    text-transform: uppercase;
++    color: var(--n-marron);
++}
++
++/* título a la izquierda y algo (link o botón) a la derecha */
++body.nona .encabezado-seccion {
++    display: flex;
++    flex-wrap: wrap;
++    justify-content: space-between;
++    align-items: flex-end;
++    gap: 16px;
++    margin-bottom: 32px;
++}
++
++/* grilla que se acomoda sola: tantas columnas como entren */
++body.nona .grilla {
++    display: grid;
++    grid-template-columns: repeat(auto-fit, minmax(min(250px, 100%), 1fr));
++    gap: 24px;
++}
++
++/* dos columnas que en pantallas chicas se apilan */
++body.nona .dos-columnas {
++    display: flex;
++    flex-wrap: wrap;
++    gap: 32px;
++    align-items: flex-start;
++}
++
++body.nona .dos-columnas > .principal { flex: 999 1 600px; min-width: 0; }
++body.nona .dos-columnas > .lateral   { flex: 1 1 340px;   min-width: 0; }
++
++/* caja blanca con borde */
++body.nona .caja {
++    background: var(--n-tarjeta);
++    border: 1px solid var(--n-borde);
++    border-radius: 16px;
++    padding: 24px;
++}
++
++/* --- botones --- */
++body.nona .btn {
++    display: inline-flex;
++    align-items: center;
++    justify-content: center;
++    gap: 8px;
++    width: auto;
++    min-height: 44px;
++    padding: 12px 24px;
++    border: 1px solid var(--n-acento);
++    border-radius: 8px;
++    background: var(--n-acento);
++    color: var(--n-sobre-acento);
++    font-family: var(--fuente);
++    font-size: 16px;
++    font-weight: 500;
++    line-height: 1.2;
++    text-decoration: none;
++    cursor: pointer;
++}
++
++body.nona .btn:hover {
++    filter: brightness(0.92);
++    text-decoration: none;
++}
++
++body.nona .btn-borde {
++    background: transparent;
++    color: var(--n-texto);
++    border-color: var(--n-texto);
++}
++
++body.nona .btn-suave {
++    background: var(--n-tarjeta);
++    color: var(--n-texto);
++    border-color: var(--n-borde-campo);
++}
++
++body.nona .btn-peligro {
++    background: var(--n-tarjeta);
++    color: var(--n-error);
++    border-color: var(--n-borde-campo);
++}
++
++body.nona .btn-bloque { width: 100%; }
++
++body.nona .btn.deshabilitado {
++    opacity: 0.5;
++    pointer-events: none;
++}
++
++body.nona .link-flecha {
++    font-weight: 500;
++    padding-block: 12px;
++}
++
++/* --- campos de formulario ---
++   style.css ya tiene una clase .campo (caja con borde para el formulario viejo):
++   acá se le sacan el borde y el recorte para usar el diseño nuevo */
++body.nona .campo {
++    display: flex;
++    flex-direction: column;
++    gap: 6px;
++    border: 0;
++    border-radius: 0;
++    overflow: visible;
++    font-size: 14px;
++    font-weight: 500;
++    color: var(--n-texto);
++}
++
++body.nona .campo span {
++    flex: none;
++    padding: 0;
++    border: 0;
++    font-size: inherit;
++}
++
++body.nona .campo input,
++body.nona .campo select,
++body.nona .campo textarea {
++    flex: none;
++    width: 100%;
++    margin: 0;
++    padding: 12px 14px;
++    border: 1px solid var(--n-borde-campo);
++    border-radius: 8px;
++    background: var(--n-tarjeta);
++    color: var(--n-texto);
++    font-family: var(--fuente);
++    font-size: 16px;
++    font-weight: 300;
++}
++
++body.nona .campo input:focus,
++body.nona .campo select:focus,
++body.nona .campo textarea:focus {
++    outline: 2px solid var(--n-acento);
++    outline-offset: 1px;
++}
++
++/* en modo oscuro, los íconos de fecha y hora en claro */
++[data-tema="oscuro"] body.nona .campo input {
++    color-scheme: dark;
++}
++
++/* --- etiquetas de estado (Confirmada, En camino, Entregado...) --- */
++body.nona .estado {
++    display: inline-block;
++    margin: 0;
++    padding: 5px 12px;
++    border-radius: 999px;
++    font-size: 13px;
++    font-weight: 600;
++    letter-spacing: 0;
++    text-transform: none;
++    white-space: nowrap;
++}
++
++body.nona .estado.ok     { background: var(--n-ok-fondo);     color: var(--n-ok); }
++body.nona .estado.aviso  { background: var(--n-aviso-fondo);  color: var(--n-aviso); }
++body.nona .estado.info   { background: var(--n-info-fondo);   color: var(--n-info); }
++body.nona .estado.error  { background: var(--n-error-fondo);  color: var(--n-error); }
++body.nona .estado.neutro { background: var(--n-neutro-fondo); color: var(--n-neutro); }
++
++body.nona .alerta {
++    margin: 0 0 16px;
++    padding: 12px 16px;
++    border-radius: 10px;
++}
++
++body.nona .alerta.error { background: var(--n-error-fondo); color: var(--n-error); }
++body.nona .alerta.ok    { background: var(--n-ok-fondo);    color: var(--n-ok); }
++
++body.nona .nota-caja {                /* aviso beige (la seña, por ejemplo) */
++    margin: 0;
++    padding: 12px 16px;
++    border-radius: 10px;
++    background: var(--n-beige);
++    color: var(--n-texto-2);
++    font-size: 15px;
++}
++
++body.nona .vacio {
++    color: var(--n-texto-3);
++    text-align: left;
++}
++
++/* --- tarjeta de plato (inicio y delivery) --- */
++body.nona .plato-card {
++    display: flex;
++    flex-direction: column;
++    overflow: hidden;
++    background: var(--n-tarjeta);
++    border: 1px solid var(--n-borde);
++    border-radius: 16px;
++}
++
++body.nona .plato-card img {
++    display: block;
++    width: 100%;
++    aspect-ratio: 3 / 2;
++    object-fit: cover;
++    background: #FFFFFF;             /* las fotos tienen fondo blanco */
++}
++
++body.nona .plato-card .cuerpo {
++    flex: 1;
++    display: flex;
++    flex-direction: column;
++    gap: 6px;
++    padding: 18px 20px 20px;
++}
++
++body.nona .plato-card h3 {
++    margin: 0;
++    font-size: 17px;
++    font-weight: 600;
++    line-height: 1.3;
++    color: var(--n-texto);
++}
++
++body.nona .plato-card p {
++    flex: 1;
++    margin: 0;
++    font-size: 14px;
++    color: var(--n-texto-3);
++}
++
++body.nona .precio {
++    font-size: 18px;
++    font-weight: 600;
++    color: var(--n-acento-texto);
++}
++
++/* --- barra de abajo (la de ustedes) un poco más alta para el dedo --- */
++body.nona .nav-inferior a {
++    padding: 10px 18px;
++}
+diff --git a/web/src/main/resources/static/css/nona/cuenta.css b/web/src/main/resources/static/css/nona/cuenta.css
+new file mode 100644
+index 0000000..72ecb95
+--- /dev/null
++++ b/web/src/main/resources/static/css/nona/cuenta.css
+@@ -0,0 +1,73 @@
++/* 7. Mi cuenta, pedidos y reservas (perfil, pedidos, reservas) */
++
++/* ---------- 7. Mi cuenta, pedidos y reservas ---------- */
++
++body.nona .saludo { margin: 0; color: var(--n-texto-3); }
++
++body.nona .lista {
++    display: flex;
++    flex-direction: column;
++    gap: 16px;
++}
++
++body.nona .lista h2,
++body.nona .datos-cuenta h2 {
++    margin: 0;
++    font-size: 24px;
++    font-weight: 600;
++}
++
++/* el pedido que está en camino, destacado */
++body.nona .pedido-curso {
++    display: flex;
++    flex-direction: column;
++    gap: 16px;
++    border: 2px solid var(--n-acento);
++}
++
++body.nona .pedido-curso h3 { margin: 4px 0 0; font-size: 22px; font-weight: 600; }
++body.nona .pedido-curso .encabezado-seccion { margin: 0; }
++body.nona .pedido-curso .btn { align-self: flex-start; }
++body.nona .pedido-curso .detalle { margin: 0; color: var(--n-texto-2); }
++
++/* fila de botones que se acomoda sola */
++body.nona .botones {
++    display: flex;
++    flex-wrap: wrap;
++    gap: 12px;
++}
++
++/* una fila de pedido o de reserva */
++body.nona .item {
++    display: flex;
++    flex-wrap: wrap;
++    justify-content: space-between;
++    align-items: center;
++    gap: 12px 16px;
++    padding: 20px 24px;
++}
++
++body.nona .item .titulo   { margin: 0; font-weight: 600; font-size: 17px; }
++body.nona .item .detalle  { margin: 0; color: var(--n-texto-2); font-size: 15px; }
++body.nona .item-acciones   { display: flex; flex-wrap: wrap; gap: 8px; }
++body.nona .item form      { margin: 0; }
++
++body.nona .datos-cuenta {
++    display: flex;
++    flex-direction: column;
++    gap: 12px;
++}
++
++body.nona .datos-cuenta dl {
++    display: grid;
++    grid-template-columns: max-content 1fr;
++    gap: 8px 16px;
++    margin: 0;
++    font-size: 15px;
++}
++
++body.nona .datos-cuenta dt { color: var(--n-texto-3); }
++body.nona .datos-cuenta dd { margin: 0; overflow-wrap: anywhere; }
++
++body.nona .detalle-reserva summary { cursor: pointer; font-size: 14px; font-weight: 500; color: var(--n-acento-texto); }
++body.nona .detalle-reserva p       { margin: 4px 0 0; font-size: 14px; color: var(--n-texto-3); }
+diff --git a/web/src/main/resources/static/css/nona/delivery.css b/web/src/main/resources/static/css/nona/delivery.css
+new file mode 100644
+index 0000000..e6dac8c
+--- /dev/null
++++ b/web/src/main/resources/static/css/nona/delivery.css
+@@ -0,0 +1,182 @@
++/* 5. Delivery (cliente/delivery.html) */
++
++/* ---------- 5. Delivery ---------- */
++
++body.nona .pagina {
++    padding-block: 24px 48px;
++}
++
++body.nona .pagina-cabecera {
++    display: flex;
++    flex-wrap: wrap;
++    justify-content: space-between;
++    align-items: flex-end;
++    gap: 16px;
++    margin-bottom: 24px;
++}
++
++body.nona .abierto {
++    margin: 0;
++    font-size: 14px;
++    font-weight: 500;
++    color: var(--n-ok);
++}
++
++body.nona .buscador-nona {
++    flex: 0 1 360px;
++    display: flex;
++    align-items: center;
++    gap: 10px;
++    padding: 2px 18px;
++    border: 1px solid var(--n-borde-campo);
++    border-radius: 999px;
++    background: var(--n-tarjeta);
++}
++
++body.nona .buscador-nona svg { flex-shrink: 0; stroke: var(--n-texto-3); }
++
++body.nona .buscador-nona input {
++    flex: 1;
++    min-width: 0;
++    margin: 0;
++    padding: 10px 0;
++    border: 0;
++    outline: none;
++    background: transparent;
++    color: var(--n-texto);
++    font-family: var(--fuente);
++    font-size: 16px;
++}
++
++body.nona .grid-delivery {
++    display: grid;
++    grid-template-columns: repeat(auto-fill, minmax(min(230px, 100%), 1fr));
++    gap: 20px;
++}
++
++body.nona .plato-pie {
++    display: flex;
++    align-items: center;
++    justify-content: space-between;
++    gap: 8px;
++    margin-top: 10px;
++}
++
++/* botón "+ Agregar" */
++body.nona button.agregar {
++    width: auto;
++    min-height: 44px;
++    padding: 10px 16px;
++    border: 1px solid var(--n-acento);
++    border-radius: 999px;
++    background: var(--n-tarjeta);
++    color: var(--n-acento-texto);
++    font-family: var(--fuente);
++    font-size: 15px;
++    font-weight: 500;
++    cursor: pointer;
++}
++
++body.nona button.agregar:hover { background: var(--n-beige); }
++
++/* contador − 2 + */
++body.nona .contador {
++    display: inline-flex;
++    align-items: center;
++    gap: 4px;
++    padding: 2px;
++    border-radius: 999px;
++    background: var(--n-beige);
++}
++
++body.nona .contador button {
++    width: 40px;
++    height: 40px;
++    padding: 0;
++    border: 0;
++    border-radius: 999px;
++    background: var(--n-tarjeta);
++    color: var(--n-texto);
++    font-size: 20px;
++    line-height: 1;
++    cursor: pointer;
++}
++
++body.nona .contador button:last-child {
++    background: var(--n-acento);
++    color: var(--n-sobre-acento);
++}
++
++body.nona .contador span {
++    min-width: 24px;
++    text-align: center;
++    font-weight: 600;
++}
++
++/* panel "Tu pedido" */
++body.nona .panel-nona {
++    position: sticky;
++    top: 24px;
++    display: flex;
++    flex-direction: column;
++    gap: 18px;
++}
++
++body.nona .panel-nona h2 {
++    margin: 0;
++    font-size: 22px;
++    font-weight: 600;
++}
++
++body.nona .lineas-nona {
++    display: flex;
++    flex-direction: column;
++    gap: 14px;
++    margin: 0;
++    padding: 0;
++    list-style: none;
++}
++
++body.nona .lineas-nona li {
++    display: flex;
++    align-items: center;
++    gap: 12px;
++}
++
++body.nona .lineas-nona img {
++    width: 56px;
++    height: 56px;
++    object-fit: cover;
++    border-radius: 10px;
++    background: #FFFFFF;
++}
++
++body.nona .lineas-nona .info {
++    flex: 1;
++    min-width: 0;
++    display: flex;
++    flex-direction: column;
++    gap: 4px;
++    font-size: 15px;
++}
++
++body.nona .lineas-nona small { color: var(--n-texto-3); font-size: 14px; }
++
++body.nona .total-nona {
++    display: flex;
++    justify-content: space-between;
++    padding-top: 16px;
++    border-top: 1px solid var(--n-borde);
++    font-size: 20px;
++    font-weight: 600;
++}
++
++body.nona .aclaracion-nona {
++    margin: 0;
++    font-size: 13px;
++    color: var(--n-texto-3);
++    text-align: center;
++}
++
++body.nona .nota summary { cursor: pointer; font-weight: 500; }
++body.nona .nota .campo  { margin-top: 8px; }
+diff --git a/web/src/main/resources/static/css/nona/inicio.css b/web/src/main/resources/static/css/nona/inicio.css
+new file mode 100644
+index 0000000..57e3c28
+--- /dev/null
++++ b/web/src/main/resources/static/css/nona/inicio.css
+@@ -0,0 +1,115 @@
++/* 4. Inicio público (cliente/landing.html) */
++
++/* ---------- 4. Inicio público ---------- */
++
++body.nona .acceso {
++    display: flex;
++    flex-direction: column;
++    align-items: center;
++    gap: 6px;
++    padding: 8px 16px 40px;
++    text-align: center;
++}
++
++body.nona .acceso small {
++    color: var(--n-texto-3);
++}
++
++/* Nuestros espacios: una raya dorada arriba de cada uno */
++body.nona .espacio {
++    padding-top: 20px;
++    border-top: 3px solid var(--n-acento);
++}
++
++body.nona .espacio h3 {
++    margin: 0 0 6px;
++    font-size: 22px;
++    font-weight: 600;
++}
++
++body.nona .espacio p {
++    margin: 0;
++    color: var(--n-texto-2);
++}
++
++/* Sobre La Nona */
++body.nona .sobre {
++    display: flex;
++    flex-wrap: wrap;
++    align-items: center;
++    gap: 48px;
++}
++
++body.nona .sobre > div       { flex: 1 1 420px; min-width: 0; }
++body.nona .sobre > .caja     { flex: 1 1 340px; }
++body.nona .sobre p           { font-size: 18px; color: var(--n-texto-2); }
++body.nona .sobre ul          { margin: 8px 0 0; padding-left: 20px; }
++
++/* Contacto */
++body.nona .contacto {
++    display: flex;
++    flex-wrap: wrap;
++    gap: 48px;
++}
++
++body.nona .contacto > div    { flex: 1 1 320px; min-width: 0; }
++body.nona .contacto > form   { flex: 2 1 480px; min-width: 0; }
++
++body.nona .datos {
++    display: grid;
++    grid-template-columns: max-content 1fr;
++    gap: 10px 20px;
++    margin: 24px 0 0;
++}
++
++body.nona .datos dt { font-weight: 600; }
++body.nona .datos dd { margin: 0; color: var(--n-texto-2); }
++
++body.nona .formulario {
++    display: grid;
++    grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr));
++    gap: 16px;
++}
++
++body.nona .formulario .ancho-total { grid-column: 1 / -1; }
++body.nona .formulario .btn         { justify-self: start; }
++
++/* Pie de página */
++body.nona .pie-sitio {
++    background: var(--n-pie);
++    color: var(--n-pie-texto);
++}
++
++body.nona .pie-sitio .contenedor {
++    display: flex;
++    flex-wrap: wrap;
++    justify-content: space-between;
++    gap: 24px 32px;
++    padding-block: 48px;
++}
++
++body.nona .pie-sitio .marca {
++    margin: 0;
++    font-family: var(--fuente-titulo);
++    font-size: 28px;
++    color: #FFFFFF;
++}
++
++body.nona .pie-sitio p,
++body.nona .pie-sitio a {
++    margin: 0;
++    font-size: 14px;
++    color: var(--n-pie-texto);
++}
++
++body.nona .pie-sitio nav {
++    display: flex;
++    flex-wrap: wrap;
++    gap: 8px 20px;
++}
++
++body.nona .pie-sitio .copy {
++    flex-basis: 100%;
++    padding-top: 20px;
++    border-top: 1px solid #3A3A3A;
++}
+diff --git a/web/src/main/resources/static/css/nona/reservar.css b/web/src/main/resources/static/css/nona/reservar.css
+new file mode 100644
+index 0000000..972eb18
+--- /dev/null
++++ b/web/src/main/resources/static/css/nona/reservar.css
+@@ -0,0 +1,82 @@
++/* 6. Reservar (cliente/reserva-nueva.html) */
++
++/* ---------- 6. Reservar ---------- */
++
++body.nona .volver-link {
++    display: inline-block;
++    padding-block: 8px;
++    font-size: 15px;
++    font-weight: 500;
++}
++
++body.nona fieldset.paso {
++    display: flex;
++    flex-direction: column;
++    gap: 14px;
++    margin: 0;
++    padding: 0;
++    border: 0;
++}
++
++body.nona fieldset.paso + fieldset.paso { margin-top: 28px; }
++
++body.nona fieldset.paso legend {
++    margin-bottom: 14px;
++    padding: 0;
++    font-size: 20px;
++    font-weight: 600;
++    color: var(--n-texto);
++}
++
++body.nona .campos {
++    display: grid;
++    grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr));
++    gap: 16px;
++}
++
++/* las zonas como tarjetas para elegir */
++body.nona .opcion-zona {
++    display: flex;
++    align-items: flex-start;
++    gap: 12px;
++    padding: 16px;
++    border: 1px solid var(--n-borde-campo);
++    border-radius: 12px;
++    background: var(--n-tarjeta);
++    cursor: pointer;
++}
++
++body.nona .opcion-zona input {
++    width: 20px;
++    height: 20px;
++    margin: 2px 0 0;
++    accent-color: var(--n-acento);
++}
++
++body.nona .opcion-zona strong { display: block; font-weight: 600; }
++body.nona .opcion-zona small  { color: var(--n-texto-3); font-size: 14px; }
++
++body.nona .opcion-zona:has(input:checked) {
++    border: 2px solid var(--n-acento);
++    padding: 15px;
++    background: var(--n-fondo-suave);
++}
++
++body.nona .resumen {
++    display: flex;
++    flex-direction: column;
++    gap: 16px;
++}
++
++body.nona .resumen h2 { margin: 0; font-size: 22px; font-weight: 600; }
++
++body.nona .resumen dl {
++    display: grid;
++    grid-template-columns: max-content 1fr;
++    gap: 10px 16px;
++    margin: 0;
++    font-size: 15px;
++}
++
++body.nona .resumen dt { color: var(--n-texto-3); }
++body.nona .resumen dd { margin: 0; font-weight: 500; }
+diff --git a/web/src/main/resources/static/css/nona/responsive.css b/web/src/main/resources/static/css/nona/responsive.css
+new file mode 100644
+index 0000000..e0d40ee
+--- /dev/null
++++ b/web/src/main/resources/static/css/nona/responsive.css
+@@ -0,0 +1,32 @@
++/* 8. Celulares y tablets */
++
++/* ---------- 8. Celulares y tablets ---------- */
++
++/* tablets y celulares grandes */
++@media (max-width: 900px) {
++    body.nona .franja          { padding-block: 64px; }
++    body.nona .titulo-seccion  { font-size: 34px; }
++    body.nona .titulo-pagina   { font-size: 36px; }
++    body.nona .panel-nona      { position: static; }   /* el carrito ya no queda fijo */
++}
++
++/* celulares */
++@media (max-width: 600px) {
++    body.nona .contenedor      { padding-inline: 16px; }
++    body.nona .franja          { padding-block: 48px; }
++    body.nona .titulo-seccion  { font-size: 30px; }
++    body.nona .titulo-pagina   { font-size: 30px; }
++    body.nona .bajada          { font-size: 16px; }
++    body.nona .caja            { padding: 20px; }
++    body.nona .item            { padding: 16px; }
++    body.nona .sobre,
++    body.nona .contacto        { gap: 28px; }
++    body.nona .cabecera .logo  { width: 150px; }
++    body.nona .buscador-nona   { flex-basis: 100%; }
++    body.nona .formulario .btn { justify-self: stretch; }
++}
++
++/* celulares muy angostos: la barra de abajo entra entera */
++@media (max-width: 380px) {
++    body.nona .nav-inferior a  { padding: 10px 10px; font-size: 11px; }
++}
+diff --git a/web/src/main/resources/static/css/paginas/delivery-pago.css b/web/src/main/resources/static/css/paginas/delivery-pago.css
+new file mode 100644
+index 0000000..b7dcca4
+--- /dev/null
++++ b/web/src/main/resources/static/css/paginas/delivery-pago.css
+@@ -0,0 +1,178 @@
++/* cliente/delivery-pago.html */
++
++/* ===================================================================
++   -- DELIVERY: PAGO --                    cliente/delivery-pago.html
++   Tres columnas: medio de pago (beige) · entrega y tarjeta · resumen.
++   ⚠️ ADAPTADO AL BACKEND: el pago es SIMULADO. Los datos de la tarjeta
++   no se envían ni se guardan; el backend solo guarda el método
++   (TARJETA, QR o EFECTIVO). Mercado Pago y MODO van como QR.
++   =================================================================== */
++
++body.cliente .pago {
++    width: 100%;
++    min-height: 100vh;
++    display: grid;
++    grid-template-columns: 320px 1fr 360px;
++    background: var(--blanco);
++}
++
++body.cliente .pago > section {
++    padding: 36px 32px;
++    display: flex;
++    flex-direction: column;
++    gap: 12px;
++}
++
++body.cliente .pago h3 {
++    margin: 10px 0 4px;
++    font-size: 17px;
++    font-weight: 500;
++}
++
++/* --- columna izquierda: medio de pago --- */
++body.cliente .pago-medios {
++    background: #F6F1EA;
++}
++
++body.cliente .pago-medios .chip {
++    align-self: flex-start;
++}
++
++body.cliente .pago-medios h1 {
++    margin: 4px 0 0;
++    font-size: 30px;
++    font-weight: 500;
++    line-height: 1.3;
++}
++
++body.cliente .pago-medios p {
++    margin: 0 0 12px;
++    color: var(--gris-texto);
++    font-size: 14px;
++}
++
++/* cada medio es una caja que se marca al elegirla */
++body.cliente .medio {
++    display: flex;
++    align-items: center;
++    gap: 12px;
++    padding: 12px 14px;
++    border: 1px solid #E6DED3;
++    border-radius: 12px;
++    background: var(--blanco);
++    cursor: pointer;
++}
++
++body.cliente .medio input {
++    order: 3;                 /* el circulito queda a la derecha, como en Figma */
++    width: 18px;
++    height: 18px;
++    padding: 0;
++    accent-color: var(--dorado);
++}
++
++body.cliente .medio div {
++    flex: 1;
++    display: flex;
++    flex-direction: column;
++    font-size: 13px;
++}
++
++body.cliente .medio small {
++    color: var(--gris-texto);
++    font-size: 11px;
++}
++
++/* :has() = "la caja que TIENE adentro el circulito marcado" */
++body.cliente .medio:has(input:checked) {
++    border: 2px solid var(--dorado);
++    background: var(--beige-claro);
++}
++
++/* --- columna del centro: entrega y tarjeta --- */
++body.cliente .pago-datos {
++    position: relative;
++}
++
++body.cliente .pago-datos .logo.chico {
++    width: 90px;
++}
++
++body.cliente .pago-datos h2 {
++    margin: 0 0 8px;
++    text-align: center;
++    font-size: 18px;
++    font-weight: 500;
++}
++
++body.cliente .pago-datos label {
++    display: flex;
++    flex-direction: column;
++    gap: 6px;
++    font-size: 13px;
++    font-weight: 500;
++}
++
++body.cliente .pago-datos input {
++    padding: 12px;
++    border: 1px solid #EFE6DA;
++    background: var(--crema);
++}
++
++/* flechita "←" para volver a la carta */
++body.cliente .volver {
++    position: absolute;
++    top: 32px;
++    left: 32px;
++    width: 38px;
++    height: 38px;
++    border-radius: 50%;
++    background: var(--beige-claro);
++    display: grid;
++    place-items: center;
++}
++
++body.cliente .visa {
++    float: right;
++    color: var(--dorado-texto);
++    font-weight: 700;
++    font-style: italic;
++}
++
++/* los datos de la tarjeta solo se ven si está elegida "Tarjeta" */
++body.cliente .datos-tarjeta {
++    display: none;
++    flex-direction: column;
++    gap: 12px;
++}
++
++body.cliente .pago:has(input[value="TARJETA"]:checked) .datos-tarjeta {
++    display: flex;
++}
++
++body.cliente .datos-tarjeta .fila label {
++    flex: 1;
++}
++
++/* --- columna derecha: resumen --- */
++body.cliente .pago-resumen {
++    border-left: 1px solid #EFE6DA;
++}
++
++body.cliente .pago-resumen h3 {
++    margin: 0;
++}
++
++body.cliente .pago-resumen button {
++    margin-top: 8px;
++    justify-content: center;
++    gap: 10px;
++}
++
++body.cliente .nota-resumen {
++    margin: 0;
++    padding: 8px 10px;
++    border-radius: 8px;
++    background: var(--crema);
++    font-size: 12px;
++}
+diff --git a/web/src/main/resources/static/css/paginas/delivery.css b/web/src/main/resources/static/css/paginas/delivery.css
+new file mode 100644
+index 0000000..95b6c59
+--- /dev/null
++++ b/web/src/main/resources/static/css/paginas/delivery.css
+@@ -0,0 +1,202 @@
++/* cliente/delivery.html */
++
++/* ===================================================================
++   -- DELIVERY: CARTA --                        cliente/delivery.html
++   Arriba la portada; abajo la grilla de platos (izquierda) y el panel
++   "Tu pedido" (derecha), que se queda quieto al bajar con el scroll.
++   =================================================================== */
++
++/* --- portada beige con foto (static/img/hero.jpg) --- */
++body.cliente .hero {
++    width: 100%;
++    max-width: 1200px;
++    margin: 0 auto 28px;
++    display: grid;
++    grid-template-columns: 3fr 2fr;
++    border-radius: 16px;
++    overflow: hidden;
++    background: var(--beige-claro);
++}
++
++body.cliente .hero-texto {
++    padding: 32px;
++}
++
++body.cliente .hero-texto h1 {
++    margin: 14px 0 8px;
++    font-size: 34px;
++    font-weight: 700;
++    line-height: 1.2;
++}
++
++body.cliente .hero-texto p {
++    margin: 0 0 10px;
++    color: var(--gris-texto);
++}
++
++body.cliente .hero-texto .hero-datos {
++    color: var(--negro);
++}
++
++/* si no está hero.jpg, queda el bloque beige */
++body.cliente .hero-foto {
++    min-height: 200px;
++    background: var(--beige) url('img/fotoPedidos.png') center / cover no-repeat;
++}
++
++/* --- las dos columnas --- */
++body.cliente .delivery {
++    width: 100%;
++    max-width: 1200px;
++    margin: 0 auto;
++    display: grid;
++    grid-template-columns: 1fr 360px;
++    gap: 28px;
++    align-items: start;
++}
++
++body.cliente .buscador {
++    margin-bottom: 20px;
++    padding: 12px 16px;
++    border: 1px solid #E6DED3;
++    border-radius: 12px;
++    background: var(--blanco);
++}
++
++body.cliente .seccion {
++    margin: 0;
++    font-size: 24px;
++    font-weight: 500;
++}
++
++body.cliente .sub {
++    margin: 2px 0 16px;
++    color: var(--gris-texto);
++    font-size: 14px;
++}
++
++/* --- grilla de tarjetas de platos --- */
++body.cliente .grid-platos {
++    display: grid;
++    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
++    gap: 18px;
++}
++
++body.cliente .card-plato {
++    display: flex;
++    flex-direction: column;
++    border: 1px solid var(--borde-suave);
++    border-radius: 14px;
++    background: var(--blanco);
++    overflow: hidden;
++}
++
++/* la foto entera, sin recortar el plato */
++body.cliente .card-plato img {
++    width: 100%;
++    aspect-ratio: 16 / 8;
++    object-fit: contain;
++    padding-top: 8px;
++    background: var(--blanco);
++}
++
++body.cliente .card-cuerpo {
++    flex: 1;
++    display: flex;
++    flex-direction: column;
++    padding: 14px 16px;
++}
++
++body.cliente .card-cuerpo h3 {
++    margin: 0 0 6px;
++    font-size: 16px;
++    font-weight: 500;
++}
++
++body.cliente .card-cuerpo p {
++    flex: 1;
++    margin: 0 0 14px;
++    color: var(--gris-texto);
++    font-size: 13px;
++}
++
++body.cliente .card-pie {
++    display: flex;
++    justify-content: space-between;
++    align-items: center;
++}
++
++body.cliente .card-pie strong {
++    font-size: 17px;
++    font-weight: 500;
++}
++
++/* botón "+ Agregar" */
++body.cliente button.agregar {
++    width: auto;
++    padding: 6px 14px;
++    background: #FBF3E9;
++    color: var(--dorado-texto);
++    font-weight: 500;
++}
++
++body.cliente button.agregar:hover {
++    background: var(--beige-claro);
++}
++
++/* --- panel "Tu pedido" (sticky: queda quieto arriba al bajar) --- */
++body.cliente .panel-pedido {
++    position: sticky;
++    top: 16px;
++    display: flex;
++    flex-direction: column;
++    gap: 14px;
++    padding: 20px;
++    border: 1px solid var(--borde-suave);
++    border-radius: 16px;
++    background: var(--blanco);
++}
++
++body.cliente .panel-titulo h2 {
++    margin: 0;
++    font-size: 22px;
++    font-weight: 500;
++}
++
++/* ⚠️ ADAPTADO AL BACKEND: en Figma se puede elegir "Retiro en local".
++   El backend solo hace envíos a domicilio: queda fijo "Delivery". */
++body.cliente .modo-entrega {
++    padding: 10px;
++    border-radius: 10px;
++    background: #F6F1EA;
++    text-align: center;
++    font-size: 13px;
++    font-weight: 500;
++}
++
++/* "Agregar una nota a la cocina" */
++body.cliente .nota summary {
++    color: var(--dorado-texto);
++    font-size: 13px;
++    font-weight: 500;
++    cursor: pointer;
++}
++
++body.cliente .nota textarea {
++    margin-top: 8px;
++    padding: 8px;
++    border: 1px solid #E6DED3;
++    border-radius: 8px;
++    background: var(--blanco);
++    font-size: 13px;
++    resize: vertical;
++}
++
++body.cliente .pie {
++    display: block;
++    width: 100%;
++    max-width: 1200px;
++    margin: 24px auto 0;
++    color: var(--gris-texto);
++    font-size: 12px;
++}
+diff --git a/web/src/main/resources/static/css/paginas/elegir.css b/web/src/main/resources/static/css/paginas/elegir.css
+new file mode 100644
+index 0000000..3d19dfc
+--- /dev/null
++++ b/web/src/main/resources/static/css/paginas/elegir.css
+@@ -0,0 +1,46 @@
++/* cliente/elegir.html */
++
++/* ===================================================================
++   -- ELEGIR --                                   cliente/elegir.html
++   Dos opciones grandes una debajo de la otra: PRESENCIAL y DELIVERY.
++   =================================================================== */
++
++body.cliente .elegir {
++    display: flex;
++    flex-direction: column;
++    align-items: center;
++    gap: 64px;
++    margin-top: 16px;
++}
++
++body.cliente .opcion {
++    display: flex;
++    flex-direction: column;
++    align-items: center;
++    gap: 12px;
++    transition: transform 0.2s;
++}
++
++/* al pasar el mouse la opción se agranda un poquito */
++body.cliente .opcion:hover {
++    transform: scale(1.05);
++    text-decoration: none;
++}
++
++body.cliente .opcion img {
++    width: 130px;
++    height: 130px;
++    object-fit: contain;
++}
++
++body.cliente .opcion span {
++    font-family: var(--fuente-titulo);
++    font-size: 26px;
++    font-weight: 500;
++    letter-spacing: 0.5px;
++    color: var(--marron);
++}
++
++body.cliente .elegir + .cerrar-sesion button {
++    margin-top: 48px;
++}
+diff --git a/web/src/main/resources/static/css/paginas/inicio.css b/web/src/main/resources/static/css/paginas/inicio.css
+new file mode 100644
+index 0000000..1e5b9de
+--- /dev/null
++++ b/web/src/main/resources/static/css/paginas/inicio.css
+@@ -0,0 +1,61 @@
++/* cliente/inicio.html · platos en zigzag */
++
++/* ---------- Página de inicio: platos en zigzag ---------- */
++
++body.cliente .menu-inicio {
++    max-width: 700px;
++    margin: 0 auto;
++    padding: 24px 16px 120px;   /* abajo deja lugar para la barra fija */
++    display: flex;
++    flex-direction: column;
++    gap: 28px;
++}
++
++body.cliente .plato {
++    display: grid;
++    grid-template-columns: 1fr 1fr;
++    align-items: center;
++    gap: 24px;
++}
++
++/* en las filas invertidas la imagen va a la izquierda */
++body.cliente .plato.invertido .plato-imagen {
++    order: -1;
++}
++
++body.cliente .plato-texto {
++    text-align: center;
++    font-size: 13px;
++    line-height: 1.5;
++}
++
++body.cliente .plato-texto h3 {
++    margin: 0 0 4px;
++    font-size: 14px;
++    font-weight: 500;
++}
++
++body.cliente .plato-texto p {
++    margin: 0 0 4px;
++}
++
++body.cliente .plato-texto .precio {
++    font-weight: 600;
++}
++
++body.cliente .plato-imagen {
++    width: 100%;
++    aspect-ratio: 3 / 2;
++    object-fit: cover;          /* recorta la foto sin deformarla */
++    border-radius: 50%;         /* forma ovalada como en Figma */
++}
++
++/* en celular: una columna, imagen arriba y texto abajo */
++@media (max-width: 600px) {
++    body.cliente .plato {
++        grid-template-columns: 1fr;
++    }
++    body.cliente .plato .plato-imagen {
++        order: -1;
++    }
++}
+diff --git a/web/src/main/resources/static/css/paginas/landing.css b/web/src/main/resources/static/css/paginas/landing.css
+new file mode 100644
+index 0000000..60995d2
+--- /dev/null
++++ b/web/src/main/resources/static/css/paginas/landing.css
+@@ -0,0 +1,101 @@
++/* cliente/landing.html */
++
++/* ===================================================================
++   -- LANDING --                                 cliente/landing.html
++   La carta pública: platos en zigzag (texto · foto / foto · texto)
++   y el botón "Iniciar / Registrarme" FIJO abajo.
++   =================================================================== */
++
++body.cliente header {
++    margin-bottom: 32px;
++}
++
++body.cliente .carta {
++    width: 100%;
++    max-width: 640px;
++    display: flex;
++    flex-direction: column;
++    gap: 16px;
++}
++
++/* cada plato: foto y texto uno al lado del otro */
++body.cliente .plato {
++    display: flex;
++    align-items: center;
++    gap: 24px;
++}
++
++/* zigzag: en los platos impares (1°, 3°, 5°...) el texto va a la
++   izquierda y la foto a la derecha. En el HTML siempre va primero
++   la foto: el orden visual lo da el CSS. */
++body.cliente .plato:nth-child(odd) {
++    flex-direction: row-reverse;
++}
++
++/* la foto ovalada. object-fit: cover la recorta sin deformarla.
++   ⚠️ ADAPTADO AL BACKEND: el plato (Menu) no guarda imagen. Cada foto
++   se busca por el número del plato: static/img/platos/1.jpg, 2.jpg... */
++body.cliente .plato img {
++    flex: 1;
++    width: 50%;
++    aspect-ratio: 3 / 2;
++    object-fit: cover;
++    border-radius: 50%;
++    background: var(--beige-claro);
++}
++
++body.cliente .plato div {
++    flex: 1;
++    text-align: center;
++    font-size: 14px;
++}
++
++body.cliente .plato h3 {
++    margin: 0 0 4px;
++    font-size: 15px;
++    font-weight: 500;
++}
++
++body.cliente .plato p {
++    margin: 0 0 4px;
++}
++
++body.cliente .plato strong {
++    font-weight: 700;
++}
++
++/* --- "Iniciar / Registrarme" fijo abajo ---
++   position: fixed lo deja pegado a la pantalla: cuando bajás con el
++   scroll, los platos pasan por detrás y el botón queda siempre a mano. */
++body.cliente .acciones {
++    position: fixed;
++    left: 0;
++    right: 0;
++    bottom: 0;
++    z-index: 10;
++    display: flex;
++    flex-direction: column;
++    align-items: center;
++    gap: 6px;
++    padding: 14px 16px 18px;
++    /* blanco semitransparente con desenfoque: se ve que hay contenido detrás */
++    background: rgba(255, 255, 255, 0.92);
++    backdrop-filter: blur(6px);
++    border-top: 1px solid #F0EAE2;
++}
++
++body.cliente .acciones .boton {
++    width: auto;
++    padding: 10px 36px;
++    color: var(--blanco);
++}
++
++body.cliente .acciones small {
++    color: var(--gris-texto);
++    font-size: 13px;
++}
++
++/* lugar abajo para que el último plato no quede tapado por el botón */
++body.cliente:has(> .acciones) {
++    padding-bottom: 130px;
++}
+diff --git a/web/src/main/resources/static/css/paginas/login.css b/web/src/main/resources/static/css/paginas/login.css
+new file mode 100644
+index 0000000..e11fa10
+--- /dev/null
++++ b/web/src/main/resources/static/css/paginas/login.css
+@@ -0,0 +1,43 @@
++/* cliente/login.html */
++
++/* ===================================================================
++   -- LOGIN --                                     cliente/login.html
++   Columna angosta y centrada (<main class="auth">), logo grande.
++   ⚠️ ADAPTADO AL BACKEND: en Figma solo está el email y "Continuar".
++   Se agregó la contraseña porque Spring Security valida los dos juntos.
++   Tampoco está "¿Olvidaste tu correo?": el backend no manda mails.
++   =================================================================== */
++
++body.cliente .auth {
++    width: 100%;
++    max-width: 300px;
++    display: flex;
++    flex-direction: column;
++    align-items: center;
++    text-align: center;
++}
++
++body.cliente .auth form {
++    width: 100%;
++    display: flex;
++    flex-direction: column;
++    gap: 10px;
++}
++
++body.cliente .auth .logo {
++    width: 280px;
++    margin: 40px auto 56px;
++}
++
++body.cliente .auth h1 {
++    margin: 0 0 16px;
++    font-size: 17px;
++    font-weight: 400;
++}
++
++/* link "Crear cuenta" / "Ya tengo cuenta", a la derecha */
++body.cliente .auth > a {
++    align-self: flex-end;
++    margin-top: 12px;
++    font-size: 13px;
++}
+diff --git a/web/src/main/resources/static/css/paginas/nosotros.css b/web/src/main/resources/static/css/paginas/nosotros.css
+new file mode 100644
+index 0000000..15d0d4f
+--- /dev/null
++++ b/web/src/main/resources/static/css/paginas/nosotros.css
+@@ -0,0 +1,86 @@
++/* cliente/nosotros.html */
++
++/* ===================================================================
++   -- SOBRE NOSOTROS --                         cliente/nosotros.html
++   Los 4 integrantes del grupo en tarjetas, con sus mails.
++   Página pública: se llega con el botón de la persona (arriba a la derecha).
++   =================================================================== */
++
++body.cliente .nosotros {
++    width: 100%;
++    max-width: 920px;
++    display: flex;
++    flex-direction: column;
++    align-items: center;
++    text-align: center;
++}
++
++body.cliente .nosotros h1 {
++    margin: 0 0 10px;
++    font-size: 36px;
++    font-weight: 800;
++}
++
++body.cliente .nosotros .intro {
++    max-width: 560px;
++    margin: 0 0 36px;
++    color: var(--gris-texto);
++}
++
++/* las 4 tarjetas: 4 en una fila en compu (de a 2 o de a 1 en celular) */
++body.cliente .equipo {
++    width: 100%;
++    display: grid;
++    grid-template-columns: repeat(4, 1fr);
++    gap: 18px;
++}
++
++body.cliente .integrante {
++    display: flex;
++    flex-direction: column;
++    align-items: center;
++    gap: 8px;
++    padding: 24px 14px;
++    border-radius: 20px;
++    background: var(--beige-claro);
++    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.06);
++}
++
++/* las iniciales en un círculo, como en el perfil */
++body.cliente .iniciales {
++    width: 78px;
++    height: 78px;
++    margin-bottom: 6px;
++    border-radius: 50%;
++    border: 6px solid var(--blanco);
++    background: var(--beige);
++    color: var(--blanco);
++    display: grid;
++    place-items: center;
++    font-size: 26px;
++    font-weight: 500;
++}
++
++body.cliente .integrante h2 {
++    margin: 0;
++    font-size: 16px;
++    font-weight: 500;
++}
++
++/* el mail: al tocarlo abre el correo (mailto:) */
++body.cliente .integrante a {
++    color: var(--dorado-texto);
++    font-size: 12px;
++    font-weight: 400;
++    word-break: break-all;    /* los mails largos se cortan y no se salen */
++}
++
++body.cliente .tecnologias {
++    margin: 36px 0 20px;
++    color: var(--gris-texto);
++    font-size: 13px;
++}
++
++body.cliente .volver-atras {
++    padding: 9px 28px;
++}
+diff --git a/web/src/main/resources/static/css/paginas/pedido.css b/web/src/main/resources/static/css/paginas/pedido.css
+new file mode 100644
+index 0000000..4957d91
+--- /dev/null
++++ b/web/src/main/resources/static/css/paginas/pedido.css
+@@ -0,0 +1,190 @@
++/* cliente/pedido.html */
++
++/* ===================================================================
++   -- DELIVERY: CONFIRMACIÓN --                    cliente/pedido.html
++   Izquierda: "¡Pedido confirmado!" + "Así va tu pedido".
++   Derecha: dirección y detalle.
++   ⚠️ ADAPTADO AL BACKEND: en Figma la entrega estimada es una hora
++   exacta. El envío no guarda la hora del pedido: va "30 – 45 min".
++   =================================================================== */
++
++body.cliente .confirmacion {
++    width: 100%;
++    max-width: 1100px;
++    margin: 0 auto;
++    padding: 28px;
++    display: grid;
++    grid-template-columns: 1fr 1fr;
++    gap: 48px;
++    border-radius: 16px;
++    background: var(--blanco);
++}
++
++body.cliente .confirmacion > section:first-child {
++    text-align: center;
++}
++
++body.cliente .check {
++    width: 64px;
++    height: 64px;
++    margin: 0 auto 12px;
++    border-radius: 50%;
++    background: var(--beige-claro);
++    color: var(--dorado);
++    display: grid;
++    place-items: center;
++    font-size: 26px;
++}
++
++body.cliente .confirmacion h1 {
++    margin: 0 0 8px;
++    font-size: 26px;
++    font-weight: 500;
++}
++
++body.cliente .entrega-estimada {
++    margin: 16px 0 24px;
++    padding: 18px 20px;
++    border-radius: 16px;
++    background: #F0E4D4;
++    display: flex;
++    flex-direction: column;
++    gap: 4px;
++    text-align: left;
++    color: var(--dorado-texto);
++}
++
++body.cliente .entrega-estimada strong {
++    font-size: 32px;
++    font-weight: 700;
++    color: var(--negro);
++}
++
++/* --- "Así va tu pedido": la línea de pasos --- */
++body.cliente .seguimiento {
++    text-align: left;
++}
++
++body.cliente .seguimiento-titulo {
++    display: flex;
++    justify-content: space-between;
++    align-items: center;
++}
++
++body.cliente .seguimiento-titulo h3 {
++    margin: 0;
++    font-size: 17px;
++    font-weight: 500;
++}
++
++body.cliente .en-vivo {
++    color: var(--ok);
++    font-size: 12px;
++}
++
++body.cliente .pasos {
++    margin: 16px 0 0;
++    padding: 0;
++    list-style: none;
++}
++
++/* los pasos que todavía no llegaron se ven apagados */
++body.cliente .pasos li {
++    position: relative;
++    display: flex;
++    gap: 16px;
++    padding-bottom: 22px;
++    opacity: 0.45;
++}
++
++/* la rayita vertical que une los círculos */
++body.cliente .pasos li:not(:last-child)::after {
++    content: "";
++    position: absolute;
++    left: 19px;
++    top: 40px;
++    bottom: 2px;
++    width: 2px;
++    background: #E6DED3;
++}
++
++body.cliente .pasos li.hecho,
++body.cliente .pasos li.actual {
++    opacity: 1;
++}
++
++body.cliente .pasos li.hecho::after {
++    background: var(--dorado);
++}
++
++body.cliente .punto {
++    flex-shrink: 0;
++    width: 40px;
++    height: 40px;
++    border-radius: 50%;
++    background: var(--beige-claro);
++    display: grid;
++    place-items: center;
++    font-size: 16px;
++}
++
++/* el paso actual: círculo dorado y texto dorado */
++body.cliente .pasos li.actual .punto {
++    background: var(--dorado);
++}
++
++body.cliente .pasos li.actual strong {
++    color: #8A5A1E;
++}
++
++body.cliente .pasos li div {
++    display: flex;
++    flex-direction: column;
++    font-size: 14px;
++}
++
++body.cliente .pasos li strong {
++    font-weight: 500;
++}
++
++body.cliente .pasos li small {
++    color: var(--gris-texto);
++    font-size: 12px;
++}
++
++/* --- columna derecha --- */
++body.cliente .confirmacion-detalle {
++    display: flex;
++    flex-direction: column;
++    gap: 16px;
++}
++
++body.cliente .direccion {
++    display: flex;
++    gap: 14px;
++}
++
++body.cliente .direccion div {
++    display: flex;
++    flex-direction: column;
++    font-size: 13px;
++}
++
++body.cliente .direccion small {
++    color: var(--gris-texto);
++}
++
++body.cliente .icono-caja {
++    flex-shrink: 0;
++    width: 40px;
++    height: 40px;
++    border-radius: 10px;
++    background: var(--beige-claro);
++    display: grid;
++    place-items: center;
++}
++
++body.cliente .confirmacion-detalle .boton-borde {
++    color: var(--dorado-texto);
++    font-weight: 500;
++}
+diff --git a/web/src/main/resources/static/css/paginas/pedidos.css b/web/src/main/resources/static/css/paginas/pedidos.css
+new file mode 100644
+index 0000000..ec2fd77
+--- /dev/null
++++ b/web/src/main/resources/static/css/paginas/pedidos.css
+@@ -0,0 +1,14 @@
++/* cliente/pedidos.html */
++
++/* ===================================================================
++   -- MIS PEDIDOS --                             cliente/pedidos.html
++   Las mismas tarjetas que Mis reservas (ver 3.9).
++   Acá solo van los colores de cada estado del envío.
++   ⚠️ ADAPTADO AL BACKEND: el envío no guarda la fecha (va el número)
++   y el cliente no puede cancelarlo (solo el restaurante o el repartidor).
++   =================================================================== */
++
++body.cliente .envio-pendiente  { color: #FFFFFF; }   /* en preparación */
++body.cliente .envio-en_camino  { color: #FFC24B; }   /* naranja */
++body.cliente .envio-entregado  { color: #C6F29B; }   /* verde */
++body.cliente .envio-cancelado  { color: #B3261E; }   /* rojo */
+diff --git a/web/src/main/resources/static/css/paginas/perfil.css b/web/src/main/resources/static/css/paginas/perfil.css
+new file mode 100644
+index 0000000..1fcb255
+--- /dev/null
++++ b/web/src/main/resources/static/css/paginas/perfil.css
+@@ -0,0 +1,49 @@
++/* cliente/perfil.html */
++
++/* ===================================================================
++   -- PERFIL --                                   cliente/perfil.html
++   ⚠️ ADAPTADO AL BACKEND: en Figma hay una foto. El cliente no guarda
++   imagen: se muestran sus iniciales en un círculo.
++   =================================================================== */
++
++body.cliente .perfil {
++    width: 100%;
++    max-width: 280px;
++    display: flex;
++    flex-direction: column;
++    align-items: center;
++    gap: 10px;
++}
++
++body.cliente .perfil h1 {
++    margin: 0;
++    font-size: 36px;
++    font-weight: 800;
++}
++
++body.cliente .perfil > p {
++    margin: 0 0 8px;
++}
++
++body.cliente .avatar {
++    width: 120px;
++    height: 120px;
++    margin-bottom: 16px;
++    border-radius: 50%;
++    border: 8px solid #FBF3E9;
++    background: var(--beige);
++    color: var(--blanco);
++    display: grid;
++    place-items: center;
++    font-size: 42px;
++    font-weight: 500;
++}
++
++body.cliente .perfil .fila {
++    width: 100%;
++}
++
++body.cliente .perfil input[readonly] {
++    color: var(--gris-texto);
++    font-size: 12px;
++}
+diff --git a/web/src/main/resources/static/css/paginas/registro.css b/web/src/main/resources/static/css/paginas/registro.css
+new file mode 100644
+index 0000000..8fa877e
+--- /dev/null
++++ b/web/src/main/resources/static/css/paginas/registro.css
+@@ -0,0 +1,34 @@
++/* cliente/registro.html */
++
++/* ===================================================================
++   -- CREAR CUENTA --                           cliente/registro.html
++   Usa la misma columna que el login, con logo chico y título grande.
++   (Se reconoce porque tiene el campo "password2").
++   ⚠️ ADAPTADO AL BACKEND: en Figma el último campo es "Fecha de
++   nacimiento". Se cambió por DNI: el cliente no guarda fecha de
++   nacimiento y el DNI es obligatorio. El email se usa como usuario.
++   =================================================================== */
++
++body.cliente .auth:has(input[name="password2"]) .logo {
++    width: 180px;
++    margin: 0 auto 24px;
++}
++
++body.cliente .auth:has(input[name="password2"]) h1 {
++    margin: 0 0 28px;
++    font-size: 36px;
++    font-weight: 800;
++}
++
++/* separación extra antes de la contraseña, como en Figma */
++body.cliente .auth input[name="password"] {
++    margin-top: 8px;
++}
++
++/* textito de términos y condiciones */
++body.cliente .auth small {
++    margin-top: 14px;
++    color: var(--gris-texto);
++    font-size: 11px;
++    text-align: left;
++}
+diff --git a/web/src/main/resources/static/css/paginas/reserva-nueva.css b/web/src/main/resources/static/css/paginas/reserva-nueva.css
+new file mode 100644
+index 0000000..0d62ab8
+--- /dev/null
++++ b/web/src/main/resources/static/css/paginas/reserva-nueva.css
+@@ -0,0 +1,89 @@
++/* cliente/reserva-nueva.html */
++
++/* ===================================================================
++   -- REGISTRAR RESERVA --                 cliente/reserva-nueva.html
++   Cada campo es una caja con borde: el nombre a la izquierda y el
++   valor a la derecha, separados por una línea (como en Figma).
++   ⚠️ ADAPTADO AL BACKEND: en Figma también estaban "Num Reserva",
++   "Cliente" y "Num Restaurante". No se piden: el número lo genera la
++   base, el cliente sale del login y el restaurante es uno solo.
++   =================================================================== */
++
++body.cliente .registrar-reserva {
++    width: 100%;
++    max-width: 260px;
++    display: flex;
++    flex-direction: column;
++    align-items: center;
++}
++
++body.cliente .registrar-reserva h1 {
++    margin: 48px 0 40px;
++    font-size: 30px;
++    font-weight: 400;
++    line-height: 1.6;
++    text-align: center;
++}
++
++body.cliente .registrar-reserva form {
++    width: 100%;
++    display: flex;
++    flex-direction: column;
++    gap: 12px;
++}
++
++/* la caja del campo: nombre | valor */
++body.cliente .campo {
++    display: flex;
++    border: 1px solid var(--negro);
++    border-radius: 8px;
++    overflow: hidden;
++}
++
++body.cliente .campo span {
++    flex: 1;
++    padding: 8px 10px;
++    border-right: 1px solid var(--negro);
++    font-size: 12px;
++    font-weight: 400;
++}
++
++body.cliente .campo input,
++body.cliente .campo select {
++    flex: 1;
++    min-width: 0;
++    padding: 6px 8px;
++    border: none;
++    border-radius: 0;
++    background: var(--blanco);
++    font-size: 12px;
++}
++
++body.cliente .campo:focus-within {
++    border-color: var(--dorado);
++}
++
++/* ⚠️ ADAPTADO AL BACKEND: la seña no está en Figma. El backend no deja
++   reservar sin una seña con tarjeta vigente. Va en una caja beige
++   para que se note que es algo aparte. */
++body.cliente .senia {
++    margin: 4px 0;
++    padding: 12px;
++    border: none;
++    border-radius: 12px;
++    background: var(--beige-claro);
++    display: flex;
++    flex-direction: column;
++    gap: 10px;
++}
++
++body.cliente .senia legend {
++    float: left;
++    font-weight: 500;
++    font-size: 14px;
++}
++
++body.cliente .senia small {
++    color: var(--gris-texto);
++    font-size: 11px;
++}
+diff --git a/web/src/main/resources/static/css/paginas/reservas.css b/web/src/main/resources/static/css/paginas/reservas.css
+new file mode 100644
+index 0000000..73a7bfb
+--- /dev/null
++++ b/web/src/main/resources/static/css/paginas/reservas.css
+@@ -0,0 +1,28 @@
++/* cliente/reservas.html */
++
++/* ===================================================================
++   -- MIS RESERVAS --                           cliente/reservas.html
++   Título con "+ Nueva Reserva" y las tarjetas beige (ver 3.9).
++   Acá solo van los colores de cada estado de la reserva.
++   =================================================================== */
++
++body.cliente .mis-reservas {
++    width: 100%;
++    max-width: 860px;
++}
++
++body.cliente .estado-confirmada  { color: #C6F29B; }   /* verde */
++body.cliente .estado-pendiente   { color: #FFC24B; }   /* naranja */
++body.cliente .estado-cancelada   { color: #B3261E; }   /* rojo */
++body.cliente .estado-finalizada  { color: #FFFFFF; }   /* blanco */
++body.cliente .estado-ausente     { color: #5A3E26; }   /* marrón */
++
++/* "Ver Detalles": un <details> de HTML, se abre y cierra sin JavaScript */
++body.cliente .tarjeta-detalle summary::-webkit-details-marker {
++    display: none;
++}
++
++body.cliente .tarjeta-detalle p {
++    margin: 6px 4px 0;
++    font-size: 12px;
++}
+diff --git a/web/src/main/resources/static/css/responsive.css b/web/src/main/resources/static/css/responsive.css
+new file mode 100644
+index 0000000..51d8645
+--- /dev/null
++++ b/web/src/main/resources/static/css/responsive.css
+@@ -0,0 +1,194 @@
++/* Tablet y celular: todos los @media juntos (van al final para pisar lo anterior) */
++
++/* ███████████████████████████████████████████████████████████████████
++   PARTE 3 · RESPONSIVE
++   Todo lo que cambia según el tamaño de la pantalla, junto acá.
++   @media (max-width: X) = "aplicá esto solo si la pantalla mide X o menos".
++   ███████████████████████████████████████████████████████████████████ */
++
++
++/* ===================================================================
++   TABLET (hasta 900px): las páginas de varias columnas pasan a una
++   =================================================================== */
++
++@media (max-width: 900px) {
++
++    /* -- DELIVERY: CARTA -- portada arriba de todo, panel debajo de la carta */
++    body.cliente .hero,
++    body.cliente .delivery {
++        grid-template-columns: 1fr;
++    }
++
++    body.cliente .hero-foto {
++        min-height: 160px;
++    }
++
++    body.cliente .panel-pedido {
++        position: static;
++    }
++
++    /* -- DELIVERY: PAGO -- las tres columnas, una debajo de la otra */
++    body.cliente .pago {
++        grid-template-columns: 1fr;
++    }
++
++    body.cliente .pago-resumen {
++        border-left: none;
++        border-top: 1px solid #EFE6DA;
++    }
++
++    /* -- DELIVERY: CONFIRMACIÓN -- */
++    body.cliente .confirmacion {
++        grid-template-columns: 1fr;
++        gap: 32px;
++    }
++
++    /* -- SOBRE NOSOTROS -- las tarjetas de a 2 */
++    body.cliente .equipo {
++        grid-template-columns: repeat(2, 1fr);
++    }
++}
++
++
++/* ===================================================================
++   CELULAR (hasta 600px)
++   =================================================================== */
++
++@media (max-width: 600px) {
++
++    /* -- GENERAL -- menos margen a los costados */
++    body.cliente {
++        padding: 16px 16px 32px;
++    }
++
++    /* barra de abajo más angosta para que entre */
++    body.cliente .nav-inferior {
++        bottom: 12px;
++        max-width: calc(100% - 24px);
++    }
++
++    body.cliente .nav-inferior a {
++        padding: 8px 12px;
++        font-size: 11px;
++    }
++
++    /* título y botón uno debajo del otro (Mis reservas / Mis pedidos) */
++    body.cliente .titulo-con-boton {
++        flex-direction: column;
++        gap: 12px;
++    }
++
++    body.cliente .titulo-con-boton .boton-beige {
++        position: static;
++    }
++
++    body.cliente .titulo-con-boton h1 {
++        font-size: 26px;
++    }
++
++    /* -- LANDING -- los platos se apilan: foto arriba, texto abajo */
++    body.cliente .plato,
++    body.cliente .plato:nth-child(odd) {
++        flex-direction: column;
++        gap: 10px;
++    }
++
++    body.cliente .plato img {
++        width: 85%;
++    }
++
++    body.cliente .acciones .boton {
++        width: 100%;
++    }
++
++    /* -- LOGIN -- logo un poco más chico */
++    body.cliente .auth .logo {
++        width: 220px;
++        margin: 24px auto 36px;
++    }
++
++    /* -- CREAR CUENTA -- */
++    body.cliente .auth:has(input[name="password2"]) h1 {
++        font-size: 28px;
++    }
++
++    /* -- ELEGIR -- */
++    body.cliente .elegir {
++        gap: 40px;
++    }
++
++    body.cliente .opcion img {
++        width: 110px;
++        height: 110px;
++    }
++
++    /* -- REGISTRAR RESERVA -- */
++    body.cliente .registrar-reserva {
++        max-width: 100%;
++    }
++
++    body.cliente .registrar-reserva h1 {
++        margin: 16px 0 24px;
++    }
++
++    /* -- DELIVERY: CARTA -- */
++    body.cliente .hero-texto {
++        padding: 22px;
++    }
++
++    body.cliente .hero-texto h1 {
++        font-size: 26px;
++    }
++
++    body.cliente .grid-platos {
++        grid-template-columns: 1fr;
++    }
++
++    /* -- DELIVERY: PAGO -- */
++    body.cliente .pago > section {
++        padding: 24px 18px;
++    }
++
++    body.cliente .pago-medios h1 {
++        font-size: 24px;
++    }
++
++    body.cliente .volver {
++        top: 22px;
++        left: 18px;
++    }
++
++    /* -- DELIVERY: CONFIRMACIÓN -- */
++    body.cliente .confirmacion {
++        padding: 20px 16px;
++    }
++
++    body.cliente .entrega-estimada strong {
++        font-size: 26px;
++    }
++
++    /* -- PERFIL -- */
++    body.cliente .perfil h1 {
++        font-size: 30px;
++    }
++
++    /* -- SOBRE NOSOTROS -- */
++    body.cliente .nosotros h1 {
++        font-size: 30px;
++    }
++
++    /* botón "Sobre nosotros" un poco más chico */
++    body.cliente .boton-nosotros {
++        top: 12px;
++        right: 12px;
++        padding: 7px 12px;
++        font-size: 12px;
++    }
++}
++
++/* celulares muy angostos: las tarjetas del equipo de a 1 */
++@media (max-width: 400px) {
++    body.cliente .equipo {
++        grid-template-columns: 1fr;
++    }
++}
+diff --git a/web/src/main/resources/static/css/tema-oscuro.css b/web/src/main/resources/static/css/tema-oscuro.css
+new file mode 100644
+index 0000000..f011a7d
+--- /dev/null
++++ b/web/src/main/resources/static/css/tema-oscuro.css
+@@ -0,0 +1,53 @@
++/* Modo oscuro y botón de cambiar tema */
++
++/* ---------- Modo oscuro ---------- */
++[data-tema="oscuro"] {
++    --blanco: #1e1b18;          /* fondos de tarjetas y botones */
++    --beige: #2a241e;           /* bloques beige */
++    --beige-claro: #352d25;     /* hover */
++    --borde-suave: #4a4036;
++    --dorado-texto: #d9b46a;    /* un dorado más claro para que se lea */
++}
++
++[data-tema="oscuro"] body {
++    background: #141210;
++    color: #ece6dd;
++}
++
++/* botón de cambiar tema, arriba a la izquierda */
++body.cliente .boton-tema {
++    position: fixed;
++    top: 16px;
++    left: 16px;
++    z-index: 20;
++    width: 38px;
++    height: 38px;
++    padding: 0;
++    display: flex;              /* centra el ícono */
++    align-items: center;
++    justify-content: center;
++    font-size: 18px;
++    line-height: 1;
++    overflow: hidden;           /* nada se sale del recuadro */
++    border: 1px solid var(--borde-suave);
++    border-radius: 10px;
++    background: var(--blanco);
++    cursor: pointer;
++}
++
++/* el dibujo de la luna: color fijo, se vea siempre */
++body.cliente .boton-tema svg {
++    width: 18px;
++    height: 18px;
++    flex-shrink: 0;
++    stroke: var(--dorado-texto);
++}
++
++/* en el hover, mismo fondo que "Sobre nosotros" y la luna sigue dorada */
++body.cliente .boton-tema:hover {
++    background: var(--beige-claro);
++}
++
++body.cliente .boton-tema:hover svg {
++    stroke: var(--dorado-texto);
++}
+diff --git a/web/src/main/resources/static/nona.css b/web/src/main/resources/static/nona.css
+new file mode 100644
+index 0000000..d4d48ad
+--- /dev/null
++++ b/web/src/main/resources/static/nona.css
+@@ -0,0 +1,17 @@
++/* =====================================================================
++   NONA.CSS · Diseño de las pantallas nuevas del cliente
++   Inicio público (/), Delivery, Reservar y Mi cuenta.
++
++   Se carga DESPUÉS de style.css y solo afecta a las páginas cuyo <body>
++   tiene la clase "nona". Las demás páginas siguen igual.
++   Este archivo solo trae las partes, en orden (static/css/nona/).
++   ===================================================================== */
++
++@import url("css/nona/colores.css");
++@import url("css/nona/base.css");
++@import url("css/nona/comunes.css");
++@import url("css/nona/inicio.css");
++@import url("css/nona/delivery.css");
++@import url("css/nona/reservar.css");
++@import url("css/nona/cuenta.css");
++@import url("css/nona/responsive.css");
+diff --git a/web/src/main/resources/static/style.css b/web/src/main/resources/static/style.css
+index ee6f96e..48bacc6 100644
+--- a/web/src/main/resources/static/style.css
++++ b/web/src/main/resources/static/style.css
+@@ -1,1954 +1,31 @@
+-
+-
+-/*
+-   GENERAL FUENTES Y COLORES */
+-
+-@import url('https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;700;800&family=Oswald:wght@500&display=swap');
+-
+-:root {
+-    --dorado:        #A0753A;   /* botones principales */
+-    --dorado-oscuro: #87612E;   /* botón al pasar el mouse */
+-    --dorado-texto:  #7A5A2E;   /* textos dorados sobre fondo claro */
+-    --beige:         #BC9B70;   /* tarjetas de reservas y pedidos */
+-    --beige-claro:   #F3E9DC;   /* fondos suaves, contadores */
+-    --crema:         #FBF8F4;   /* fondo de las páginas anchas */
+-    --borde-suave:   #EBD9C3;   /* bordes de tarjetas y paneles */
+-    --marron:        #9A6243;   /* "PRESENCIAL", "DELIVERY" */
+-    --gris-input:    #E6E6E6;   /* fondo de los campos */
+-    --gris-texto:    #6B6B6B;   /* textos chicos y aclaraciones */
+-    --negro:         #1A1A1A;
+-    --blanco:        #FFFFFF;
+-
+-    --error:         #C0392B;
+-    --ok:            #2E7D32;
+-
+-    --fuente:        'Lexend', system-ui, sans-serif;
+-    --fuente-titulo: 'Oswald', 'Lexend', sans-serif;
+-
+-    --radio:         8px;       /* esquinas de botones e inputs */
+-}
+-
+-
+-/*  BASE */
+-
+-*,
+-*::before,
+-*::after {
+-    box-sizing: border-box;     /* el padding no agranda las cajas */
+-}
+-
+-body.cliente {
+-    margin: 0;
+-    min-height: 100vh;
+-    background: var(--blanco);
+-    color: var(--negro);
+-    font-family: var(--fuente);
+-    font-weight: 300;
+-    font-size: 15px;
+-    line-height: 1.5;
+-
+-    /* centrado en columna */
+-    display: flex;
+-    flex-direction: column;
+-    align-items: center;
+-    padding: 24px 16px 40px;
+-}
+-
+-body.cliente a {
+-    color: var(--negro);
+-    font-weight: 500;
+-    text-decoration: none;
+-}
+-
+-body.cliente a:hover {
+-    text-decoration: underline;
+-}
+-
+-/* las imágenes no se salen de su caja */
+-body.cliente img {
+-    max-width: 100%;
+-}
+-
+-/* páginas con la barra de abajo: dejan lugar para que no tape nada */
+-body.cliente.con-nav {
+-    padding-bottom: 110px;
+-}
+-
+-body.cliente.ancho {
+-    align-items: stretch;
+-    background: var(--crema);
+-}
+-
+-body.cliente.sin-padding {
+-    padding: 0;
+-}
+-
+-body.cliente .aclaracion {
+-    margin: 0;
+-    color: var(--gris-texto);
+-    font-size: 12px;
+-    text-align: center;
+-}
+-
+-body.cliente .vacio {
+-    text-align: center;
+-    color: var(--gris-texto);
+-}
+-
+-
+-/* COMPONENTES COMUNES */
+-
+-/* Logo */
+-
+-body.cliente .logo {
+-    display: block;
+-    width: 230px;
+-    max-width: 70vw;
+-    height: auto;
+-    margin: 0 auto;
+-}
+-
+-body.cliente.ancho > header {
+-    text-align: center;
+-    margin-bottom: 16px;
+-}
+-
+-body.cliente.ancho > header .logo {
+-    width: 150px;
+-}
+-
+-
+-/* Botones */
+-
+-/* siver para botones y para los que estan asigandos con clase boton */
+-body.cliente button,
+-body.cliente .boton {
+-    display: inline-block;
+-    width: 100%;
+-    padding: 10px 20px;
+-    border: none;
+-    border-radius: var(--radio);
+-    background: var(--dorado);
+-    color: var(--blanco);
+-    font-family: var(--fuente);
+-    font-size: 15px;
+-    font-weight: 400;
+-    text-align: center;
+-    cursor: pointer;
+-    transition: background 0.2s;
+-}
+-
+-body.cliente button:hover,
+-body.cliente .boton:hover {
+-    background: var(--dorado-oscuro);
+-    text-decoration: none;
+-}
+-
+-/* dorado con flecha de continuar pago  → */
+-body.cliente .boton-flecha {
+-    display: flex;
+-    justify-content: space-between;
+-    align-items: center;
+-    padding: 14px 18px;
+-    border-radius: 12px;
+-    color: var(--blanco);
+-    font-weight: 500;
+-}
+-
+-/* beige con sombra: "+ Nueva Reserva", "+ Nuevo pedido" */
+-body.cliente .boton-beige {
+-    padding: 8px 28px;
+-    border-radius: 999px;
+-    background: var(--beige);
+-    color: var(--negro);
+-    font-weight: 400;
+-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+-}
+-
+-body.cliente .boton-beige:hover {
+-    text-decoration: none;
+-    filter: brightness(1.05);
+-}
+-
+-/* blanco redondo, dentro de las tarjetas: "Ver Detalles", "Cancelar" */
+-body.cliente .boton-blanco {
+-    display: block;
+-    width: 100%;
+-    padding: 8px;
+-    border-radius: 999px;
+-    background: var(--blanco);
+-    color: var(--negro);
+-    text-align: center;
+-    font-size: 13px;
+-    font-weight: 400;
+-    cursor: pointer;
+-    list-style: none;   /* le saca el triangulito cuando es un <summary> */
+-}
+-
+-body.cliente button.boton-blanco:hover,
+-body.cliente a.boton-blanco:hover {
+-    background: var(--beige-claro);
+-    text-decoration: none;
+-}
+-
+-body.cliente .texto-rojo {
+-    color: #D62F22;
+-}
+-
+-/* blanco con borde dorado: "Cancelar", "Contactar al restaurante" */
+-body.cliente .boton-borde {
+-    display: block;
+-    padding: 9px;
+-    border: 1px solid var(--dorado);
+-    border-radius: var(--radio);
+-    text-align: center;
+-    font-weight: 400;
+-}
+-
+-body.cliente .boton-borde:hover {
+-    background: var(--beige-claro);
+-    text-decoration: none;
+-}
+-
+-/* apagado, no se puede tocar (como: Continuar al pago" con el carrito vacío no aparece) */
+-body.cliente .deshabilitado {
+-    opacity: 0.45;
+-    pointer-events: none;
+-}
+-
+-/* Cerrar sesion discreto, subrayado */
+-body.cliente .cerrar-sesion button {
+-    width: auto;
+-    margin-top: 24px;
+-    background: none;
+-    color: var(--gris-texto);
+-    font-size: 13px;
+-    text-decoration: underline;
+-}
+-
+-body.cliente .cerrar-sesion button:hover {
+-    background: none;
+-    color: var(--negro);
+-}
+-
+-
+-/*Campos de texto */
+-
+-body.cliente input,
+-body.cliente select,
+-body.cliente textarea {
+-    width: 100%;
+-    padding: 10px 12px;
+-    border: 1px solid transparent;
+-    border-radius: 6px;
+-    background: var(--gris-input);
+-    font-family: var(--fuente);
+-    font-size: 14px;
+-    color: var(--negro);
+-}
+-
+-body.cliente input::placeholder,
+-body.cliente textarea::placeholder {
+-    color: var(--gris-texto);
+-}
+-
+-/* al hacer click en un campo se marca con el dorado */
+-body.cliente input:focus,
+-body.cliente select:focus,
+-body.cliente textarea:focus {
+-    outline: none;
+-    border-color: var(--dorado);
+-    background: var(--blanco);
+-}
+-
+-/* dos campos en la misma fila (nombre y apellido) */
+-body.cliente .fila {
+-    display: flex;
+-    gap: 8px;
+-}
+-
+-/* sacar las flechitas de los campos numericos (DNI, comensales) */
+-body.cliente input[type="number"]::-webkit-inner-spin-button,
+-body.cliente input[type="number"]::-webkit-outer-spin-button {
+-    -webkit-appearance: none;
+-    margin: 0;
+-}
+-
+-body.cliente input[type="number"] {
+-    -moz-appearance: textfield;
+-}
+-
+-
+-/* Avisos */
+-
+-body.cliente .alerta {
+-    width: 100%;
+-    margin: 0 0 12px;
+-    padding: 10px 14px;
+-    border-radius: var(--radio);
+-    font-size: 14px;
+-    text-align: center;
+-}
+-
+-body.cliente .alerta.error {
+-    background: #FDECEA;
+-    color: var(--error);
+-}
+-
+-body.cliente .alerta.ok {
+-    background: #E8F5E9;
+-    color: var(--ok);
+-}
+-
+-
+-/*  Etiquetas redondeadas pj platos cuando pedis,  ● Abierto ahora */
+-
+-body.cliente .chip {
+-    display: inline-block;
+-    padding: 3px 10px;
+-    border-radius: 999px;
+-    background: var(--beige-claro);
+-    color: var(--dorado-texto);
+-    font-size: 12px;
+-    font-weight: 500;
+-}
+-
+-body.cliente .chip.verde {
+-    background: #E8F5E9;
+-    color: var(--ok);
+-}
+-
+-
+-/* Contador − 2 + (carta del delivery y "Tu pedido")  */
+-
+-body.cliente .contador {
+-    display: flex;
+-    align-items: center;
+-    gap: 4px;
+-    padding: 3px;
+-    border-radius: 10px;
+-    background: var(--beige-claro);
+-}
+-
+-body.cliente .contador button {
+-    width: 30px;
+-    padding: 4px 0;
+-    background: none;
+-    color: var(--dorado-texto);
+-    font-size: 17px;
+-}
+-
+-body.cliente .contador button:hover {
+-    background: rgba(0, 0, 0, 0.06);
+-}
+-
+-body.cliente .contador span {
+-    min-width: 20px;
+-    text-align: center;
+-    font-weight: 500;
+-}
+-
+-body.cliente .contador.chico {
+-    align-self: flex-start;
+-}
+-
+-body.cliente .contador.chico button {
+-    width: 24px;
+-    font-size: 15px;
+-}
+-
+-
+-/* Lista de platos con total
+-   La usamos en Tu pedido, el pago y la confirmación: foto chica, nombre,
+-   "2 × $13.500" y el subtotal a la derecha. */
+-
+-body.cliente .lineas {
+-    margin: 0;
+-    padding: 0;
+-    list-style: none;
+-    display: flex;
+-    flex-direction: column;
+-    gap: 14px;
+-}
+-
+-body.cliente .lineas li {
+-    display: flex;
+-    align-items: flex-start;
+-    gap: 12px;
+-}
+-
+-body.cliente .lineas img {
+-    width: 54px;
+-    height: 54px;
+-    flex-shrink: 0;
+-    border-radius: 10px;
+-    object-fit: cover;
+-    background: var(--beige-claro);
+-}
+-
+-body.cliente .linea-info {
+-    flex: 1;
+-    display: flex;
+-    flex-direction: column;
+-    gap: 3px;
+-    font-size: 13px;
+-}
+-
+-body.cliente .linea-info strong {
+-    font-weight: 500;
+-}
+-
+-body.cliente .linea-info small {
+-    color: var(--gris-texto);
+-}
+-
+-/* título con dato a la derecha: "Tu pedido ........ 3 platos" */
+-body.cliente .panel-titulo,
+-body.cliente .resumen-titulo {
+-    display: flex;
+-    justify-content: space-between;
+-    align-items: center;
+-}
+-
+-/* "Total de lo peidio $43.500" */
+-body.cliente .total {
+-    display: flex;
+-    justify-content: space-between;
+-    align-items: baseline;
+-    padding-top: 14px;
+-    border-top: 1px solid #EFE6DA;
+-}
+-
+-body.cliente .total span {
+-    font-size: 17px;
+-    font-weight: 500;
+-}
+-
+-body.cliente .total strong {
+-    font-size: 24px;
+-    font-weight: 700;
+-}
+-
+-
+-/* Barra de navegación de abajo
+-   INICIO · PEDIDOS · RESERVAS · PERFIL. pagina q estamos marcada en ddorado */
+-
+-body.cliente .nav-inferior {
+-    position: fixed;
+-    bottom: 20px;
+-    left: 50%;
+-    transform: translateX(-50%);   /* centrada */
+-    display: flex;
+-    gap: 4px;
+-    padding: 4px;
+-    background: #F2F2F5;
+-    border: 1px solid var(--negro);
+-    border-radius: 999px;
+-    z-index: 10;
+-}
+-
+-body.cliente .nav-inferior a {
+-    padding: 8px 18px;
+-    border-radius: 999px;
+-    font-size: 12px;
+-    font-weight: 500;
+-    color: var(--negro);
+-}
+-
+-body.cliente .nav-inferior a:hover {
+-    text-decoration: none;
+-    background: var(--beige-claro);
+-}
+-
+-body.cliente .nav-inferior a.activo,
+-body.cliente .nav-inferior a.activo:hover {
+-    background: var(--dorado);
+-}
+-
+-
+-/* Tarjetas beige (Mis reservas y Mis pedidos)*/
+-
+-/* título centrado con un botón a la derecha */
+-body.cliente .titulo-con-boton {
+-    position: relative;
+-    display: flex;
+-    justify-content: center;
+-    align-items: center;
+-    margin: 8px 0 28px;
+-}
+-
+-body.cliente .titulo-con-boton h1 {
+-    margin: 0;
+-    font-size: 30px;
+-    font-weight: 400;
+-}
+-
+-body.cliente .titulo-con-boton .boton-beige {
+-    position: absolute;
+-    right: 0;
+-}
+-
+-/* las tarjetas se acomodan solas en columnas de 220px minimo de tamanio */
+-body.cliente .tarjetas {
+-    display: grid;
+-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+-    gap: 16px;
+-}
+-
+-body.cliente .tarjeta {
+-    display: flex;
+-    flex-direction: column;
+-    gap: 10px;
+-    padding: 14px;
+-    border-radius: 20px;
+-    background: var(--beige);
+-    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
+-}
+-
+-/* fecha y hora más oscuras */
+-body.cliente .tarjeta-fecha {
+-    display: flex;
+-    justify-content: center;
+-    gap: 6px;
+-}
+-
+-body.cliente .tarjeta-fecha span {
+-    padding: 2px 10px;
+-    border-radius: 999px;
+-    background: rgba(0, 0, 0, 0.08);
+-    font-size: 13px;
+-}
+-
+-/* el estado, en mayúsculas y con color (los colores van en cada página) */
+-body.cliente .estado {
+-    margin: 0;
+-    text-align: center;
+-    font-size: 12px;
+-    font-weight: 700;
+-    letter-spacing: 0.5px;
+-}
+-
+-/* comensales / zona / seña (o artículos / dirección / total) con ícono */
+-body.cliente .tarjeta-datos {
+-    margin: 0;
+-    padding: 0 6px;
+-    list-style: none;
+-    display: flex;
+-    flex-direction: column;
+-    gap: 14px;
+-    font-size: 13px;
+-}
+-
+-body.cliente .tarjeta-datos .icono {
+-    display: inline-block;
+-    width: 26px;
+-}
+-
+-
+-
+-/*boton sobre nosotros */
+-
+-body.cliente .boton-nosotros {
+-    position: fixed;
+-    top: 16px;
+-    right: 16px;
+-    z-index: 20;
+-    padding: 9px 16px;          /* ahora el tamaño lo da el texto */
+-    font-size: 13px;
+-    font-weight: 500;
+-    white-space: nowrap;        /* que no se parta en dos renglones */
+-    border: 1px solid var(--borde-suave);
+-    border-radius: 10px;
+-    background: var(--blanco);
+-    color: var(--dorado-texto);
+-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+-    transition: background 0.2s;
+-}
+-
+-body.cliente .boton-nosotros:hover {
+-    background: var(--beige-claro);
+-    text-decoration: none;
+-}
+-
+-/* ---------- Página de inicio: platos en zigzag ---------- */
+-
+-body.cliente .menu-inicio {
+-    max-width: 700px;
+-    margin: 0 auto;
+-    padding: 24px 16px 120px;   /* abajo deja lugar para la barra fija */
+-    display: flex;
+-    flex-direction: column;
+-    gap: 28px;
+-}
+-
+-body.cliente .plato {
+-    display: grid;
+-    grid-template-columns: 1fr 1fr;
+-    align-items: center;
+-    gap: 24px;
+-}
+-
+-/* en las filas invertidas la imagen va a la izquierda */
+-body.cliente .plato.invertido .plato-imagen {
+-    order: -1;
+-}
+-
+-body.cliente .plato-texto {
+-    text-align: center;
+-    font-size: 13px;
+-    line-height: 1.5;
+-}
+-
+-body.cliente .plato-texto h3 {
+-    margin: 0 0 4px;
+-    font-size: 14px;
+-    font-weight: 500;
+-}
+-
+-body.cliente .plato-texto p {
+-    margin: 0 0 4px;
+-}
+-
+-body.cliente .plato-texto .precio {
+-    font-weight: 600;
+-}
+-
+-body.cliente .plato-imagen {
+-    width: 100%;
+-    aspect-ratio: 3 / 2;
+-    object-fit: cover;          /* recorta la foto sin deformarla */
+-    border-radius: 50%;         /* forma ovalada como en Figma */
+-}
+-
+-/* en celular: una columna, imagen arriba y texto abajo */
+-@media (max-width: 600px) {
+-    body.cliente .plato {
+-        grid-template-columns: 1fr;
+-    }
+-    body.cliente .plato .plato-imagen {
+-        order: -1;
+-    }
+-}
+-
+-
+-/* ----------------
+-----------------
+----------------
+---------------
+-------------
+-------------
+---------------
+-----------------
+------------------
+-------------------
+- */
+-
+-
+-/* PARTE 2 · PÁGINA POR PÁGINA  TERMINAR DE ANALIZAR */
+-
+-
+-/* ===================================================================
+-   -- LANDING --                                 cliente/landing.html
+-   La carta pública: platos en zigzag (texto · foto / foto · texto)
+-   y el botón "Iniciar / Registrarme" FIJO abajo.
+-   =================================================================== */
+-
+-body.cliente header {
+-    margin-bottom: 32px;
+-}
+-
+-body.cliente .carta {
+-    width: 100%;
+-    max-width: 640px;
+-    display: flex;
+-    flex-direction: column;
+-    gap: 16px;
+-}
+-
+-/* cada plato: foto y texto uno al lado del otro */
+-body.cliente .plato {
+-    display: flex;
+-    align-items: center;
+-    gap: 24px;
+-}
+-
+-/* zigzag: en los platos impares (1°, 3°, 5°...) el texto va a la
+-   izquierda y la foto a la derecha. En el HTML siempre va primero
+-   la foto: el orden visual lo da el CSS. */
+-body.cliente .plato:nth-child(odd) {
+-    flex-direction: row-reverse;
+-}
+-
+-/* la foto ovalada. object-fit: cover la recorta sin deformarla.
+-   ⚠️ ADAPTADO AL BACKEND: el plato (Menu) no guarda imagen. Cada foto
+-   se busca por el número del plato: static/img/platos/1.jpg, 2.jpg... */
+-body.cliente .plato img {
+-    flex: 1;
+-    width: 50%;
+-    aspect-ratio: 3 / 2;
+-    object-fit: cover;
+-    border-radius: 50%;
+-    background: var(--beige-claro);
+-}
+-
+-body.cliente .plato div {
+-    flex: 1;
+-    text-align: center;
+-    font-size: 14px;
+-}
+-
+-body.cliente .plato h3 {
+-    margin: 0 0 4px;
+-    font-size: 15px;
+-    font-weight: 500;
+-}
+-
+-body.cliente .plato p {
+-    margin: 0 0 4px;
+-}
+-
+-body.cliente .plato strong {
+-    font-weight: 700;
+-}
+-
+-/* --- "Iniciar / Registrarme" fijo abajo ---
+-   position: fixed lo deja pegado a la pantalla: cuando bajás con el
+-   scroll, los platos pasan por detrás y el botón queda siempre a mano. */
+-body.cliente .acciones {
+-    position: fixed;
+-    left: 0;
+-    right: 0;
+-    bottom: 0;
+-    z-index: 10;
+-    display: flex;
+-    flex-direction: column;
+-    align-items: center;
+-    gap: 6px;
+-    padding: 14px 16px 18px;
+-    /* blanco semitransparente con desenfoque: se ve que hay contenido detrás */
+-    background: rgba(255, 255, 255, 0.92);
+-    backdrop-filter: blur(6px);
+-    border-top: 1px solid #F0EAE2;
+-}
+-
+-body.cliente .acciones .boton {
+-    width: auto;
+-    padding: 10px 36px;
+-    color: var(--blanco);
+-}
+-
+-body.cliente .acciones small {
+-    color: var(--gris-texto);
+-    font-size: 13px;
+-}
+-
+-/* lugar abajo para que el último plato no quede tapado por el botón */
+-body.cliente:has(> .acciones) {
+-    padding-bottom: 130px;
+-}
+-
+-
+-/* ===================================================================
+-   -- LOGIN --                                     cliente/login.html
+-   Columna angosta y centrada (<main class="auth">), logo grande.
+-   ⚠️ ADAPTADO AL BACKEND: en Figma solo está el email y "Continuar".
+-   Se agregó la contraseña porque Spring Security valida los dos juntos.
+-   Tampoco está "¿Olvidaste tu correo?": el backend no manda mails.
+-   =================================================================== */
+-
+-body.cliente .auth {
+-    width: 100%;
+-    max-width: 300px;
+-    display: flex;
+-    flex-direction: column;
+-    align-items: center;
+-    text-align: center;
+-}
+-
+-body.cliente .auth form {
+-    width: 100%;
+-    display: flex;
+-    flex-direction: column;
+-    gap: 10px;
+-}
+-
+-body.cliente .auth .logo {
+-    width: 280px;
+-    margin: 40px auto 56px;
+-}
+-
+-body.cliente .auth h1 {
+-    margin: 0 0 16px;
+-    font-size: 17px;
+-    font-weight: 400;
+-}
+-
+-/* link "Crear cuenta" / "Ya tengo cuenta", a la derecha */
+-body.cliente .auth > a {
+-    align-self: flex-end;
+-    margin-top: 12px;
+-    font-size: 13px;
+-}
+-
+-
+-/* ===================================================================
+-   -- CREAR CUENTA --                           cliente/registro.html
+-   Usa la misma columna que el login, con logo chico y título grande.
+-   (Se reconoce porque tiene el campo "password2").
+-   ⚠️ ADAPTADO AL BACKEND: en Figma el último campo es "Fecha de
+-   nacimiento". Se cambió por DNI: el cliente no guarda fecha de
+-   nacimiento y el DNI es obligatorio. El email se usa como usuario.
+-   =================================================================== */
+-
+-body.cliente .auth:has(input[name="password2"]) .logo {
+-    width: 180px;
+-    margin: 0 auto 24px;
+-}
+-
+-body.cliente .auth:has(input[name="password2"]) h1 {
+-    margin: 0 0 28px;
+-    font-size: 36px;
+-    font-weight: 800;
+-}
+-
+-/* separación extra antes de la contraseña, como en Figma */
+-body.cliente .auth input[name="password"] {
+-    margin-top: 8px;
+-}
+-
+-/* textito de términos y condiciones */
+-body.cliente .auth small {
+-    margin-top: 14px;
+-    color: var(--gris-texto);
+-    font-size: 11px;
+-    text-align: left;
+-}
+-
+-
+-/* ===================================================================
+-   -- ELEGIR --                                   cliente/elegir.html
+-   Dos opciones grandes una debajo de la otra: PRESENCIAL y DELIVERY.
+-   =================================================================== */
+-
+-body.cliente .elegir {
+-    display: flex;
+-    flex-direction: column;
+-    align-items: center;
+-    gap: 64px;
+-    margin-top: 16px;
+-}
+-
+-body.cliente .opcion {
+-    display: flex;
+-    flex-direction: column;
+-    align-items: center;
+-    gap: 12px;
+-    transition: transform 0.2s;
+-}
+-
+-/* al pasar el mouse la opción se agranda un poquito */
+-body.cliente .opcion:hover {
+-    transform: scale(1.05);
+-    text-decoration: none;
+-}
+-
+-body.cliente .opcion img {
+-    width: 130px;
+-    height: 130px;
+-    object-fit: contain;
+-}
+-
+-body.cliente .opcion span {
+-    font-family: var(--fuente-titulo);
+-    font-size: 26px;
+-    font-weight: 500;
+-    letter-spacing: 0.5px;
+-    color: var(--marron);
+-}
+-
+-body.cliente .elegir + .cerrar-sesion button {
+-    margin-top: 48px;
+-}
+-
+-
+-/* ===================================================================
+-   -- MIS RESERVAS --                           cliente/reservas.html
+-   Título con "+ Nueva Reserva" y las tarjetas beige (ver 3.9).
+-   Acá solo van los colores de cada estado de la reserva.
+-   =================================================================== */
+-
+-body.cliente .mis-reservas {
+-    width: 100%;
+-    max-width: 860px;
+-}
+-
+-body.cliente .estado-confirmada  { color: #C6F29B; }   /* verde */
+-body.cliente .estado-pendiente   { color: #FFC24B; }   /* naranja */
+-body.cliente .estado-cancelada   { color: #B3261E; }   /* rojo */
+-body.cliente .estado-finalizada  { color: #FFFFFF; }   /* blanco */
+-body.cliente .estado-ausente     { color: #5A3E26; }   /* marrón */
+-
+-/* "Ver Detalles": un <details> de HTML, se abre y cierra sin JavaScript */
+-body.cliente .tarjeta-detalle summary::-webkit-details-marker {
+-    display: none;
+-}
+-
+-body.cliente .tarjeta-detalle p {
+-    margin: 6px 4px 0;
+-    font-size: 12px;
+-}
+-
+-
+-/* ===================================================================
+-   -- REGISTRAR RESERVA --                 cliente/reserva-nueva.html
+-   Cada campo es una caja con borde: el nombre a la izquierda y el
+-   valor a la derecha, separados por una línea (como en Figma).
+-   ⚠️ ADAPTADO AL BACKEND: en Figma también estaban "Num Reserva",
+-   "Cliente" y "Num Restaurante". No se piden: el número lo genera la
+-   base, el cliente sale del login y el restaurante es uno solo.
+-   =================================================================== */
+-
+-body.cliente .registrar-reserva {
+-    width: 100%;
+-    max-width: 260px;
+-    display: flex;
+-    flex-direction: column;
+-    align-items: center;
+-}
+-
+-body.cliente .registrar-reserva h1 {
+-    margin: 48px 0 40px;
+-    font-size: 30px;
+-    font-weight: 400;
+-    line-height: 1.6;
+-    text-align: center;
+-}
+-
+-body.cliente .registrar-reserva form {
+-    width: 100%;
+-    display: flex;
+-    flex-direction: column;
+-    gap: 12px;
+-}
+-
+-/* la caja del campo: nombre | valor */
+-body.cliente .campo {
+-    display: flex;
+-    border: 1px solid var(--negro);
+-    border-radius: 8px;
+-    overflow: hidden;
+-}
+-
+-body.cliente .campo span {
+-    flex: 1;
+-    padding: 8px 10px;
+-    border-right: 1px solid var(--negro);
+-    font-size: 12px;
+-    font-weight: 400;
+-}
+-
+-body.cliente .campo input,
+-body.cliente .campo select {
+-    flex: 1;
+-    min-width: 0;
+-    padding: 6px 8px;
+-    border: none;
+-    border-radius: 0;
+-    background: var(--blanco);
+-    font-size: 12px;
+-}
+-
+-body.cliente .campo:focus-within {
+-    border-color: var(--dorado);
+-}
+-
+-/* ⚠️ ADAPTADO AL BACKEND: la seña no está en Figma. El backend no deja
+-   reservar sin una seña con tarjeta vigente. Va en una caja beige
+-   para que se note que es algo aparte. */
+-body.cliente .senia {
+-    margin: 4px 0;
+-    padding: 12px;
+-    border: none;
+-    border-radius: 12px;
+-    background: var(--beige-claro);
+-    display: flex;
+-    flex-direction: column;
+-    gap: 10px;
+-}
+-
+-body.cliente .senia legend {
+-    float: left;
+-    font-weight: 500;
+-    font-size: 14px;
+-}
+-
+-body.cliente .senia small {
+-    color: var(--gris-texto);
+-    font-size: 11px;
+-}
+-
+-
+-/* ===================================================================
+-   -- DELIVERY: CARTA --                        cliente/delivery.html
+-   Arriba la portada; abajo la grilla de platos (izquierda) y el panel
+-   "Tu pedido" (derecha), que se queda quieto al bajar con el scroll.
+-   =================================================================== */
+-
+-/* --- portada beige con foto (static/img/hero.jpg) --- */
+-body.cliente .hero {
+-    width: 100%;
+-    max-width: 1200px;
+-    margin: 0 auto 28px;
+-    display: grid;
+-    grid-template-columns: 3fr 2fr;
+-    border-radius: 16px;
+-    overflow: hidden;
+-    background: var(--beige-claro);
+-}
+-
+-body.cliente .hero-texto {
+-    padding: 32px;
+-}
+-
+-body.cliente .hero-texto h1 {
+-    margin: 14px 0 8px;
+-    font-size: 34px;
+-    font-weight: 700;
+-    line-height: 1.2;
+-}
+-
+-body.cliente .hero-texto p {
+-    margin: 0 0 10px;
+-    color: var(--gris-texto);
+-}
+-
+-body.cliente .hero-texto .hero-datos {
+-    color: var(--negro);
+-}
+-
+-/* si no está hero.jpg, queda el bloque beige */
+-body.cliente .hero-foto {
+-    min-height: 200px;
+-    background: var(--beige) url('img/fotoPedidos.png') center / cover no-repeat;
+-}
+-
+-/* --- las dos columnas --- */
+-body.cliente .delivery {
+-    width: 100%;
+-    max-width: 1200px;
+-    margin: 0 auto;
+-    display: grid;
+-    grid-template-columns: 1fr 360px;
+-    gap: 28px;
+-    align-items: start;
+-}
+-
+-body.cliente .buscador {
+-    margin-bottom: 20px;
+-    padding: 12px 16px;
+-    border: 1px solid #E6DED3;
+-    border-radius: 12px;
+-    background: var(--blanco);
+-}
+-
+-body.cliente .seccion {
+-    margin: 0;
+-    font-size: 24px;
+-    font-weight: 500;
+-}
+-
+-body.cliente .sub {
+-    margin: 2px 0 16px;
+-    color: var(--gris-texto);
+-    font-size: 14px;
+-}
+-
+-/* --- grilla de tarjetas de platos --- */
+-body.cliente .grid-platos {
+-    display: grid;
+-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+-    gap: 18px;
+-}
+-
+-body.cliente .card-plato {
+-    display: flex;
+-    flex-direction: column;
+-    border: 1px solid var(--borde-suave);
+-    border-radius: 14px;
+-    background: var(--blanco);
+-    overflow: hidden;
+-}
+-
+-/* la foto entera, sin recortar el plato */
+-body.cliente .card-plato img {
+-    width: 100%;
+-    aspect-ratio: 16 / 8;
+-    object-fit: contain;
+-    padding-top: 8px;
+-    background: var(--blanco);
+-}
+-
+-body.cliente .card-cuerpo {
+-    flex: 1;
+-    display: flex;
+-    flex-direction: column;
+-    padding: 14px 16px;
+-}
+-
+-body.cliente .card-cuerpo h3 {
+-    margin: 0 0 6px;
+-    font-size: 16px;
+-    font-weight: 500;
+-}
+-
+-body.cliente .card-cuerpo p {
+-    flex: 1;
+-    margin: 0 0 14px;
+-    color: var(--gris-texto);
+-    font-size: 13px;
+-}
+-
+-body.cliente .card-pie {
+-    display: flex;
+-    justify-content: space-between;
+-    align-items: center;
+-}
+-
+-body.cliente .card-pie strong {
+-    font-size: 17px;
+-    font-weight: 500;
+-}
+-
+-/* botón "+ Agregar" */
+-body.cliente button.agregar {
+-    width: auto;
+-    padding: 6px 14px;
+-    background: #FBF3E9;
+-    color: var(--dorado-texto);
+-    font-weight: 500;
+-}
+-
+-body.cliente button.agregar:hover {
+-    background: var(--beige-claro);
+-}
+-
+-/* --- panel "Tu pedido" (sticky: queda quieto arriba al bajar) --- */
+-body.cliente .panel-pedido {
+-    position: sticky;
+-    top: 16px;
+-    display: flex;
+-    flex-direction: column;
+-    gap: 14px;
+-    padding: 20px;
+-    border: 1px solid var(--borde-suave);
+-    border-radius: 16px;
+-    background: var(--blanco);
+-}
+-
+-body.cliente .panel-titulo h2 {
+-    margin: 0;
+-    font-size: 22px;
+-    font-weight: 500;
+-}
+-
+-/* ⚠️ ADAPTADO AL BACKEND: en Figma se puede elegir "Retiro en local".
+-   El backend solo hace envíos a domicilio: queda fijo "Delivery". */
+-body.cliente .modo-entrega {
+-    padding: 10px;
+-    border-radius: 10px;
+-    background: #F6F1EA;
+-    text-align: center;
+-    font-size: 13px;
+-    font-weight: 500;
+-}
+-
+-/* "Agregar una nota a la cocina" */
+-body.cliente .nota summary {
+-    color: var(--dorado-texto);
+-    font-size: 13px;
+-    font-weight: 500;
+-    cursor: pointer;
+-}
+-
+-body.cliente .nota textarea {
+-    margin-top: 8px;
+-    padding: 8px;
+-    border: 1px solid #E6DED3;
+-    border-radius: 8px;
+-    background: var(--blanco);
+-    font-size: 13px;
+-    resize: vertical;
+-}
+-
+-body.cliente .pie {
+-    display: block;
+-    width: 100%;
+-    max-width: 1200px;
+-    margin: 24px auto 0;
+-    color: var(--gris-texto);
+-    font-size: 12px;
+-}
+-
+-
+-/* ===================================================================
+-   -- DELIVERY: PAGO --                    cliente/delivery-pago.html
+-   Tres columnas: medio de pago (beige) · entrega y tarjeta · resumen.
+-   ⚠️ ADAPTADO AL BACKEND: el pago es SIMULADO. Los datos de la tarjeta
+-   no se envían ni se guardan; el backend solo guarda el método
+-   (TARJETA, QR o EFECTIVO). Mercado Pago y MODO van como QR.
+-   =================================================================== */
+-
+-body.cliente .pago {
+-    width: 100%;
+-    min-height: 100vh;
+-    display: grid;
+-    grid-template-columns: 320px 1fr 360px;
+-    background: var(--blanco);
+-}
+-
+-body.cliente .pago > section {
+-    padding: 36px 32px;
+-    display: flex;
+-    flex-direction: column;
+-    gap: 12px;
+-}
+-
+-body.cliente .pago h3 {
+-    margin: 10px 0 4px;
+-    font-size: 17px;
+-    font-weight: 500;
+-}
+-
+-/* --- columna izquierda: medio de pago --- */
+-body.cliente .pago-medios {
+-    background: #F6F1EA;
+-}
+-
+-body.cliente .pago-medios .chip {
+-    align-self: flex-start;
+-}
+-
+-body.cliente .pago-medios h1 {
+-    margin: 4px 0 0;
+-    font-size: 30px;
+-    font-weight: 500;
+-    line-height: 1.3;
+-}
+-
+-body.cliente .pago-medios p {
+-    margin: 0 0 12px;
+-    color: var(--gris-texto);
+-    font-size: 14px;
+-}
+-
+-/* cada medio es una caja que se marca al elegirla */
+-body.cliente .medio {
+-    display: flex;
+-    align-items: center;
+-    gap: 12px;
+-    padding: 12px 14px;
+-    border: 1px solid #E6DED3;
+-    border-radius: 12px;
+-    background: var(--blanco);
+-    cursor: pointer;
+-}
+-
+-body.cliente .medio input {
+-    order: 3;                 /* el circulito queda a la derecha, como en Figma */
+-    width: 18px;
+-    height: 18px;
+-    padding: 0;
+-    accent-color: var(--dorado);
+-}
+-
+-body.cliente .medio div {
+-    flex: 1;
+-    display: flex;
+-    flex-direction: column;
+-    font-size: 13px;
+-}
+-
+-body.cliente .medio small {
+-    color: var(--gris-texto);
+-    font-size: 11px;
+-}
+-
+-/* :has() = "la caja que TIENE adentro el circulito marcado" */
+-body.cliente .medio:has(input:checked) {
+-    border: 2px solid var(--dorado);
+-    background: var(--beige-claro);
+-}
+-
+-/* --- columna del centro: entrega y tarjeta --- */
+-body.cliente .pago-datos {
+-    position: relative;
+-}
+-
+-body.cliente .pago-datos .logo.chico {
+-    width: 90px;
+-}
+-
+-body.cliente .pago-datos h2 {
+-    margin: 0 0 8px;
+-    text-align: center;
+-    font-size: 18px;
+-    font-weight: 500;
+-}
+-
+-body.cliente .pago-datos label {
+-    display: flex;
+-    flex-direction: column;
+-    gap: 6px;
+-    font-size: 13px;
+-    font-weight: 500;
+-}
+-
+-body.cliente .pago-datos input {
+-    padding: 12px;
+-    border: 1px solid #EFE6DA;
+-    background: var(--crema);
+-}
+-
+-/* flechita "←" para volver a la carta */
+-body.cliente .volver {
+-    position: absolute;
+-    top: 32px;
+-    left: 32px;
+-    width: 38px;
+-    height: 38px;
+-    border-radius: 50%;
+-    background: var(--beige-claro);
+-    display: grid;
+-    place-items: center;
+-}
+-
+-body.cliente .visa {
+-    float: right;
+-    color: var(--dorado-texto);
+-    font-weight: 700;
+-    font-style: italic;
+-}
+-
+-/* los datos de la tarjeta solo se ven si está elegida "Tarjeta" */
+-body.cliente .datos-tarjeta {
+-    display: none;
+-    flex-direction: column;
+-    gap: 12px;
+-}
+-
+-body.cliente .pago:has(input[value="TARJETA"]:checked) .datos-tarjeta {
+-    display: flex;
+-}
+-
+-body.cliente .datos-tarjeta .fila label {
+-    flex: 1;
+-}
+-
+-/* --- columna derecha: resumen --- */
+-body.cliente .pago-resumen {
+-    border-left: 1px solid #EFE6DA;
+-}
+-
+-body.cliente .pago-resumen h3 {
+-    margin: 0;
+-}
+-
+-body.cliente .pago-resumen button {
+-    margin-top: 8px;
+-    justify-content: center;
+-    gap: 10px;
+-}
+-
+-body.cliente .nota-resumen {
+-    margin: 0;
+-    padding: 8px 10px;
+-    border-radius: 8px;
+-    background: var(--crema);
+-    font-size: 12px;
+-}
+-
+-
+-/* ===================================================================
+-   -- DELIVERY: CONFIRMACIÓN --                    cliente/pedido.html
+-   Izquierda: "¡Pedido confirmado!" + "Así va tu pedido".
+-   Derecha: dirección y detalle.
+-   ⚠️ ADAPTADO AL BACKEND: en Figma la entrega estimada es una hora
+-   exacta. El envío no guarda la hora del pedido: va "30 – 45 min".
+-   =================================================================== */
+-
+-body.cliente .confirmacion {
+-    width: 100%;
+-    max-width: 1100px;
+-    margin: 0 auto;
+-    padding: 28px;
+-    display: grid;
+-    grid-template-columns: 1fr 1fr;
+-    gap: 48px;
+-    border-radius: 16px;
+-    background: var(--blanco);
+-}
+-
+-body.cliente .confirmacion > section:first-child {
+-    text-align: center;
+-}
+-
+-body.cliente .check {
+-    width: 64px;
+-    height: 64px;
+-    margin: 0 auto 12px;
+-    border-radius: 50%;
+-    background: var(--beige-claro);
+-    color: var(--dorado);
+-    display: grid;
+-    place-items: center;
+-    font-size: 26px;
+-}
+-
+-body.cliente .confirmacion h1 {
+-    margin: 0 0 8px;
+-    font-size: 26px;
+-    font-weight: 500;
+-}
+-
+-body.cliente .entrega-estimada {
+-    margin: 16px 0 24px;
+-    padding: 18px 20px;
+-    border-radius: 16px;
+-    background: #F0E4D4;
+-    display: flex;
+-    flex-direction: column;
+-    gap: 4px;
+-    text-align: left;
+-    color: var(--dorado-texto);
+-}
+-
+-body.cliente .entrega-estimada strong {
+-    font-size: 32px;
+-    font-weight: 700;
+-    color: var(--negro);
+-}
+-
+-/* --- "Así va tu pedido": la línea de pasos --- */
+-body.cliente .seguimiento {
+-    text-align: left;
+-}
+-
+-body.cliente .seguimiento-titulo {
+-    display: flex;
+-    justify-content: space-between;
+-    align-items: center;
+-}
+-
+-body.cliente .seguimiento-titulo h3 {
+-    margin: 0;
+-    font-size: 17px;
+-    font-weight: 500;
+-}
+-
+-body.cliente .en-vivo {
+-    color: var(--ok);
+-    font-size: 12px;
+-}
+-
+-body.cliente .pasos {
+-    margin: 16px 0 0;
+-    padding: 0;
+-    list-style: none;
+-}
+-
+-/* los pasos que todavía no llegaron se ven apagados */
+-body.cliente .pasos li {
+-    position: relative;
+-    display: flex;
+-    gap: 16px;
+-    padding-bottom: 22px;
+-    opacity: 0.45;
+-}
+-
+-/* la rayita vertical que une los círculos */
+-body.cliente .pasos li:not(:last-child)::after {
+-    content: "";
+-    position: absolute;
+-    left: 19px;
+-    top: 40px;
+-    bottom: 2px;
+-    width: 2px;
+-    background: #E6DED3;
+-}
+-
+-body.cliente .pasos li.hecho,
+-body.cliente .pasos li.actual {
+-    opacity: 1;
+-}
+-
+-body.cliente .pasos li.hecho::after {
+-    background: var(--dorado);
+-}
+-
+-body.cliente .punto {
+-    flex-shrink: 0;
+-    width: 40px;
+-    height: 40px;
+-    border-radius: 50%;
+-    background: var(--beige-claro);
+-    display: grid;
+-    place-items: center;
+-    font-size: 16px;
+-}
+-
+-/* el paso actual: círculo dorado y texto dorado */
+-body.cliente .pasos li.actual .punto {
+-    background: var(--dorado);
+-}
+-
+-body.cliente .pasos li.actual strong {
+-    color: #8A5A1E;
+-}
+-
+-body.cliente .pasos li div {
+-    display: flex;
+-    flex-direction: column;
+-    font-size: 14px;
+-}
+-
+-body.cliente .pasos li strong {
+-    font-weight: 500;
+-}
+-
+-body.cliente .pasos li small {
+-    color: var(--gris-texto);
+-    font-size: 12px;
+-}
+-
+-/* --- columna derecha --- */
+-body.cliente .confirmacion-detalle {
+-    display: flex;
+-    flex-direction: column;
+-    gap: 16px;
+-}
+-
+-body.cliente .direccion {
+-    display: flex;
+-    gap: 14px;
+-}
+-
+-body.cliente .direccion div {
+-    display: flex;
+-    flex-direction: column;
+-    font-size: 13px;
+-}
+-
+-body.cliente .direccion small {
+-    color: var(--gris-texto);
+-}
+-
+-body.cliente .icono-caja {
+-    flex-shrink: 0;
+-    width: 40px;
+-    height: 40px;
+-    border-radius: 10px;
+-    background: var(--beige-claro);
+-    display: grid;
+-    place-items: center;
+-}
+-
+-body.cliente .confirmacion-detalle .boton-borde {
+-    color: var(--dorado-texto);
+-    font-weight: 500;
+-}
+-
+-
+-/* ===================================================================
+-   -- MIS PEDIDOS --                             cliente/pedidos.html
+-   Las mismas tarjetas que Mis reservas (ver 3.9).
+-   Acá solo van los colores de cada estado del envío.
+-   ⚠️ ADAPTADO AL BACKEND: el envío no guarda la fecha (va el número)
+-   y el cliente no puede cancelarlo (solo el restaurante o el repartidor).
+-   =================================================================== */
+-
+-body.cliente .envio-pendiente  { color: #FFFFFF; }   /* en preparación */
+-body.cliente .envio-en_camino  { color: #FFC24B; }   /* naranja */
+-body.cliente .envio-entregado  { color: #C6F29B; }   /* verde */
+-body.cliente .envio-cancelado  { color: #B3261E; }   /* rojo */
+-
+-
+-/* ===================================================================
+-   -- PERFIL --                                   cliente/perfil.html
+-   ⚠️ ADAPTADO AL BACKEND: en Figma hay una foto. El cliente no guarda
+-   imagen: se muestran sus iniciales en un círculo.
+-   =================================================================== */
+-
+-body.cliente .perfil {
+-    width: 100%;
+-    max-width: 280px;
+-    display: flex;
+-    flex-direction: column;
+-    align-items: center;
+-    gap: 10px;
+-}
+-
+-body.cliente .perfil h1 {
+-    margin: 0;
+-    font-size: 36px;
+-    font-weight: 800;
+-}
+-
+-body.cliente .perfil > p {
+-    margin: 0 0 8px;
+-}
+-
+-body.cliente .avatar {
+-    width: 120px;
+-    height: 120px;
+-    margin-bottom: 16px;
+-    border-radius: 50%;
+-    border: 8px solid #FBF3E9;
+-    background: var(--beige);
+-    color: var(--blanco);
+-    display: grid;
+-    place-items: center;
+-    font-size: 42px;
+-    font-weight: 500;
+-}
+-
+-body.cliente .perfil .fila {
+-    width: 100%;
+-}
+-
+-body.cliente .perfil input[readonly] {
+-    color: var(--gris-texto);
+-    font-size: 12px;
+-}
+-
+-
+-/* ===================================================================
+-   -- SOBRE NOSOTROS --                         cliente/nosotros.html
+-   Los 4 integrantes del grupo en tarjetas, con sus mails.
+-   Página pública: se llega con el botón de la persona (arriba a la derecha).
+-   =================================================================== */
+-
+-body.cliente .nosotros {
+-    width: 100%;
+-    max-width: 920px;
+-    display: flex;
+-    flex-direction: column;
+-    align-items: center;
+-    text-align: center;
+-}
+-
+-body.cliente .nosotros h1 {
+-    margin: 0 0 10px;
+-    font-size: 36px;
+-    font-weight: 800;
+-}
+-
+-body.cliente .nosotros .intro {
+-    max-width: 560px;
+-    margin: 0 0 36px;
+-    color: var(--gris-texto);
+-}
+-
+-/* las 4 tarjetas: 4 en una fila en compu (de a 2 o de a 1 en celular) */
+-body.cliente .equipo {
+-    width: 100%;
+-    display: grid;
+-    grid-template-columns: repeat(4, 1fr);
+-    gap: 18px;
+-}
+-
+-body.cliente .integrante {
+-    display: flex;
+-    flex-direction: column;
+-    align-items: center;
+-    gap: 8px;
+-    padding: 24px 14px;
+-    border-radius: 20px;
+-    background: var(--beige-claro);
+-    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.06);
+-}
+-
+-/* las iniciales en un círculo, como en el perfil */
+-body.cliente .iniciales {
+-    width: 78px;
+-    height: 78px;
+-    margin-bottom: 6px;
+-    border-radius: 50%;
+-    border: 6px solid var(--blanco);
+-    background: var(--beige);
+-    color: var(--blanco);
+-    display: grid;
+-    place-items: center;
+-    font-size: 26px;
+-    font-weight: 500;
+-}
+-
+-body.cliente .integrante h2 {
+-    margin: 0;
+-    font-size: 16px;
+-    font-weight: 500;
+-}
+-
+-/* el mail: al tocarlo abre el correo (mailto:) */
+-body.cliente .integrante a {
+-    color: var(--dorado-texto);
+-    font-size: 12px;
+-    font-weight: 400;
+-    word-break: break-all;    /* los mails largos se cortan y no se salen */
+-}
+-
+-body.cliente .tecnologias {
+-    margin: 36px 0 20px;
+-    color: var(--gris-texto);
+-    font-size: 13px;
+-}
+-
+-body.cliente .volver-atras {
+-    padding: 9px 28px;
+-}
+-
+-
+-/* ███████████████████████████████████████████████████████████████████
+-   PARTE 3 · RESPONSIVE
+-   Todo lo que cambia según el tamaño de la pantalla, junto acá.
+-   @media (max-width: X) = "aplicá esto solo si la pantalla mide X o menos".
+-   ███████████████████████████████████████████████████████████████████ */
+-
+-
+-/* ===================================================================
+-   TABLET (hasta 900px): las páginas de varias columnas pasan a una
+-   =================================================================== */
+-
+-@media (max-width: 900px) {
+-
+-    /* -- DELIVERY: CARTA -- portada arriba de todo, panel debajo de la carta */
+-    body.cliente .hero,
+-    body.cliente .delivery {
+-        grid-template-columns: 1fr;
+-    }
+-
+-    body.cliente .hero-foto {
+-        min-height: 160px;
+-    }
+-
+-    body.cliente .panel-pedido {
+-        position: static;
+-    }
+-
+-    /* -- DELIVERY: PAGO -- las tres columnas, una debajo de la otra */
+-    body.cliente .pago {
+-        grid-template-columns: 1fr;
+-    }
+-
+-    body.cliente .pago-resumen {
+-        border-left: none;
+-        border-top: 1px solid #EFE6DA;
+-    }
+-
+-    /* -- DELIVERY: CONFIRMACIÓN -- */
+-    body.cliente .confirmacion {
+-        grid-template-columns: 1fr;
+-        gap: 32px;
+-    }
+-
+-    /* -- SOBRE NOSOTROS -- las tarjetas de a 2 */
+-    body.cliente .equipo {
+-        grid-template-columns: repeat(2, 1fr);
+-    }
+-}
+-
+-
+-/* ===================================================================
+-   CELULAR (hasta 600px)
+-   =================================================================== */
+-
+-@media (max-width: 600px) {
+-
+-    /* -- GENERAL -- menos margen a los costados */
+-    body.cliente {
+-        padding: 16px 16px 32px;
+-    }
+-
+-    /* barra de abajo más angosta para que entre */
+-    body.cliente .nav-inferior {
+-        bottom: 12px;
+-        max-width: calc(100% - 24px);
+-    }
+-
+-    body.cliente .nav-inferior a {
+-        padding: 8px 12px;
+-        font-size: 11px;
+-    }
+-
+-    /* título y botón uno debajo del otro (Mis reservas / Mis pedidos) */
+-    body.cliente .titulo-con-boton {
+-        flex-direction: column;
+-        gap: 12px;
+-    }
+-
+-    body.cliente .titulo-con-boton .boton-beige {
+-        position: static;
+-    }
+-
+-    body.cliente .titulo-con-boton h1 {
+-        font-size: 26px;
+-    }
+-
+-    /* -- LANDING -- los platos se apilan: foto arriba, texto abajo */
+-    body.cliente .plato,
+-    body.cliente .plato:nth-child(odd) {
+-        flex-direction: column;
+-        gap: 10px;
+-    }
+-
+-    body.cliente .plato img {
+-        width: 85%;
+-    }
+-
+-    body.cliente .acciones .boton {
+-        width: 100%;
+-    }
+-
+-    /* -- LOGIN -- logo un poco más chico */
+-    body.cliente .auth .logo {
+-        width: 220px;
+-        margin: 24px auto 36px;
+-    }
+-
+-    /* -- CREAR CUENTA -- */
+-    body.cliente .auth:has(input[name="password2"]) h1 {
+-        font-size: 28px;
+-    }
+-
+-    /* -- ELEGIR -- */
+-    body.cliente .elegir {
+-        gap: 40px;
+-    }
+-
+-    body.cliente .opcion img {
+-        width: 110px;
+-        height: 110px;
+-    }
+-
+-    /* -- REGISTRAR RESERVA -- */
+-    body.cliente .registrar-reserva {
+-        max-width: 100%;
+-    }
+-
+-    body.cliente .registrar-reserva h1 {
+-        margin: 16px 0 24px;
+-    }
+-
+-    /* -- DELIVERY: CARTA -- */
+-    body.cliente .hero-texto {
+-        padding: 22px;
+-    }
+-
+-    body.cliente .hero-texto h1 {
+-        font-size: 26px;
+-    }
+-
+-    body.cliente .grid-platos {
+-        grid-template-columns: 1fr;
+-    }
+-
+-    /* -- DELIVERY: PAGO -- */
+-    body.cliente .pago > section {
+-        padding: 24px 18px;
+-    }
+-
+-    body.cliente .pago-medios h1 {
+-        font-size: 24px;
+-    }
+-
+-    body.cliente .volver {
+-        top: 22px;
+-        left: 18px;
+-    }
+-
+-    /* -- DELIVERY: CONFIRMACIÓN -- */
+-    body.cliente .confirmacion {
+-        padding: 20px 16px;
+-    }
+-
+-    body.cliente .entrega-estimada strong {
+-        font-size: 26px;
+-    }
+-
+-    /* -- PERFIL -- */
+-    body.cliente .perfil h1 {
+-        font-size: 30px;
+-    }
+-
+-    /* -- SOBRE NOSOTROS -- */
+-    body.cliente .nosotros h1 {
+-        font-size: 30px;
+-    }
+-
+-    /* botón "Sobre nosotros" un poco más chico */
+-    body.cliente .boton-nosotros {
+-        top: 12px;
+-        right: 12px;
+-        padding: 7px 12px;
+-        font-size: 12px;
+-    }
+-}
+-
+-/* celulares muy angostos: las tarjetas del equipo de a 1 */
+-@media (max-width: 400px) {
+-    body.cliente .equipo {
+-        grid-template-columns: 1fr;
+-    }
+-}
+-
+-
+-/* ---------- Modo oscuro ---------- */
+-[data-tema="oscuro"] {
+-    --blanco: #1e1b18;          /* fondos de tarjetas y botones */
+-    --beige: #2a241e;           /* bloques beige */
+-    --beige-claro: #352d25;     /* hover */
+-    --borde-suave: #4a4036;
+-    --dorado-texto: #d9b46a;    /* un dorado más claro para que se lea */
+-}
+-
+-[data-tema="oscuro"] body {
+-    background: #141210;
+-    color: #ece6dd;
+-}
+-
+-/* botón de cambiar tema, arriba a la izquierda */
+-body.cliente .boton-tema {
+-    position: fixed;
+-    top: 16px;
+-    left: 16px;
+-    z-index: 20;
+-    width: 38px;
+-    height: 38px;
+-    padding: 0;
+-    display: flex;              /* centra el ícono */
+-    align-items: center;
+-    justify-content: center;
+-    font-size: 18px;
+-    line-height: 1;
+-    overflow: hidden;           /* nada se sale del recuadro */
+-    border: 1px solid var(--borde-suave);
+-    border-radius: 10px;
+-    background: var(--blanco);
+-    cursor: pointer;
+-}
+-
+-/* el dibujo de la luna: color fijo, se vea siempre */
+-body.cliente .boton-tema svg {
+-    width: 18px;
+-    height: 18px;
+-    flex-shrink: 0;
+-    stroke: var(--dorado-texto);
+-}
+-
+-/* en el hover, mismo fondo que "Sobre nosotros" y la luna sigue dorada */
+-body.cliente .boton-tema:hover {
+-    background: var(--beige-claro);
+-}
+-
+-body.cliente .boton-tema:hover svg {
+-    stroke: var(--dorado-texto);
+-}
+\ No newline at end of file
++/* =====================================================================
++   STYLE.CSS · Punto de entrada de los estilos del cliente
++   Este archivo no tiene reglas: solo trae las partes en orden.
++   El ORDEN importa: lo que se carga después pisa a lo anterior.
++
++   Las partes están en static/css/:
++     base/        variables (colores, fuentes) y base de la página
++     componentes/ piezas que se usan en varias páginas
++     paginas/     un archivo por pantalla (mismo nombre que la plantilla)
++     responsive   tablet y celular
++     tema-oscuro  modo oscuro
++   ===================================================================== */
++
++@import url("css/base/variables.css");
++@import url("css/base/base.css");
++@import url("css/componentes/comunes.css");
++@import url("css/paginas/inicio.css");
++@import url("css/paginas/landing.css");
++@import url("css/paginas/login.css");
++@import url("css/paginas/registro.css");
++@import url("css/paginas/elegir.css");
++@import url("css/paginas/reservas.css");
++@import url("css/paginas/reserva-nueva.css");
++@import url("css/paginas/delivery.css");
++@import url("css/paginas/delivery-pago.css");
++@import url("css/paginas/pedido.css");
++@import url("css/paginas/pedidos.css");
++@import url("css/paginas/perfil.css");
++@import url("css/paginas/nosotros.css");
++@import url("css/responsive.css");
++@import url("css/tema-oscuro.css");
+diff --git a/web/src/main/resources/templates/cliente/delivery.html b/web/src/main/resources/templates/cliente/delivery.html
+index 09c81e5..efa26a9 100644
+--- a/web/src/main/resources/templates/cliente/delivery.html
++++ b/web/src/main/resources/templates/cliente/delivery.html
+@@ -2,58 +2,55 @@
+ <html lang="es" xmlns:th="http://www.thymeleaf.org">
+ <head>
+     <meta charset="UTF-8">
++    <meta name="viewport" content="width=device-width, initial-scale=1">
+     <title>Delivery - La Nona</title>
+     <link rel="stylesheet" th:href="@{/style.css}">
++    <link rel="stylesheet" th:href="@{/nona.css}">
+     <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+     <script th:src="@{/errores.js}" defer></script>
+
+ </head>
+-<body class="cliente con-nav ancho">
++<body class="cliente nona">
+ 
+-<!-- botón "Sobre nosotros" (arriba a la derecha, en todas las páginas) -->
+ <a th:replace="~{fragments/cliente/layout :: boton-nosotros}"></a>
+ <button th:replace="~{fragments/cliente/layout :: boton-tema}"></button>
+ 
+-
+-<header th:replace="~{fragments/cliente/layout :: logo}"></header>
+-
+-<!-- portada beige con foto (static/img/hero.jpg) -->
+-<section class="hero">
+-    <div class="hero-texto">
+-        <span class="chip verde">● Abierto ahora</span> <small>La Nona · Pastas caseras</small>
+-        <h1>De nuestra cocina a tu mesa.</h1>
+-        <p>Pastas hechas a mano, con el sabor de siempre.</p>
+-        <!-- ⚠️ ADAPTADO AL BACKEND: sin "Envío $2.500" ni "4,8 (120 opiniones)":
+-             el backend no tiene costo de envío ni calificaciones. -->
+-        <p class="hero-datos">🕒 <strong>30–45 min</strong></p>
++<header class="cabecera">
++    <a th:replace="~{fragments/cliente/layout :: logo}"></a>
++</header>
++
++<main class="contenedor pagina">
++    <div class="pagina-cabecera">
++        <div>
++            <!-- el backend no tiene costo de envío ni calificaciones: solo el tiempo estimado -->
++            <p class="abierto">● Abierto ahora · llega en 30 a 45 min</p>
++            <h1 class="titulo-pagina">La carta</h1>
++        </div>
++
++        <!-- buscador en vivo: los platos no tienen categoría, así que se busca por nombre -->
++        <label class="buscador-nona">
++            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="2"
++                 stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
++            <span class="oculto">Buscar en la carta</span>
++            <input type="search" name="q" placeholder="¿Qué se te antoja hoy?"
++                   hx-get="/delivery/buscar"
++                   hx-trigger="input changed delay:300ms, search"
++                   hx-target="#platos"
++                   hx-swap="outerHTML">
++        </label>
+     </div>
+-    <div class="hero-foto"></div>
+-</section>
+-
+-<div id="mensaje-error" class="alerta error" hidden></div>
+-
+-<div class="delivery">
+-    <main>
+-        <!-- buscador en vivo, igual que el de Clientes en admin -->
+-        <input type="search" name="q" class="buscador" placeholder="🔍  ¿Qué se te antoja hoy?"
+-               hx-get="/delivery/buscar"
+-               hx-trigger="input changed delay:300ms, search"
+-               hx-target="#platos"
+-               hx-swap="outerHTML">
+ 
+-        <!-- ⚠️ ADAPTADO AL BACKEND: en Figma hay filtros (Pastas, Al horno, Postres,
+-             Bebidas). Los platos (Menu) no tienen categoría, así que se usa el buscador. -->
++    <div id="mensaje-error" class="alerta error" hidden></div>
+ 
+-        <h2 class="seccion">Los favoritos de la Nona</h2>
+-        <p class="sub">Porciones generosas, preparadas en el momento.</p>
+-
+-        <div th:replace="~{fragments/cliente/delivery-plato :: platos}"></div>
+-    </main>
+-
+-    <aside th:replace="~{fragments/cliente/delivery-pedido :: panel}"></aside>
+-</div>
++    <div class="dos-columnas">
++        <div class="principal">
++            <div th:replace="~{fragments/cliente/delivery-plato :: platos}"></div>
++        </div>
++        <aside th:replace="~{fragments/cliente/delivery-pedido :: panel}"></aside>
++    </div>
+ 
+-<small class="pie">Precios en pesos argentinos. Las imágenes son ilustrativas.</small>
++    <p class="aclaracion-nona">Precios en pesos argentinos. Las imágenes son ilustrativas.</p>
++</main>
+ 
+ <nav th:replace="~{fragments/cliente/layout :: nav('inicio')}"></nav>
+ 
+diff --git a/web/src/main/resources/templates/cliente/landing.html b/web/src/main/resources/templates/cliente/landing.html
+index 7f614b6..6193be9 100644
+--- a/web/src/main/resources/templates/cliente/landing.html
++++ b/web/src/main/resources/templates/cliente/landing.html
+@@ -2,34 +2,133 @@
+ <html lang="es" xmlns:th="http://www.thymeleaf.org">
+ <head>
+     <meta charset="UTF-8">
++    <meta name="viewport" content="width=device-width, initial-scale=1">
+     <title>La Nona - Pastas caseras</title>
+     <link rel="stylesheet" th:href="@{/style.css}">
++    <link rel="stylesheet" th:href="@{/nona.css}">
+
+ </head>
+-<body class="cliente">
++<body class="cliente nona publico">
+ 
+-<!-- botón "Sobre nosotros" (arriba a la derecha, en todas las páginas) -->
++<!-- botones fijos de arriba: "Sobre nosotros" y el cambio de tema -->
+ <a th:replace="~{fragments/cliente/layout :: boton-nosotros}"></a>
+ <button th:replace="~{fragments/cliente/layout :: boton-tema}"></button>
+ 
++<header class="cabecera">
++    <img th:src="@{/img/logo.png}" alt="La Nona - pastas caseras" class="logo">
++</header>
+ 
+-<header><img th:src="@{/img/logo.png}" alt="La Nona - pastas caseras" class="logo"></header>
++<div class="acceso">
++    <a th:href="@{/login}" class="btn">Iniciar / Registrarme</a>
++    <small>Registrate para reservar y pedir delivery</small>
++</div>
+ 
+-<main class="carta">
+-    <article class="plato" th:each="p : ${platos}">
+-        <img th:src="@{/img/platos/{id}.jpg(id=${p.idMenu})}" th:alt="${p.nombre}">
+-        <div>
+-            <h3 th:text="${p.nombre}"></h3>
+-            <p th:text="${p.descripcion}"></p>
+-            <strong th:text="'$ ' + ${#numbers.formatDecimal(p.precio, 1, 'POINT', 0, 'COMMA')}"></strong>
++<main>
++    <!-- Los favoritos de la Nona: los platos disponibles de la carta -->
++    <section id="favoritos" class="franja suave">
++        <div class="contenedor">
++            <div class="encabezado-seccion">
++                <div>
++                    <h2 class="titulo-seccion">Los favoritos de la Nona</h2>
++                    <p class="bajada">Porciones generosas, preparadas en el momento.</p>
++                </div>
++                <a th:href="@{/login}" class="link-flecha">Pedí online →</a>
++            </div>
++
++            <div class="grilla">
++                <article class="plato-card" th:each="p : ${platos}">
++                    <img th:src="@{/img/platos/{id}.jpg(id=${p.idMenu})}" th:alt="${p.nombre}" src="/img/platos/1.jpg" alt="">
++                    <div class="cuerpo">
++                        <h3 th:text="${p.nombre}">Ravioles de ricota y espinaca con fileto</h3>
++                        <p th:text="${p.descripcion}">Pasta rellena casera con salsa de tomate</p>
++                        <span class="precio" th:text="'$ ' + ${#numbers.formatDecimal(p.precio, 1, 'POINT', 0, 'COMMA')}">$ 13.500</span>
++                    </div>
++                </article>
++            </div>
++            <p th:if="${platos.isEmpty()}" class="vacio">Todavía no hay platos en la carta.</p>
++        </div>
++    </section>
++
++    <!-- Nuestros espacios: las zonas activas del restaurante -->
++    <section id="espacios" class="franja">
++        <div class="contenedor">
++            <div class="encabezado-seccion">
++                <div>
++                    <h2 class="titulo-seccion">Nuestros espacios</h2>
++                    <p class="bajada">Al reservar elegís la zona. Si no hay lugar a esa hora, te avisamos en el momento.</p>
++                </div>
++            </div>
++
++            <div class="grilla">
++                <div class="espacio" th:each="z : ${zonas}">
++                    <h3 th:text="${z.nombre}">Salón principal</h3>
++                    <p th:text="'Hasta ' + ${z.capacidadMaxima} + ' personas.'">Hasta 40 personas.</p>
++                </div>
++            </div>
++        </div>
++    </section>
++
++    <!-- Sobre La Nona -->
++    <section id="sobre" class="franja beige">
++        <div class="contenedor sobre">
++            <div>
++                <h2 class="titulo-seccion">Sobre La Nona</h2>
++                <p>Amasamos la pasta todos los días y la servimos con las salsas de siempre: fileto, bolognesa, crema y pesto.</p>
++                <p>Podés venir al salón o pedirla a tu casa. Con tu cuenta reservás mesa y seguís tus pedidos desde el celular.</p>
++                <a href="#contacto" class="link-flecha">Escribinos →</a>
++            </div>
++            <div class="caja">
++                <p class="volanta">Proyecto</p>
++                <p>Sitio hecho para Aplicaciones Interactivas (UADE) por:</p>
++                <ul>
++                    <li>Carlos Alvarez Puerta</li>
++                    <li>Cruz Lobo</li>
++                    <li>Fernando Almirón</li>
++                    <li>Joaquín Ramallo</li>
++                </ul>
++            </div>
++        </div>
++    </section>
++
++    <!-- Contacto: el formulario abre el mail de la persona, dirigido al restaurante -->
++    <section id="contacto" class="franja suave">
++        <div class="contenedor contacto">
++            <div>
++                <h2 class="titulo-seccion">Contacto</h2>
++                <p class="bajada">¿Un evento, una consulta o un comentario? Te respondemos por mail.</p>
++                <dl class="datos">
++                    <dt>Dirección</dt>
++                    <dd th:text="${restaurante.direccion}">Av. Corrientes 1234, CABA</dd>
++                    <dt>Teléfono</dt>
++                    <dd><a th:href="'tel:' + ${restaurante.telefono}" th:text="${restaurante.telefono}">1145551234</a></dd>
++                    <dt>Horario</dt>
++                    <dd th:text="${#temporals.format(restaurante.horarioApertura, 'HH:mm')} + ' a ' + ${#temporals.format(restaurante.horarioCierre, 'HH:mm')}">11:00 a 00:00</dd>
++                    <dt>Email</dt>
++                    <dd><a th:href="'mailto:' + ${restaurante.email}" th:text="${restaurante.email}">contacto@lanona.com</a></dd>
++                </dl>
++            </div>
++
++            <form class="caja formulario" method="post" enctype="text/plain"
++                  th:action="'mailto:' + ${restaurante.email}">
++                <label class="campo">Nombre
++                    <input type="text" name="nombre" placeholder="Tu nombre" autocomplete="name" required>
++                </label>
++                <label class="campo">Email
++                    <input type="email" name="email" placeholder="tu@email.com" autocomplete="email" required>
++                </label>
++                <label class="campo">Teléfono
++                    <input type="tel" name="telefono" placeholder="11 5555-5555" autocomplete="tel">
++                </label>
++                <label class="campo ancho-total">Mensaje
++                    <textarea name="mensaje" rows="4" placeholder="Contanos en qué te podemos ayudar" required></textarea>
++                </label>
++                <button type="submit" class="btn">Enviar mensaje</button>
++            </form>
+         </div>
+-    </article>
++    </section>
+ </main>
+ 
+-<footer class="acciones">
+-    <a th:href="@{/login}" class="boton">Iniciar / Registrarme</a>
+-    <small>Registrese para reservar y/o delivery</small>
+-</footer>
++<footer th:replace="~{fragments/cliente/layout :: pie}"></footer>
+ 
+ </body>
+ </html>
+diff --git a/web/src/main/resources/templates/cliente/pedidos.html b/web/src/main/resources/templates/cliente/pedidos.html
+index 767e1b6..4b04593 100644
+--- a/web/src/main/resources/templates/cliente/pedidos.html
++++ b/web/src/main/resources/templates/cliente/pedidos.html
+@@ -2,55 +2,34 @@
+ <html lang="es" xmlns:th="http://www.thymeleaf.org">
+ <head>
+     <meta charset="UTF-8">
++    <meta name="viewport" content="width=device-width, initial-scale=1">
+     <title>Mis pedidos - La Nona</title>
+     <link rel="stylesheet" th:href="@{/style.css}">
++    <link rel="stylesheet" th:href="@{/nona.css}">
+
+ </head>
+-<body class="cliente con-nav">
++<body class="cliente nona">
+ 
+-<!-- botón "Sobre nosotros" (arriba a la derecha, en todas las páginas) -->
+ <a th:replace="~{fragments/cliente/layout :: boton-nosotros}"></a>
+ <button th:replace="~{fragments/cliente/layout :: boton-tema}"></button>
+ 
++<header class="cabecera">
++    <a th:replace="~{fragments/cliente/layout :: logo}"></a>
++</header>
+ 
+-<header th:replace="~{fragments/cliente/layout :: logo}"></header>
+-
+-<main class="mis-reservas">
+-    <div class="titulo-con-boton">
+-        <h1>Mis pedidos</h1>
+-        <a th:href="@{/delivery}" class="boton-beige">+ Nuevo pedido</a>
++<main class="contenedor pagina">
++    <div class="pagina-cabecera">
++        <h1 class="titulo-pagina">Mis pedidos</h1>
++        <a th:href="@{/delivery}" class="btn">+ Nuevo pedido</a>
+     </div>
+ 
+-    <!-- las mismas tarjetas beige que "Mis reservas" -->
+-    <section class="tarjetas">
+-        <article th:each="e : ${envios}" class="tarjeta">
+-
+-            <!-- ⚠️ ADAPTADO AL BACKEND: en Figma la tarjeta muestra fecha y hora.
+-                 El envío no guarda cuándo se pidió, así que se muestra el número. -->
+-            <div class="tarjeta-fecha"><span th:text="'Pedido #' + ${e.idEnvio}"></span></div>
+-
+-            <p class="estado" th:classappend="'envio-' + ${#strings.toLowerCase(e.estado.name())}"
+-               th:text="${e.estado.name() == 'PENDIENTE'} ? 'EN PREPARACIÓN'
+-                      : (${e.estado.name() == 'EN_CAMINO'} ? 'EN CAMINO' : ${e.estado})"></p>
+-
+-            <ul class="tarjeta-datos">
+-                <li><span class="icono">👤</span> <span th:text="${e.ticket.pedidos.size()} + ' artículos'"></span></li>
+-                <li><span class="icono">📍</span> <span th:text="${e.direccionEntrega}"></span></li>
+-                <li><span class="icono">💳</span>
+-                    <span th:text="'Total $' + ${#numbers.formatDecimal(e.ticket.calcularTotal(), 1, 'POINT', 0, 'COMMA')}"></span></li>
+-            </ul>
+-
+-            <a th:href="@{/pedidos/{id}(id=${e.idEnvio})}" class="boton-blanco">Ver detalle</a>
+-
+-            <form th:action="@{/pedidos/{id}/repetir(id=${e.idEnvio})}" method="post">
+-                <button type="submit" class="boton-blanco">Volver a pedir</button>
+-            </form>
+-            <!-- ⚠️ ADAPTADO AL BACKEND: en Figma también hay "Cancelar". En el backend
+-                 solo el restaurante o el repartidor pueden cancelar un envío. -->
+-        </article>
++    <!-- solo el restaurante o el repartidor pueden cancelar un envío: acá no hay "Cancelar" -->
++    <section class="lista" aria-label="Pedidos">
++        <th:block th:each="e : ${envios}">
++            <article th:replace="~{fragments/cliente/envio-card :: card}"></article>
++        </th:block>
++        <p th:if="${envios.isEmpty()}" class="vacio">Todavía no hiciste pedidos.</p>
+     </section>
+-
+-    <p th:if="${envios.isEmpty()}" class="vacio">Todavía no hiciste pedidos.</p>
+ </main>
+ 
+ <nav th:replace="~{fragments/cliente/layout :: nav('pedidos')}"></nav>
+diff --git a/web/src/main/resources/templates/cliente/perfil.html b/web/src/main/resources/templates/cliente/perfil.html
+index 1f5cc2e..90d63d2 100644
+--- a/web/src/main/resources/templates/cliente/perfil.html
++++ b/web/src/main/resources/templates/cliente/perfil.html
+@@ -2,40 +2,92 @@
+ <html lang="es" xmlns:th="http://www.thymeleaf.org">
+ <head>
+     <meta charset="UTF-8">
+-    <title>Perfil - La Nona</title>
++    <meta name="viewport" content="width=device-width, initial-scale=1">
++    <title>Mi cuenta - La Nona</title>
+     <link rel="stylesheet" th:href="@{/style.css}">
++    <link rel="stylesheet" th:href="@{/nona.css}">
++    <script src="https://unpkg.com/htmx.org@2.0.4"></script>
++    <script th:src="@{/errores.js}" defer></script>
+
+ </head>
+-<body class="cliente con-nav">
++<body class="cliente nona">
+ 
+-<!-- botón "Sobre nosotros" (arriba a la derecha, en todas las páginas) -->
+ <a th:replace="~{fragments/cliente/layout :: boton-nosotros}"></a>
+ <button th:replace="~{fragments/cliente/layout :: boton-tema}"></button>
+ 
++<header class="cabecera">
++    <a th:replace="~{fragments/cliente/layout :: logo}"></a>
++</header>
+ 
+-<header th:replace="~{fragments/cliente/layout :: logo}"></header>
++<main class="contenedor pagina">
++    <div class="pagina-cabecera">
++        <div>
++            <p class="saludo">Mi cuenta</p>
++            <h1 class="titulo-pagina" th:text="'Hola, ' + ${c.nombre}">Hola, María</h1>
++        </div>
++        <div class="botones">
++            <a th:href="@{/delivery}" class="btn">+ Nuevo pedido</a>
++            <a th:href="@{/reservas/nueva}" class="btn btn-borde">+ Nueva reserva</a>
++        </div>
++    </div>
+ 
+-<main class="perfil">
+-    <h1>Perfil</h1>
+-    <p>Usuario</p>
++    <div id="mensaje-error" class="alerta error" hidden></div>
+ 
+-    <!-- ⚠️ ADAPTADO AL BACKEND: en Figma hay una foto. El cliente no guarda imagen,
+-         así que se muestran sus iniciales en un círculo. -->
+-    <div class="avatar" th:text="${#strings.substring(c.nombre, 0, 1) + #strings.substring(c.apellido, 0, 1)}"></div>
++    <div class="dos-columnas">
+ 
+-    <div class="fila">
+-        <input type="text" th:value="${c.nombre}" readonly>
+-        <input type="text" th:value="${c.apellido}" readonly>
+-    </div>
+-    <input type="text" th:value="${c.email}" readonly>
+-    <div class="fila">
+-        <input type="text" th:value="${c.celular}" placeholder="Sin celular" readonly>
+-        <input type="text" th:value="'DNI ' + ${c.dni}" readonly>
+-    </div>
++        <!-- pedidos: primero el que está en marcha, después los últimos -->
++        <section class="principal lista" aria-labelledby="t-pedidos">
++            <h2 id="t-pedidos">Mis pedidos</h2>
++
++            <article th:if="${enCurso != null}" th:with="e=${enCurso}" class="caja pedido-curso">
++                <div class="encabezado-seccion">
++                    <div>
++                        <p class="volanta" th:text="'Pedido en curso · #' + ${e.idEnvio}">Pedido en curso · #12</p>
++                        <h3 th:text="${e.estado.name() == 'EN_CAMINO'} ? 'Va en camino a tu casa' : 'Estamos preparando tu pedido'">Va en camino a tu casa</h3>
++                        <p class="detalle" th:text="${e.direccionEntrega}">Av. Santa Fe 2450, 3° B</p>
++                    </div>
++                    <th:block th:replace="~{fragments/cliente/envio-card :: estado}"></th:block>
++                </div>
++                <a th:href="@{/pedidos/{id}(id=${e.idEnvio})}" class="btn">Seguir el pedido</a>
++            </article>
+ 
+-    <form th:action="@{/logout}" method="post" class="cerrar-sesion">
+-        <button type="submit">Cerrar sesión</button>
+-    </form>
++            <th:block th:each="e : ${envios}">
++                <article th:replace="~{fragments/cliente/envio-card :: card}"></article>
++            </th:block>
++
++            <p th:if="${envios.isEmpty() and enCurso == null}" class="vacio">Todavía no hiciste pedidos.</p>
++            <a th:if="${hayMasPedidos}" th:href="@{/pedidos}" class="link-flecha">Ver todos los pedidos →</a>
++        </section>
++
++        <div class="lateral lista">
++            <!-- reservas: las mismas tarjetas que "Mis reservas" (se pueden cancelar desde acá) -->
++            <section class="lista" aria-labelledby="t-reservas">
++                <h2 id="t-reservas">Mis reservas</h2>
++                <th:block th:each="r : ${reservas}">
++                    <article th:replace="~{fragments/cliente/reserva-card :: card}"></article>
++                </th:block>
++                <p th:if="${reservas.isEmpty()}" class="vacio">Todavía no tenés reservas.</p>
++                <a th:if="${hayMasReservas}" th:href="@{/reservas}" class="link-flecha">Ver todas las reservas →</a>
++            </section>
++
++            <section class="caja datos-cuenta" aria-labelledby="t-datos">
++                <h2 id="t-datos">Mis datos</h2>
++                <dl>
++                    <dt>Nombre</dt>
++                    <dd th:text="${c.nombre} + ' ' + ${c.apellido}">María González</dd>
++                    <dt>Email</dt>
++                    <dd th:text="${c.email}">maria@email.com</dd>
++                    <dt>Celular</dt>
++                    <dd th:text="${c.celular} ?: 'Sin celular'">1155550000</dd>
++                    <dt>DNI</dt>
++                    <dd th:text="${c.dni}">30111222</dd>
++                </dl>
++                <form th:action="@{/logout}" method="post">
++                    <button type="submit" class="btn btn-suave">Cerrar sesión</button>
++                </form>
++            </section>
++        </div>
++    </div>
+ </main>
+ 
+ <nav th:replace="~{fragments/cliente/layout :: nav('perfil')}"></nav>
+diff --git a/web/src/main/resources/templates/cliente/reserva-nueva.html b/web/src/main/resources/templates/cliente/reserva-nueva.html
+index 83a7824..d28488a 100644
+--- a/web/src/main/resources/templates/cliente/reserva-nueva.html
++++ b/web/src/main/resources/templates/cliente/reserva-nueva.html
+@@ -2,74 +2,107 @@
+ <html lang="es" xmlns:th="http://www.thymeleaf.org">
+ <head>
+     <meta charset="UTF-8">
+-    <title>Registrar reserva - La Nona</title>
++    <meta name="viewport" content="width=device-width, initial-scale=1">
++    <title>Reservar mesa - La Nona</title>
+     <link rel="stylesheet" th:href="@{/style.css}">
++    <link rel="stylesheet" th:href="@{/nona.css}">
+
+ </head>
+-<body class="cliente">
++<body class="cliente nona">
+ 
+-<!-- botón "Sobre nosotros" (arriba a la derecha, en todas las páginas) -->
+ <a th:replace="~{fragments/cliente/layout :: boton-nosotros}"></a>
+ <button th:replace="~{fragments/cliente/layout :: boton-tema}"></button>
+ 
+-<main class="registrar-reserva">
+-    <h1>Registrar<br>Reserva</h1>
++<header class="cabecera">
++    <a th:replace="~{fragments/cliente/layout :: logo}"></a>
++</header>
+ 
+-    <p th:if="${error}" th:text="${error}" class="alerta error"></p>
++<main class="contenedor pagina">
++    <div class="pagina-cabecera">
++        <div>
++            <a th:href="@{/reservas}" class="volver-link">← Volver</a>
++            <h1 class="titulo-pagina">Reservá tu mesa</h1>
++            <p class="bajada" th:text="'Atendemos de ' + ${#temporals.format(restaurante.horarioApertura, 'HH:mm')}
++                                     + ' a ' + ${#temporals.format(restaurante.horarioCierre, 'HH:mm')}
++                                     + '. La reserva queda pendiente hasta que el restaurante la confirma.'">
++                Atendemos de 11:00 a 00:00. La reserva queda pendiente hasta que el restaurante la confirma.</p>
++        </div>
++    </div>
+ 
+-    <!-- formulario común (sin HTMX): si sale bien, redirige a "Mis reservas" -->
+-    <form th:action="@{/reservas/nueva}" method="post">
++    <p th:if="${error}" th:text="${error}" class="alerta error">Mensaje de error</p>
+ 
+-        <label class="campo">
+-            <span>Cant Comensales</span>
+-            <input type="number" name="cantComensales" min="1" th:value="${param.cantComensales}" required>
+-        </label>
++    <!-- formulario común (sin HTMX): si sale bien, el controller redirige a "Mis reservas" -->
++    <form th:action="@{/reservas/nueva}" method="post" class="dos-columnas">
+ 
+-        <label class="campo">
+-            <span>Fecha</span>
+-            <input type="date" name="fecha" th:min="${hoy}" th:max="${maxFecha}" th:value="${param.fecha}" required>
+-        </label>
++        <div class="principal caja">
++            <fieldset class="paso">
++                <legend>1. ¿Cuándo y cuántos?</legend>
++                <div class="campos">
++                    <label class="campo">Personas
++                        <input type="number" name="cantComensales" min="1" value="2"
++                               th:value="${param.cantComensales} ?: 2" required>
++                    </label>
++                    <label class="campo">Fecha
++                        <input type="date" name="fecha" th:min="${hoy}" th:max="${maxFecha}" th:value="${param.fecha}" required>
++                    </label>
++                    <label class="campo">Hora
++                        <input type="time" name="hora" th:value="${param.hora}" required>
++                    </label>
++                </div>
++            </fieldset>
+ 
+-        <label class="campo">
+-            <span>Hora</span>
+-            <input type="time" name="hora" th:value="${param.hora}" required>
+-        </label>
++            <fieldset class="paso">
++                <legend>2. Elegí la zona</legend>
++                <div class="campos">
++                    <label class="opcion-zona" th:each="z : ${zonas}">
++                        <input type="radio" name="idZona" required
++                               th:value="${z.idZona}"
++                               th:checked="${param.idZona != null and param.idZona[0] == '' + z.idZona}">
++                        <span>
++                            <strong th:text="${z.nombre}">Salón principal</strong>
++                            <small th:text="'Hasta ' + ${z.capacidadMaxima} + ' personas'">Hasta 40 personas</small>
++                        </span>
++                    </label>
++                </div>
++            </fieldset>
+ 
+-        <label class="campo">
+-            <span>Zona</span>
+-            <select name="idZona" required>
+-                <option value="">Elegí</option>
+-                <option th:each="z : ${zonas}"
+-                        th:value="${z.idZona}"
+-                        th:text="${z.nombre + ' (hasta ' + z.capacidadMaxima + ')'}"
+-                        th:selected="${param.idZona != null and param.idZona[0] == '' + z.idZona}"></option>
+-            </select>
+-        </label>
++            <!-- el backend exige una seña con tarjeta vigente para reservar -->
++            <fieldset class="paso">
++                <legend>3. Tarjeta para la seña</legend>
++                <p class="nota-caja" th:text="'La seña es de $ ' + ${#numbers.formatDecimal(montoSenia, 1, 'POINT', 0, 'COMMA')}
++                                          + ' y no se cobra ahora: solo se debita si no venís a la reserva.'">
++                    La seña es de $ 30.000 y no se cobra ahora: solo se debita si no venís a la reserva.</p>
++                <div class="campos">
++                    <label class="campo">Titular de la tarjeta
++                        <input type="text" name="titular" placeholder="Como figura en la tarjeta"
++                               th:value="${param.titular}" autocomplete="cc-name" required>
++                    </label>
++                    <label class="campo">Vencimiento
++                        <input type="month" name="vencimiento" th:min="${mesActual}" th:max="${maxMes}"
++                               th:value="${param.vencimiento}" required>
++                    </label>
++                </div>
++            </fieldset>
++        </div>
+ 
+-        <p class="aclaracion" th:text="'Abierto de ' + ${#temporals.format(restaurante.horarioApertura, 'HH:mm')}
+-                                     + ' a ' + ${#temporals.format(restaurante.horarioCierre, 'HH:mm')} + ' hs'"></p>
+-
+-        <!-- ⚠️ ADAPTADO AL BACKEND: no está en Figma. El backend exige una seña con
+-             tarjeta vigente para reservar (se cobra solo si no venís). -->
+-        <fieldset class="senia">
+-            <legend th:text="'Seña $' + ${#numbers.formatDecimal(montoSenia, 1, 'POINT', 0, 'COMMA')}"></legend>
+-            <small>Se cobra solo si no asistís a la reserva.</small>
+-
+-            <label class="campo">
+-                <span>Titular tarjeta</span>
+-                <input type="text" name="titular" th:value="${param.titular}" required>
+-            </label>
+-
+-            <label class="campo">
+-                <span>Vencimiento</span>
+-                <input type="month" name="vencimiento" th:min="${mesActual}" th:max="${maxMes}" th:value="${param.vencimiento}" required>
+-            </label>
+-        </fieldset>
+-
+-        <button type="submit">Confirmar</button>
+-        <a th:href="@{/elegir}" class="boton-borde">Cancelar</a>
++        <aside class="lateral caja resumen" aria-label="Antes de confirmar">
++            <h2>Antes de confirmar</h2>
++            <dl>
++                <dt>Horario</dt>
++                <dd th:text="${#temporals.format(restaurante.horarioApertura, 'HH:mm')} + ' a ' + ${#temporals.format(restaurante.horarioCierre, 'HH:mm')}">11:00 a 00:00</dd>
++                <dt>Seña</dt>
++                <dd th:text="'$ ' + ${#numbers.formatDecimal(montoSenia, 1, 'POINT', 0, 'COMMA')} + ' (solo si no venís)'">$ 30.000 (solo si no venís)</dd>
++                <dt>Anticipación</dt>
++                <dd>Hasta 3 meses</dd>
++            </dl>
++            <button type="submit" class="btn btn-bloque">Confirmar reserva</button>
++            <a th:href="@{/reservas}" class="btn btn-suave btn-bloque">Cancelar</a>
++            <p class="aclaracion-nona">Podés cancelarla desde Mis reservas mientras esté pendiente o confirmada.</p>
++        </aside>
+     </form>
+ </main>
+ 
++<nav th:replace="~{fragments/cliente/layout :: nav('reservas')}"></nav>
++
+ </body>
+ </html>
+diff --git a/web/src/main/resources/templates/cliente/reservas.html b/web/src/main/resources/templates/cliente/reservas.html
+index 813f517..dab8061 100644
+--- a/web/src/main/resources/templates/cliente/reservas.html
++++ b/web/src/main/resources/templates/cliente/reservas.html
+@@ -2,36 +2,38 @@
+ <html lang="es" xmlns:th="http://www.thymeleaf.org">
+ <head>
+     <meta charset="UTF-8">
++    <meta name="viewport" content="width=device-width, initial-scale=1">
+     <title>Mis reservas - La Nona</title>
+     <link rel="stylesheet" th:href="@{/style.css}">
++    <link rel="stylesheet" th:href="@{/nona.css}">
+     <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+     <script th:src="@{/errores.js}" defer></script>
+
+ </head>
+-<body class="cliente con-nav">
++<body class="cliente nona">
+ 
+-<!-- botón "Sobre nosotros" (arriba a la derecha, en todas las páginas) -->
+ <a th:replace="~{fragments/cliente/layout :: boton-nosotros}"></a>
+ <button th:replace="~{fragments/cliente/layout :: boton-tema}"></button>
+ 
+-<header th:replace="~{fragments/cliente/layout :: logo}"></header>
++<header class="cabecera">
++    <a th:replace="~{fragments/cliente/layout :: logo}"></a>
++</header>
+ 
+-<main class="mis-reservas">
+-    <div class="titulo-con-boton">
+-        <h1>Mis reservas</h1>
+-        <a th:href="@{/reservas/nueva}" class="boton-beige">+ Nueva Reserva</a>
++<main class="contenedor pagina">
++    <div class="pagina-cabecera">
++        <h1 class="titulo-pagina">Mis reservas</h1>
++        <a th:href="@{/reservas/nueva}" class="btn">+ Nueva reserva</a>
+     </div>
+ 
+     <div id="mensaje-error" class="alerta error" hidden></div>
+     <p th:if="${param.creada}" class="alerta ok">¡Reserva registrada! Te avisamos cuando el restaurante la confirme.</p>
+ 
+-    <section class="tarjetas">
++    <section class="lista" aria-label="Reservas">
+         <th:block th:each="r : ${reservas}">
+             <article th:replace="~{fragments/cliente/reserva-card :: card}"></article>
+         </th:block>
++        <p th:if="${reservas.isEmpty()}" class="vacio">Todavía no tenés reservas.</p>
+     </section>
+-
+-    <p th:if="${reservas.isEmpty()}" class="vacio">Todavía no tenés reservas.</p>
+ </main>
+ 
+ <nav th:replace="~{fragments/cliente/layout :: nav('reservas')}"></nav>
+diff --git a/web/src/main/resources/templates/fragments/cliente/delivery-pedido.html b/web/src/main/resources/templates/fragments/cliente/delivery-pedido.html
+index 9cf61c0..2b42cea 100644
+--- a/web/src/main/resources/templates/fragments/cliente/delivery-pedido.html
++++ b/web/src/main/resources/templates/fragments/cliente/delivery-pedido.html
+@@ -1,55 +1,54 @@
+ <!-- =========================================================
+      El panel "Tu pedido" (columna derecha de la carta).
++     El backend solo crea envíos a domicilio y no cobra envío:
++     el total es la suma de los platos, igual que lo calcula el ticket.
+      ========================================================= -->
+ 
+-<aside th:fragment="panel" id="panel-pedido" class="panel-pedido"
++<aside th:fragment="panel" id="panel-pedido" class="lateral caja panel-nona"
++       aria-label="Tu pedido"
+        th:hx-swap-oob="${oob} ? 'true'">
+ 
+-    <div class="panel-titulo">
+-        <h2>Tu pedido</h2>
+-        <span class="chip" th:text="${carrito.unidades} + ' platos'"></span>
+-    </div>
+-
+-    <!-- ⚠️ ADAPTADO AL BACKEND: en Figma se puede elegir "Retiro en local".
+-         El backend solo crea envíos a domicilio (la dirección es obligatoria). -->
+-    <div class="modo-entrega">🛵 Delivery · Llega en 30–45 minutos</div>
++    <h2 th:text="'Tu pedido · ' + ${carrito.unidades}">Tu pedido · 0</h2>
+ 
+     <p th:if="${carrito.vacio}" class="vacio">Todavía no agregaste platos.</p>
+ 
+-    <ul class="lineas">
++    <ul class="lineas-nona" th:unless="${carrito.vacio}">
+         <li th:each="l : ${lineas}">
+             <img th:src="@{/img/platos/{id}.jpg(id=${l.menu().idMenu})}" alt="">
+-            <div class="linea-info">
+-                <strong th:text="${l.menu().nombre}"></strong>
+-                <small th:text="${l.cantidad()} + ' × $' + ${#numbers.formatDecimal(l.menu().precio, 1, 'POINT', 0, 'COMMA')}"></small>
+-                <div class="contador chico">
+-                    <button th:hx-post="@{/delivery/{id}/restar(id=${l.menu().idMenu})}" hx-swap="none">−</button>
+-                    <span th:text="${l.cantidad()}"></span>
+-                    <button th:hx-post="@{/delivery/{id}/sumar(id=${l.menu().idMenu})}" hx-swap="none">+</button>
++            <div class="info">
++                <strong th:text="${l.menu().nombre}">Plato</strong>
++                <small th:text="${l.cantidad()} + ' × $ ' + ${#numbers.formatDecimal(l.menu().precio, 1, 'POINT', 0, 'COMMA')}">1 × $ 0</small>
++                <div class="contador">
++                    <button type="button" aria-label="Quitar uno"
++                            th:hx-post="@{/delivery/{id}/restar(id=${l.menu().idMenu})}" hx-swap="none">−</button>
++                    <span th:text="${l.cantidad()}">1</span>
++                    <button type="button" aria-label="Sumar uno"
++                            th:hx-post="@{/delivery/{id}/sumar(id=${l.menu().idMenu})}" hx-swap="none">+</button>
+                 </div>
+             </div>
+-            <strong th:text="'$' + ${#numbers.formatDecimal(l.subtotal(), 1, 'POINT', 0, 'COMMA')}"></strong>
++            <strong th:text="'$ ' + ${#numbers.formatDecimal(l.subtotal(), 1, 'POINT', 0, 'COMMA')}">$ 0</strong>
+         </li>
+     </ul>
+ 
+     <!-- la nota se guarda sola al salir del cuadro de texto (hx-trigger="change") -->
+     <details class="nota" th:open="${!carrito.nota.isEmpty()}" th:unless="${carrito.vacio}">
+-        <summary>📝 Agregar una nota a la cocina</summary>
+-        <textarea name="nota" rows="2" placeholder="Ej: sin sal, timbre B..."
+-                  hx-post="/delivery/nota" hx-trigger="change" hx-swap="none"
+-                  th:text="${carrito.nota}"></textarea>
++        <summary>Agregar una nota a la cocina</summary>
++        <label class="campo">
++            <span class="oculto">Nota para la cocina</span>
++            <textarea name="nota" rows="2" placeholder="Ej.: sin sal, timbre B"
++                      hx-post="/delivery/nota" hx-trigger="change" hx-swap="none"
++                      th:text="${carrito.nota}"></textarea>
++        </label>
+     </details>
+ 
+-    <!-- ⚠️ ADAPTADO AL BACKEND: en Figma hay "Envío $2.500". El backend no cobra
+-         envío: el total es la suma de los platos, igual que lo calcula el ticket. -->
+-    <div class="total">
++    <div class="total-nona">
+         <span>Total</span>
+-        <strong th:text="'$' + ${#numbers.formatDecimal(total, 1, 'POINT', 0, 'COMMA')}"></strong>
++        <span th:text="'$ ' + ${#numbers.formatDecimal(total, 1, 'POINT', 0, 'COMMA')}">$ 0</span>
+     </div>
+ 
+-    <a th:href="@{/delivery/pago}" class="boton boton-flecha"
+-       th:classappend="${carrito.vacio} ? 'deshabilitado'">Continuar al pago <span>→</span></a>
+-    <small class="aclaracion">Podés revisar tu pedido antes de pagar.</small>
++    <a th:href="@{/delivery/pago}" class="btn btn-bloque"
++       th:classappend="${carrito.vacio} ? 'deshabilitado'">Continuar al pago</a>
++    <p class="aclaracion-nona">Pagás con tarjeta, Mercado Pago, MODO o en efectivo al repartidor.</p>
+ </aside>
+ 
+ <!-- respuesta de + y −: la tarjeta y el panel, los dos con hx-swap-oob -->
+diff --git a/web/src/main/resources/templates/fragments/cliente/delivery-plato.html b/web/src/main/resources/templates/fragments/cliente/delivery-plato.html
+index a42363a..0bd7ee7 100644
+--- a/web/src/main/resources/templates/fragments/cliente/delivery-plato.html
++++ b/web/src/main/resources/templates/fragments/cliente/delivery-plato.html
+@@ -6,38 +6,40 @@
+ 
+ <!-- UNA tarjeta. Con oob=true viene "por afuera" en la respuesta de + y −,
+      y HTMX la reemplaza buscando el mismo id (plato-5, plato-7...) -->
+-<article th:fragment="plato" class="card-plato"
++<article th:fragment="plato" class="plato-card"
+          th:id="'plato-' + ${m.idMenu}"
+          th:hx-swap-oob="${oob} ? 'true'">
+ 
+     <img th:src="@{/img/platos/{id}.jpg(id=${m.idMenu})}" th:alt="${m.nombre}">
+ 
+-    <div class="card-cuerpo">
+-        <h3 th:text="${m.nombre}"></h3>
+-        <p th:text="${m.descripcion}"></p>
++    <div class="cuerpo">
++        <h3 th:text="${m.nombre}">Nombre del plato</h3>
++        <p th:text="${m.descripcion}">Descripción</p>
+ 
+-        <div class="card-pie" th:with="cant=${carrito.cantidad(m.idMenu)}">
+-            <strong th:text="'$' + ${#numbers.formatDecimal(m.precio, 1, 'POINT', 0, 'COMMA')}"></strong>
++        <div class="plato-pie" th:with="cant=${carrito.cantidad(m.idMenu)}">
++            <span class="precio" th:text="'$ ' + ${#numbers.formatDecimal(m.precio, 1, 'POINT', 0, 'COMMA')}">$ 0</span>
+ 
+             <!-- todavía no está en el pedido: botón "+ Agregar" -->
+-            <button th:if="${cant == 0}" class="agregar"
++            <button th:if="${cant == 0}" type="button" class="agregar"
+                     th:hx-post="@{/delivery/{id}/sumar(id=${m.idMenu})}"
+                     hx-swap="none">+ Agregar</button>
+ 
+             <!-- ya está en el pedido: contador − 2 + -->
+             <div th:if="${cant > 0}" class="contador">
+-                <button th:hx-post="@{/delivery/{id}/restar(id=${m.idMenu})}" hx-swap="none">−</button>
+-                <span th:text="${cant}"></span>
+-                <button th:hx-post="@{/delivery/{id}/sumar(id=${m.idMenu})}" hx-swap="none">+</button>
++                <button type="button" aria-label="Quitar uno"
++                        th:hx-post="@{/delivery/{id}/restar(id=${m.idMenu})}" hx-swap="none">−</button>
++                <span th:text="${cant}">1</span>
++                <button type="button" aria-label="Sumar uno"
++                        th:hx-post="@{/delivery/{id}/sumar(id=${m.idMenu})}" hx-swap="none">+</button>
+             </div>
+         </div>
+     </div>
+ </article>
+ 
+ <!-- TODAS las tarjetas -->
+-<div th:fragment="platos" id="platos" class="grid-platos">
++<div th:fragment="platos" id="platos" class="grid-delivery">
+     <th:block th:each="m : ${platos}">
+         <article th:replace="~{fragments/cliente/delivery-plato :: plato}"></article>
+     </th:block>
+-    <p th:if="${platos.isEmpty()}" class="vacio">No encontramos ese plato 😕</p>
++    <p th:if="${platos.isEmpty()}" class="vacio">No encontramos ese plato.</p>
+ </div>
+diff --git a/web/src/main/resources/templates/fragments/cliente/envio-card.html b/web/src/main/resources/templates/fragments/cliente/envio-card.html
+new file mode 100644
+index 0000000..ce06a56
+--- /dev/null
++++ b/web/src/main/resources/templates/fragments/cliente/envio-card.html
+@@ -0,0 +1,31 @@
++<!-- Una tarjeta de pedido de delivery (diseño nona.css).
++     La usan pedidos.html y perfil.html (Mi cuenta). Necesita ${e} (el Envio). -->
++<article th:fragment="card" class="caja item">
++
++    <div>
++        <!-- el envío no guarda la fecha en que se pidió: se muestra el número -->
++        <p class="titulo" th:text="'Pedido #' + ${e.idEnvio}">Pedido #12</p>
++        <p class="detalle">
++            <th:block th:each="p, i : ${e.ticket.pedidos}"><span th:text="${p.cantidad} + ' × ' + ${p.menu.nombre}">2 × Ravioles</span><span th:unless="${i.last}"> · </span></th:block>
++        </p>
++        <p class="detalle" th:text="'Total $ ' + ${#numbers.formatDecimal(e.ticket.calcularTotal(), 1, 'POINT', 0, 'COMMA')}
++                                     + ' · ' + ${e.direccionEntrega}">Total $ 34.800 · Av. Santa Fe 2450</p>
++    </div>
++
++    <th:block th:replace="~{fragments/cliente/envio-card :: estado}"></th:block>
++
++    <div class="item-acciones">
++        <a th:href="@{/pedidos/{id}(id=${e.idEnvio})}" class="btn btn-suave">Ver detalle</a>
++        <form th:action="@{/pedidos/{id}/repetir(id=${e.idEnvio})}" method="post">
++            <button type="submit" class="btn">Volver a pedir</button>
++        </form>
++    </div>
++</article>
++
++<!-- la etiqueta de color según el estado del envío -->
++<th:block th:fragment="estado" th:switch="${e.estado.name()}">
++    <span th:case="'PENDIENTE'" class="estado aviso">En preparación</span>
++    <span th:case="'EN_CAMINO'" class="estado info">En camino</span>
++    <span th:case="'ENTREGADO'" class="estado ok">Entregado</span>
++    <span th:case="*"           class="estado error">Cancelado</span>
++</th:block>
+diff --git a/web/src/main/resources/templates/fragments/cliente/layout.html b/web/src/main/resources/templates/fragments/cliente/layout.html
+index 650b610..2d0e761 100644
+--- a/web/src/main/resources/templates/fragments/cliente/layout.html
++++ b/web/src/main/resources/templates/fragments/cliente/layout.html
+@@ -30,4 +30,21 @@
+     <a th:href="@{/pedidos}"  th:classappend="${activo == 'pedidos'}  ? 'activo'">PEDIDOS</a>
+     <a th:href="@{/reservas}" th:classappend="${activo == 'reservas'} ? 'activo'">RESERVAS</a>
+     <a th:href="@{/perfil}"   th:classappend="${activo == 'perfil'}   ? 'activo'">PERFIL</a>
+-</nav>
+\ No newline at end of file
++</nav>
++<!-- pie de página del inicio público (nona.css). Usa ${restaurante} del modelo -->
++<footer th:fragment="pie" class="pie-sitio">
++    <div class="contenedor">
++        <div>
++            <p class="marca">La Nona</p>
++            <p th:text="'Pastas caseras · ' + ${restaurante.direccion}">Pastas caseras · Av. Corrientes 1234, CABA</p>
++        </div>
++        <nav aria-label="Pie de página">
++            <a href="#favoritos">Carta</a>
++            <a href="#espacios">Espacios</a>
++            <a href="#sobre">Sobre La Nona</a>
++            <a href="#contacto">Contacto</a>
++            <a th:href="@{/login}">Iniciar sesión</a>
++        </nav>
++        <p class="copy" th:text="'© ' + ${#temporals.year(#temporals.createNow())} + ' La Nona. Todos los derechos reservados.'">© 2026 La Nona. Todos los derechos reservados.</p>
++    </div>
++</footer>
+diff --git a/web/src/main/resources/templates/fragments/cliente/reserva-card.html b/web/src/main/resources/templates/fragments/cliente/reserva-card.html
+index 90beec4..3837af8 100644
+--- a/web/src/main/resources/templates/fragments/cliente/reserva-card.html
++++ b/web/src/main/resources/templates/fragments/cliente/reserva-card.html
+@@ -1,39 +1,36 @@
+-<!-- Una tarjeta de "Mis reservas". La usa reservas.html (una por reserva)
+-     y el controller cuando se cancela (HTMX reemplaza solo esta tarjeta). -->
+-<article th:fragment="card" class="tarjeta">
++<!-- Una tarjeta de reserva (diseño nona.css). La usan reservas.html y perfil.html (Mi cuenta),
++     y el controller cuando se cancela: HTMX reemplaza solo esta tarjeta. -->
++<article th:fragment="card" class="caja item">
+ 
+-    <div class="tarjeta-fecha">
+-        <span th:text="${#temporals.format(r.fechaReserva, 'dd/MM/yyyy')}"></span>
+-        <span th:text="${#temporals.format(r.horaReserva, 'HH:mm')}"></span>
++    <div>
++        <p class="titulo" th:text="${#temporals.format(r.fechaReserva, 'dd/MM/yyyy')} + ' · ' + ${#temporals.format(r.horaReserva, 'HH:mm')}">07/11/2026 · 21:00</p>
++        <p class="detalle" th:text="${r.cantComensales} + ' personas · ' + ${r.zona.nombre}
++                + (${r.senia != null} ? ' · seña $ ' + ${#numbers.formatDecimal(r.senia.monto, 1, 'POINT', 0, 'COMMA')} : '')">
++            4 personas · Terraza · seña $ 30.000</p>
++        <details class="detalle-reserva">
++            <summary>Ver detalles</summary>
++            <p th:text="'Reserva N° ' + ${r.nroReserva}">Reserva N° 1</p>
++            <p th:if="${r.senia != null}" th:text="'Tarjeta de ' + ${r.senia.tarjeta.titular}">Tarjeta de María González</p>
++        </details>
+     </div>
+ 
+-    <!-- la clase cambia según el estado: estado-confirmada, estado-pendiente... (color en el CSS) -->
+-    <p class="estado" th:classappend="'estado-' + ${#strings.toLowerCase(r.estado.name())}"
+-       th:text="${r.estado}"></p>
+-
+-    <ul class="tarjeta-datos">
+-        <li><span class="icono">👤</span> <span th:text="${r.cantComensales} + ' Comensales'"></span></li>
+-        <li><span class="icono">📍</span> <span th:text="${r.zona.nombre}"></span></li>
+-        <li><span class="icono">💳</span>
+-            <span th:text="${r.senia != null
+-                    ? 'Seña $' + #numbers.formatDecimal(r.senia.monto, 1, 'POINT', 0, 'COMMA')
+-                    : 'Sin seña'}"></span></li>
+-    </ul>
+-
+-    <details class="tarjeta-detalle">
+-        <summary class="boton-blanco">Ver Detalles</summary>
+-        <p th:text="'Reserva N° ' + ${r.nroReserva}"></p>
+-        <p th:text="${r.restaurante.nombre}"></p>
+-        <p th:if="${r.senia != null}" th:text="'Tarjeta de ' + ${r.senia.tarjeta.titular}"></p>
+-    </details>
++    <!-- el color de la etiqueta sale del estado -->
++    <th:block th:switch="${r.estado.name()}">
++        <span th:case="'PENDIENTE'"  class="estado aviso">Pendiente</span>
++        <span th:case="'CONFIRMADA'" class="estado ok">Confirmada</span>
++        <span th:case="'CANCELADA'"  class="estado error">Cancelada</span>
++        <span th:case="'AUSENTE'"    class="estado error">Ausente</span>
++        <span th:case="*"            class="estado neutro">Finalizada</span>
++    </th:block>
+ 
+     <!-- solo se puede cancelar si todavía no pasó (PENDIENTE o CONFIRMADA) -->
+-    <button th:if="${r.estado.name() == 'PENDIENTE' or r.estado.name() == 'CONFIRMADA'}"
+-            class="boton-blanco texto-rojo"
+-            th:hx-put="@{/reservas/{id}/cancelar(id=${r.nroReserva})}"
+-            hx-target="closest .tarjeta"
+-            hx-swap="outerHTML"
+-            hx-confirm="¿Seguro que querés cancelar esta reserva?">
+-        Cancelar
+-    </button>
++    <div class="item-acciones" th:if="${r.estado.name() == 'PENDIENTE' or r.estado.name() == 'CONFIRMADA'}">
++        <button type="button" class="btn btn-peligro"
++                th:hx-put="@{/reservas/{id}/cancelar(id=${r.nroReserva})}"
++                hx-target="closest article"
++                hx-swap="outerHTML"
++                hx-confirm="¿Seguro que querés cancelar esta reserva?">
++            Cancelar reserva
++        </button>
++    </div>
+ </article>

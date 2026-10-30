@@ -5,6 +5,7 @@ import org.example.Modelo.menu.Menu;
 import org.example.Modelo.menu.Pedido;
 import org.example.Modelo.persona.Cliente;
 import org.example.Modelo.reserva.Envio;
+import org.example.Modelo.enums.CategoriaMenu;
 import org.example.dto.EnvioDTO;
 import org.example.service.menu.MenuService;
 import org.example.service.persona.ClienteService;
@@ -47,15 +48,18 @@ public class ClienteDeliveryController {
 
     @GetMapping("/delivery")
     public String carta(Model model) {
-        model.addAttribute("platos", buscarPlatos(null));
+        model.addAttribute("platos", buscarPlatos(null, null));
+        model.addAttribute("categorias", CategoriaMenu.values());
         cargarCarrito(model);
-        return "cliente/delivery";
+        return "cliente/delivery/delivery";
     }
 
     // buscador "¿Qué se te antoja hoy?" (HTMX, mientras escribís)
     @GetMapping("/delivery/buscar")
-    public String buscar(@RequestParam(required = false) String q, Model model) {
-        model.addAttribute("platos", buscarPlatos(q));
+    public String buscar(@RequestParam(required = false) String q,
+                         @RequestParam(required = false) CategoriaMenu categoria,
+                         Model model) {
+        model.addAttribute("platos", buscarPlatos(q,categoria));
         model.addAttribute("carrito", carrito);
         return "fragments/cliente/delivery-plato :: platos";
     }
@@ -94,7 +98,7 @@ public class ClienteDeliveryController {
             return "redirect:/delivery";
         }
         cargarCarrito(model);
-        return "cliente/delivery-pago";
+        return "cliente/delivery/delivery-pago";
     }
 
     @PostMapping("/delivery/pago")
@@ -134,7 +138,7 @@ public class ClienteDeliveryController {
             // "No hay stock suficiente de ...", "La dirección de entrega es obligatoria", etc.
             model.addAttribute("error", e.getMessage());
             cargarCarrito(model);
-            return "cliente/delivery-pago";
+            return "cliente/delivery/delivery-pago";
         }
     }
 
@@ -146,14 +150,14 @@ public class ClienteDeliveryController {
         model.addAttribute("envios", envioService.listarPorCliente(cliente.getIdCliente()).stream()
                 .sorted(Comparator.comparing(Envio::getIdEnvio).reversed())   // los más nuevos primero
                 .toList());
-        return "cliente/pedidos";
+        return "cliente/delivery/pedidos";
     }
 
     // confirmación + "Así va tu pedido"
     @GetMapping("/pedidos/{id}")
     public String verPedido(@PathVariable int id, Authentication auth, Model model) {
         cargarPedido(id, auth, model);
-        return "cliente/pedido";
+        return "cliente/delivery/pedido";
     }
 
     // solo el bloque del seguimiento: HTMX lo vuelve a pedir cada 10 segundos
@@ -203,11 +207,12 @@ public class ClienteDeliveryController {
         };
     }
 
-    // platos disponibles, filtrados por el buscador (sin importar mayúsculas)
-    private List<Menu> buscarPlatos(String q) {
+    // platos disponibles, filtrados por categoría (null = todas) y por el buscador
+    private List<Menu> buscarPlatos(String q, CategoriaMenu categoria) {
         String texto = q == null ? "" : q.trim().toLowerCase();
         return menuService.listarTodos().stream()
                 .filter(Menu::estaDisponible)
+                .filter(m -> categoria == null || m.getCategoria() == categoria)
                 .filter(m -> texto.isEmpty()
                         || m.getNombre().toLowerCase().contains(texto)
                         || (m.getDescripcion() != null && m.getDescripcion().toLowerCase().contains(texto)))

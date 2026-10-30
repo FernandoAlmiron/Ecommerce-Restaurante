@@ -41,7 +41,7 @@ public class SeguridadWebConfig {
                         .successHandler((request, response, auth) -> {
                             boolean esAdmin = auth.getAuthorities().stream()
                                     .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
-                            response.sendRedirect(esAdmin ? "/admin" : "/elegir");
+                            response.sendRedirect(esAdmin ? "/admin" : "/inicio");
                         })
                         .permitAll()
                 )

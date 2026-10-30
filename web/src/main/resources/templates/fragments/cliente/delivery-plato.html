@@ -13,6 +13,7 @@
     <img th:src="@{/img/platos/{id}.jpg(id=${m.idMenu})}" th:alt="${m.nombre}">
 
     <div class="card-cuerpo">
+        <small class="categoria-plato" th:text="${m.categoria.nombre()}">Pastas</small>
         <h3 th:text="${m.nombre}"></h3>
         <p th:text="${m.descripcion}"></p>
 

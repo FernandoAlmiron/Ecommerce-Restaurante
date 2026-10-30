@@ -1,0 +1,92 @@
+/* ---------- TARJETAS BEIGE (Mis reservas y Mis pedidos) ---------- */
+
+body.cliente .mis-reservas {
+    width: 100%;
+    max-width: 860px;
+}
+
+/* título centrado con un botón a la derecha */
+body.cliente .titulo-con-boton {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 8px 0 28px;
+}
+
+body.cliente .titulo-con-boton h1 {
+    margin: 0;
+    font-size: 30px;
+    font-weight: 400;
+}
+
+body.cliente .titulo-con-boton .boton-beige {
+    position: absolute;
+    right: 0;
+}
+
+/* las tarjetas se acomodan solas en columnas de mínimo 220px */
+body.cliente .tarjetas {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 16px;
+}
+
+body.cliente .tarjeta {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 14px;
+    border-radius: 20px;
+    background: var(--beige);
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
+}
+
+/* fecha y hora más oscuras */
+body.cliente .tarjeta-fecha {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+}
+
+body.cliente .tarjeta-fecha span {
+    padding: 2px 10px;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.08);
+    font-size: 13px;
+}
+
+/* el estado, en mayúsculas (los colores van en el CSS de cada página) */
+body.cliente .estado {
+    margin: 0;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+/* comensales / zona / seña (o artículos / dirección / total) con ícono */
+body.cliente .tarjeta-datos {
+    margin: 0;
+    padding: 0 6px;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    font-size: 13px;
+}
+
+body.cliente .tarjeta-datos .icono {
+    display: inline-block;
+    width: 26px;
+}
+
+/* "Ver Detalles": un <details> de HTML, se abre y cierra sin JavaScript */
+body.cliente .tarjeta-detalle summary::-webkit-details-marker {
+    display: none;
+}
+
+body.cliente .tarjeta-detalle p {
+    margin: 6px 4px 0;
+    font-size: 12px;
+}

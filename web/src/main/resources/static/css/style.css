@@ -1,0 +1,47 @@
+/* ███████████████████████████████████████████████████████████████████
+   LA NONA · CSS DEL CLIENTE
+
+   Este archivo no tiene estilos: solo carga las partes, en orden.
+   Cada carpeta de static/css/ es un área, igual que los controllers:
+
+   comun/      lo que usan todas las páginas (colores, botones, footer...)
+   inicio/     ClienteInicioController · ClienteNosotrosController
+   cuenta/     ClienteCuentaController · ClientePerfilController
+   reserva/    ClienteReservaController
+   delivery/   ClienteDeliveryController
+
+   ⚠️ El ORDEN importa: si dos reglas pisan la misma propiedad, gana la
+   que se carga después.
+   ███████████████████████████████████████████████████████████████████ */
+/* COMÚN */
+@import url("comun/variables.css");
+@import url("comun/base.css");
+@import url("comun/logo.css");
+@import url("comun/botones.css");
+@import url("comun/campos.css");
+@import url("comun/avisos.css");
+@import url("comun/etiquetas.css");
+@import url("comun/contador.css");
+@import url("comun/lista-platos.css");
+@import url("comun/barra-abajo.css");
+@import url("comun/tarjetas.css");
+@import url("comun/zigzag.css");
+@import url("comun/footer.css");
+@import url("comun/responsive.css");
+/* INICIO */
+@import url("inicio/landing.css");
+@import url("inicio/inicio.css");
+@import url("inicio/nosotros.css");
+/* CUENTA */
+@import url("cuenta/login.css");
+@import url("cuenta/perfil.css");
+/* RESERVA */
+@import url("reserva/reservas.css");
+@import url("reserva/reserva-nueva.css");
+/* DELIVERY */
+@import url("delivery/carta.css");
+@import url("delivery/pago.css");
+@import url("delivery/confirmacion.css");
+@import url("delivery/mis-pedidos.css");
+/* ---------- SIEMPRE AL FINAL ---------- */
+@import url("comun/footer-ajustes.css");

@@ -1,0 +1,12 @@
+/* ===================================================================
+   MIS PEDIDOS                                    cliente/pedidos.html
+   Las mismas tarjetas que Mis reservas (están en la PARTE 1 · GENERAL).
+   Acá solo van los colores de cada estado del envío.
+   ⚠️ ADAPTADO AL BACKEND: el envío no guarda la fecha (va el número)
+   y el cliente no puede cancelarlo (solo el restaurante o el repartidor).
+   =================================================================== */
+
+body.cliente .envio-pendiente  { color: #FFFFFF; }   /* en preparación */
+body.cliente .envio-en_camino  { color: #FFC24B; }   /* naranja */
+body.cliente .envio-entregado  { color: #C6F29B; }   /* verde */
+body.cliente .envio-cancelado  { color: #B3261E; }   /* rojo */

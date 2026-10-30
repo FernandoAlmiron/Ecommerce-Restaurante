@@ -1,0 +1,89 @@
+/* ---------- PLATOS EN ZIGZAG (landing e inicio) ----------
+   Van acá porque los usan dos páginas. Hay dos versiones: la de grid
+   (con .plato-texto y .plato-imagen) y la de flex de la landing.
+   Como la de flex está más abajo, es la que manda cuando chocan. */
+
+body.cliente .plato {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+    gap: 24px;
+}
+
+/* en las filas invertidas la imagen va a la izquierda */
+body.cliente .plato.invertido .plato-imagen {
+    order: -1;
+}
+
+body.cliente .plato-texto {
+    text-align: center;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+body.cliente .plato-texto h3 {
+    margin: 0 0 4px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+body.cliente .plato-texto p {
+    margin: 0 0 4px;
+}
+
+body.cliente .plato-texto .precio {
+    font-weight: 600;
+}
+
+body.cliente .plato-imagen {
+    width: 100%;
+    aspect-ratio: 3 / 2;
+    object-fit: cover;          /* recorta la foto sin deformarla */
+    border-radius: 50%;         /* forma ovalada como en Figma */
+}
+
+/* cada plato: foto y texto uno al lado del otro */
+body.cliente .plato {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+}
+
+/* zigzag: en los platos impares (1°, 3°, 5°...) el texto va a la
+   izquierda y la foto a la derecha. En el HTML siempre va primero
+   la foto: el orden visual lo da el CSS. */
+body.cliente .plato:nth-child(odd) {
+    flex-direction: row-reverse;
+}
+
+/* la foto ovalada.
+   ⚠️ ADAPTADO AL BACKEND: el plato (Menu) no guarda imagen. Cada foto
+   se busca por el número del plato: static/img/platos/1.jpg, 2.jpg... */
+body.cliente .plato img {
+    flex: 1;
+    width: 50%;
+    aspect-ratio: 3 / 2;
+    object-fit: cover;
+    border-radius: 50%;
+    background: var(--beige-claro);
+}
+
+body.cliente .plato div {
+    flex: 1;
+    text-align: center;
+    font-size: 14px;
+}
+
+body.cliente .plato h3 {
+    margin: 0 0 4px;
+    font-size: 15px;
+    font-weight: 500;
+}
+
+body.cliente .plato p {
+    margin: 0 0 4px;
+}
+
+body.cliente .plato strong {
+    font-weight: 700;
+}

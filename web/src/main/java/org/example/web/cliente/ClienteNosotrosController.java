@@ -22,6 +22,6 @@ public class ClienteNosotrosController {
     @GetMapping("/nosotros")
     public String nosotros(Model model) {
         model.addAttribute("equipo", EQUIPO);
-        return "cliente/nosotros";
+        return "cliente/inicio/nosotros";
     }
 }

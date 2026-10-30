@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <title>Registrar reserva - La Nona</title>
-    <link rel="stylesheet" th:href="@{/style.css}">
-    <script th:src="@{/tema.js}"></script>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <script th:src="@{/js/tema.js}"></script>
 </head>
 <body class="cliente">
 
@@ -74,9 +74,11 @@
         </fieldset>
 
         <button type="submit">Confirmar</button>
-        <a th:href="@{/elegir}" class="boton-borde">Cancelar</a>
+        <a th:href="@{/inicio}" class="boton-borde">Cancelar</a>
     </form>
 </main>
+
+<footer th:replace="~{fragments/cliente/layout :: footer(true)}"></footer>
 
 <!-- Genera los turnos de 15 min según la fecha elegida y el horario del restaurante -->
 <script>

@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <title>Mis pedidos - La Nona</title>
-    <link rel="stylesheet" th:href="@{/style.css}">
-    <script th:src="@{/tema.js}"></script>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <script th:src="@{/js/tema.js}"></script>
 </head>
 <body class="cliente con-nav">
 
@@ -52,6 +52,7 @@
     <p th:if="${envios.isEmpty()}" class="vacio">Todavía no hiciste pedidos.</p>
 </main>
 
+<footer th:replace="~{fragments/cliente/layout :: footer(true)}"></footer>
 <nav th:replace="~{fragments/cliente/layout :: nav('pedidos')}"></nav>
 
 </body>

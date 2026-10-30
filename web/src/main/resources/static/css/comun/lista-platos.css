@@ -1,0 +1,70 @@
+/* ---------- LISTA DE PLATOS CON TOTAL ----------
+   Se usa en "Tu pedido", el pago y la confirmación: foto chica,
+   nombre, "2 × $13.500" y el subtotal a la derecha. */
+
+body.cliente .lineas {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+body.cliente .lineas li {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+body.cliente .lineas img {
+    width: 54px;
+    height: 54px;
+    flex-shrink: 0;
+    border-radius: 10px;
+    object-fit: cover;
+    background: var(--beige-claro);
+}
+
+body.cliente .linea-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    font-size: 13px;
+}
+
+body.cliente .linea-info strong {
+    font-weight: 500;
+}
+
+body.cliente .linea-info small {
+    color: var(--gris-texto);
+}
+
+/* título con dato a la derecha: "Tu pedido ........ 3 platos" */
+body.cliente .panel-titulo,
+body.cliente .resumen-titulo {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* "Total $43.500" */
+body.cliente .total {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding-top: 14px;
+    border-top: 1px solid #EFE6DA;
+}
+
+body.cliente .total span {
+    font-size: 17px;
+    font-weight: 500;
+}
+
+body.cliente .total strong {
+    font-size: 24px;
+    font-weight: 700;
+}

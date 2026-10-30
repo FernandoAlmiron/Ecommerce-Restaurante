@@ -1,0 +1,20 @@
+/* ---------- ETIQUETAS REDONDEADAS ("● Abierto ahora") ---------- */
+
+body.cliente .chip {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: var(--beige-claro);
+    color: var(--dorado-texto);
+    font-size: 12px;
+    font-weight: 500;
+}
+
+body.cliente .chip.verde {
+    background: #E8F5E9;
+    color: var(--ok);
+}
+
+
+
+

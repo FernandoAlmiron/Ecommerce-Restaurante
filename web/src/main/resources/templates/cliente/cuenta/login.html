@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <title>Iniciar sesión - La Nona</title>
-    <link rel="stylesheet" th:href="@{/style.css}">
-    <script th:src="@{/tema.js}"></script>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <script th:src="@{/js/tema.js}"></script>
 </head>
 <body class="cliente">
 
@@ -37,6 +37,8 @@
         <a class="link-registro" href="...">Crear cuenta</a>
     </div>
 </main>
+
+<footer th:replace="~{fragments/cliente/layout :: footer(false)}"></footer>
 
 </body>
 </html>

@@ -1,0 +1,215 @@
+/* ===================================================================
+   DELIVERY: PAGO                          cliente/delivery-pago.html
+   Tres columnas: medio de pago (beige) · entrega y tarjeta · resumen.
+   ⚠️ ADAPTADO AL BACKEND: el pago es SIMULADO. Los datos de la tarjeta
+   no se envían ni se guardan; el backend solo guarda el método
+   (TARJETA, QR o EFECTIVO). Mercado Pago y MODO van como QR.
+   =================================================================== */
+
+body.cliente .pago {
+    width: 100%;
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 320px 1fr 360px;
+    background: var(--blanco);
+}
+
+body.cliente .pago > section {
+    padding: 36px 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+body.cliente .pago h3 {
+    margin: 10px 0 4px;
+    font-size: 17px;
+    font-weight: 500;
+}
+
+
+/* ---------- Columna izquierda: medio de pago ---------- */
+
+body.cliente .pago-medios {
+    background: #F6F1EA;
+}
+
+body.cliente .pago-medios .chip {
+    align-self: flex-start;
+}
+
+body.cliente .pago-medios h1 {
+    margin: 4px 0 0;
+    font-size: 30px;
+    font-weight: 500;
+    line-height: 1.3;
+}
+
+body.cliente .pago-medios p {
+    margin: 0 0 12px;
+    color: var(--gris-texto);
+    font-size: 14px;
+}
+
+/* cada medio es una caja que se marca al elegirla */
+body.cliente .medio {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border: 1px solid #E6DED3;
+    border-radius: 12px;
+    background: var(--blanco);
+    cursor: pointer;
+}
+
+body.cliente .medio input {
+    order: 3;                 /* el circulito queda a la derecha, como en Figma */
+    width: 18px;
+    height: 18px;
+    padding: 0;
+    accent-color: var(--dorado);
+}
+
+body.cliente .medio div {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    font-size: 13px;
+}
+
+body.cliente .medio small {
+    color: var(--gris-texto);
+    font-size: 11px;
+}
+
+/* :has() = "la caja que TIENE adentro el circulito marcado" */
+body.cliente .medio:has(input:checked) {
+    border: 2px solid var(--dorado);
+    background: var(--beige-claro);
+}
+
+
+/* ---------- Columna del centro: entrega y tarjeta ---------- */
+
+body.cliente .pago-datos {
+    position: relative;
+}
+
+body.cliente .pago-datos .logo.chico {
+    width: 90px;
+}
+
+body.cliente .pago-datos h2 {
+    margin: 0 0 8px;
+    text-align: center;
+    font-size: 18px;
+    font-weight: 500;
+}
+
+body.cliente .pago-datos label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+body.cliente .pago-datos input {
+    padding: 12px;
+    border: 1px solid #EFE6DA;
+    background: var(--crema);
+}
+
+/* flechita "←" para volver a la carta */
+body.cliente .volver {
+    position: absolute;
+    top: 32px;
+    left: 32px;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: var(--beige-claro);
+    display: grid;
+    place-items: center;
+}
+
+body.cliente .visa {
+    float: right;
+    color: var(--dorado-texto);
+    font-weight: 700;
+    font-style: italic;
+}
+
+/* los datos de la tarjeta solo se ven si está elegida "Tarjeta" */
+body.cliente .datos-tarjeta {
+    display: none;
+    flex-direction: column;
+    gap: 12px;
+}
+
+body.cliente .pago:has(input[value="TARJETA"]:checked) .datos-tarjeta {
+    display: flex;
+}
+
+body.cliente .datos-tarjeta .fila label {
+    flex: 1;
+}
+
+
+/* ---------- Columna derecha: resumen ---------- */
+
+body.cliente .pago-resumen {
+    border-left: 1px solid #EFE6DA;
+}
+
+body.cliente .pago-resumen h3 {
+    margin: 0;
+}
+
+body.cliente .pago-resumen button {
+    margin-top: 8px;
+    justify-content: center;
+    gap: 10px;
+}
+
+body.cliente .nota-resumen {
+    margin: 0;
+    padding: 8px 10px;
+    border-radius: 8px;
+    background: var(--crema);
+    font-size: 12px;
+}
+
+
+/* ---------- TABLET: las tres columnas, una debajo de la otra ---------- */
+
+@media (max-width: 900px) {
+    body.cliente .pago {
+        grid-template-columns: 1fr;
+    }
+
+    body.cliente .pago-resumen {
+        border-left: none;
+        border-top: 1px solid #EFE6DA;
+    }
+}
+
+
+/* ---------- CELULAR ---------- */
+
+@media (max-width: 600px) {
+    body.cliente .pago > section {
+        padding: 24px 18px;
+    }
+
+    body.cliente .pago-medios h1 {
+        font-size: 24px;
+    }
+
+    body.cliente .volver {
+        top: 22px;
+        left: 18px;
+    }
+}
+

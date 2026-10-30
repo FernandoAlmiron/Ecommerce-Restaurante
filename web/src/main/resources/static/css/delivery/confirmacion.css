@@ -1,0 +1,215 @@
+/* ===================================================================
+   DELIVERY: CONFIRMACIÓN                          cliente/pedido.html
+   Izquierda: "¡Pedido confirmado!" + "Así va tu pedido".
+   Derecha: dirección y detalle.
+   ⚠️ ADAPTADO AL BACKEND: en Figma la entrega estimada es una hora
+   exacta. El envío no guarda la hora del pedido: va "30 – 45 min".
+   =================================================================== */
+
+body.cliente .confirmacion {
+    width: 100%;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 28px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 48px;
+    border-radius: 16px;
+    background: var(--blanco);
+}
+
+body.cliente .confirmacion > section:first-child {
+    text-align: center;
+}
+
+body.cliente .check {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 12px;
+    border-radius: 50%;
+    background: var(--beige-claro);
+    color: var(--dorado);
+    display: grid;
+    place-items: center;
+    font-size: 26px;
+}
+
+body.cliente .confirmacion h1 {
+    margin: 0 0 8px;
+    font-size: 26px;
+    font-weight: 500;
+}
+
+body.cliente .entrega-estimada {
+    margin: 16px 0 24px;
+    padding: 18px 20px;
+    border-radius: 16px;
+    background: #F0E4D4;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    text-align: left;
+    color: var(--dorado-texto);
+}
+
+body.cliente .entrega-estimada strong {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--negro);
+}
+
+
+/* ---------- "Así va tu pedido": la línea de pasos ---------- */
+
+body.cliente .seguimiento {
+    text-align: left;
+}
+
+body.cliente .seguimiento-titulo {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+body.cliente .seguimiento-titulo h3 {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 500;
+}
+
+body.cliente .en-vivo {
+    color: var(--ok);
+    font-size: 12px;
+}
+
+body.cliente .pasos {
+    margin: 16px 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+/* los pasos que todavía no llegaron se ven apagados */
+body.cliente .pasos li {
+    position: relative;
+    display: flex;
+    gap: 16px;
+    padding-bottom: 22px;
+    opacity: 0.45;
+}
+
+/* la rayita vertical que une los círculos */
+body.cliente .pasos li:not(:last-child)::after {
+    content: "";
+    position: absolute;
+    left: 19px;
+    top: 40px;
+    bottom: 2px;
+    width: 2px;
+    background: #E6DED3;
+}
+
+body.cliente .pasos li.hecho,
+body.cliente .pasos li.actual {
+    opacity: 1;
+}
+
+body.cliente .pasos li.hecho::after {
+    background: var(--dorado);
+}
+
+body.cliente .punto {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--beige-claro);
+    display: grid;
+    place-items: center;
+    font-size: 16px;
+}
+
+/* el paso actual: círculo dorado y texto dorado */
+body.cliente .pasos li.actual .punto {
+    background: var(--dorado);
+}
+
+body.cliente .pasos li.actual strong {
+    color: #8A5A1E;
+}
+
+body.cliente .pasos li div {
+    display: flex;
+    flex-direction: column;
+    font-size: 14px;
+}
+
+body.cliente .pasos li strong {
+    font-weight: 500;
+}
+
+body.cliente .pasos li small {
+    color: var(--gris-texto);
+    font-size: 12px;
+}
+
+
+/* ---------- Columna derecha ---------- */
+
+body.cliente .confirmacion-detalle {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+body.cliente .direccion {
+    display: flex;
+    gap: 14px;
+}
+
+body.cliente .direccion div {
+    display: flex;
+    flex-direction: column;
+    font-size: 13px;
+}
+
+body.cliente .direccion small {
+    color: var(--gris-texto);
+}
+
+body.cliente .icono-caja {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: var(--beige-claro);
+    display: grid;
+    place-items: center;
+}
+
+body.cliente .confirmacion-detalle .boton-borde {
+    color: var(--dorado-texto);
+    font-weight: 500;
+}
+
+
+/* ---------- TABLET: una columna ---------- */
+
+@media (max-width: 900px) {
+    body.cliente .confirmacion {
+        grid-template-columns: 1fr;
+        gap: 32px;
+    }
+}
+
+
+/* ---------- CELULAR ---------- */
+
+@media (max-width: 600px) {
+    body.cliente .confirmacion {
+        padding: 20px 16px;
+    }
+
+    body.cliente .entrega-estimada strong {
+        font-size: 26px;
+    }
+}

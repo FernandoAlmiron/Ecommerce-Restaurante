@@ -1,0 +1,30 @@
+/* ---------- PIE DE PÁGINA EN TODAS LAS PÁGINAS ----------
+   El footer va al final de cada página (fragmento "footer" de layout.html).
+   - margin-top: auto lo empuja hasta abajo de todo en las páginas cortas
+     (login, elegir...). El borde transparente de arriba deja 32px de aire
+     entre el contenido y el footer, sin pintarlos de beige.
+   - El body no deja espacio abajo: el espacio lo pone el footer, así queda
+     pegado al borde de la pantalla.
+   - Si la página tiene la barra de abajo (INICIO · PEDIDOS...) o el botón
+     fijo "Iniciar / Registrarme", el footer deja lugar para que no lo tapen.
+   ⚠️ Este archivo se importa ÚLTIMO en style.css: tiene que pisar el
+   espacio que dejan algunas páginas (por ejemplo la landing). */
+
+body.cliente .footer {
+    margin-top: auto;
+    border-top: 32px solid transparent;
+    background-clip: padding-box;
+    padding-bottom: 24px;
+}
+
+body.cliente:has(> .footer) {
+    padding-bottom: 0;
+}
+
+body.cliente:has(> .nav-inferior) .footer {
+    padding-bottom: 96px;
+}
+
+body.cliente:has(> .acciones) .footer {
+    padding-bottom: 120px;
+}

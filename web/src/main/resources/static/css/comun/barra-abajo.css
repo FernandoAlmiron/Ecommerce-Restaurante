@@ -1,0 +1,34 @@
+/* ---------- BARRA DE NAVEGACIÓN DE ABAJO ----------
+   INICIO · PEDIDOS · RESERVAS · PERFIL. La página actual va en dorado. */
+
+body.cliente .nav-inferior {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);   /* centrada */
+    display: flex;
+    gap: 4px;
+    padding: 4px;
+    background: #F2F2F5;
+    border: 1px solid var(--negro);
+    border-radius: 999px;
+    z-index: 10;
+}
+
+body.cliente .nav-inferior a {
+    padding: 8px 18px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--negro);
+}
+
+body.cliente .nav-inferior a:hover {
+    text-decoration: none;
+    background: var(--beige-claro);
+}
+
+body.cliente .nav-inferior a.activo,
+body.cliente .nav-inferior a.activo:hover {
+    background: var(--dorado);
+}

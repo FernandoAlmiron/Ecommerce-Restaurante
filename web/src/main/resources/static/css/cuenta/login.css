@@ -1,0 +1,122 @@
+/* ===================================================================
+   LOGIN Y CREAR CUENTA          cliente/login.html · cliente/registro.html
+   Las dos usan la misma columna angosta y centrada (<main class="auth">).
+   =================================================================== */
+
+
+/* ---------- LOGIN ----------
+   ⚠️ ADAPTADO AL BACKEND: en Figma solo está el email y "Continuar".
+   Se agregó la contraseña porque Spring Security valida los dos juntos. */
+
+body.cliente .auth {
+    width: 100%;
+    max-width: 300px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+body.cliente .auth form {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+body.cliente .auth .logo {
+    width: 280px;
+    margin: 40px auto 56px;
+}
+
+body.cliente .auth h1 {
+    margin: 0 0 16px;
+    font-size: 17px;
+    font-weight: 400;
+}
+
+/* link "Crear cuenta" / "Ya tengo cuenta", a la derecha */
+body.cliente .auth > a {
+    align-self: flex-end;
+    margin-top: 12px;
+    font-size: 13px;
+}
+
+
+/* ---------- "¿OLVIDASTE TU CONTRASEÑA?" + "CREAR CUENTA" ----------
+   Los dos links en la misma línea: uno a la izquierda y otro a la derecha.
+   El de olvidaste abre WhatsApp con un mensaje ya escrito, porque el
+   backend no manda mails: el admin resetea la contraseña a mano. */
+
+.links-login {
+    display: flex;
+    justify-content: space-between;   /* uno a cada punta */
+    align-items: center;
+    width: 100%;
+    gap: 24px;
+    margin-top: 16px;
+}
+
+.links-login a {
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    color: #1a1a1a;
+    text-decoration: none;
+    white-space: nowrap;               /* que no se parta en dos renglones */
+    flex: none;
+    width: auto;
+    padding: 0;
+}
+
+.links-login a:hover {
+    color: #9c7340;
+}
+
+
+/* ---------- CREAR CUENTA ----------
+   Misma columna que el login, con logo chico y título grande.
+   (Se reconoce porque tiene el campo "password2").
+   ⚠️ ADAPTADO AL BACKEND: en Figma el último campo es "Fecha de
+   nacimiento". Se cambió por DNI: el cliente no guarda fecha de
+   nacimiento y el DNI es obligatorio. El email se usa como usuario. */
+
+body.cliente .auth:has(input[name="password2"]) .logo {
+    width: 180px;
+    margin: 0 auto 24px;
+}
+
+body.cliente .auth:has(input[name="password2"]) h1 {
+    margin: 0 0 28px;
+    font-size: 36px;
+    font-weight: 800;
+}
+
+/* separación extra antes de la contraseña, como en Figma */
+body.cliente .auth input[name="password"] {
+    margin-top: 8px;
+}
+
+/* textito de términos y condiciones */
+body.cliente .auth small {
+    margin-top: 14px;
+    color: var(--gris-texto);
+    font-size: 11px;
+    text-align: left;
+}
+
+
+/* ---------- CELULAR ---------- */
+
+@media (max-width: 600px) {
+
+    /* logo un poco más chico */
+    body.cliente .auth .logo {
+        width: 220px;
+        margin: 24px auto 36px;
+    }
+
+    body.cliente .auth:has(input[name="password2"]) h1 {
+        font-size: 28px;
+    }
+}

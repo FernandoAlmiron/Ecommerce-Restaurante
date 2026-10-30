@@ -51,14 +51,14 @@ public class ClienteReservaController {
                 .sorted(Comparator.comparing(Reserva::getFechaReserva)
                         .thenComparing(Reserva::getHoraReserva).reversed())
                 .toList());
-        return "cliente/reservas";
+        return "cliente/reserva/reservas";
     }
 
     // el formulario vacío
     @GetMapping("/nueva")
     public String nueva(Model model) {
         cargarFormulario(model);
-        return "cliente/reserva-nueva";
+        return "cliente/reserva/reserva-nueva";
     }
 
     // guardar la reserva
@@ -95,13 +95,13 @@ public class ClienteReservaController {
             // la fecha, la hora o el vencimiento vinieron mal escritos (ej: año 275760)
             model.addAttribute("error", "Revisá la fecha, la hora y el vencimiento de la tarjeta");
             cargarFormulario(model);
-            return "cliente/reserva-nueva";
+            return "cliente/reserva/reserva-nueva";
 
         } catch (IllegalArgumentException | IllegalStateException e) {
             // "No hay lugar en esa zona", "El restaurante está cerrado a esa hora", etc.
             model.addAttribute("error", e.getMessage());
             cargarFormulario(model);
-            return "cliente/reserva-nueva";
+            return "cliente/reserva/reserva-nueva";
         }
     }
 

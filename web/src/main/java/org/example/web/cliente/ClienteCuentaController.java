@@ -21,12 +21,12 @@ public class ClienteCuentaController {
     // el formulario de login (el POST lo procesa Spring Security solo)
     @GetMapping("/login")
     public String login() {
-        return "cliente/login";
+        return "cliente/cuenta/login";
     }
 
     @GetMapping("/registro")
     public String registro() {
-        return "cliente/registro";
+        return "cliente/cuenta/registro";
     }
 
     @PostMapping("/registro")
@@ -57,7 +57,7 @@ public class ClienteCuentaController {
         } catch (IllegalArgumentException | IllegalStateException e) {
             // vuelve al formulario con el mensaje de error
             model.addAttribute("error", e.getMessage());
-            return "cliente/registro";
+            return "cliente/cuenta/registro";
         }
     }
 }

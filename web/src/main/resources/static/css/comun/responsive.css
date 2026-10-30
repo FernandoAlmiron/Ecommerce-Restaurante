@@ -1,0 +1,62 @@
+/* ---------- RESPONSIVE GENERAL ----------
+   @media (max-width: X) = "aplicá esto solo si la pantalla mide X o menos". */
+
+@media (max-width: 600px) {
+
+    /* menos margen a los costados */
+    body.cliente {
+        padding: 16px 16px 32px;
+    }
+
+    /* barra de abajo más angosta para que entre */
+    body.cliente .nav-inferior {
+        bottom: 12px;
+        max-width: calc(100% - 24px);
+    }
+
+    body.cliente .nav-inferior a {
+        padding: 8px 12px;
+        font-size: 11px;
+    }
+
+    /* título y botón uno debajo del otro (Mis reservas / Mis pedidos) */
+    body.cliente .titulo-con-boton {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    body.cliente .titulo-con-boton .boton-beige {
+        position: static;
+    }
+
+    body.cliente .titulo-con-boton h1 {
+        font-size: 26px;
+    }
+
+    /* platos: se apilan, foto arriba y texto abajo */
+    body.cliente .plato {
+        grid-template-columns: 1fr;
+    }
+
+    body.cliente .plato .plato-imagen {
+        order: -1;
+    }
+
+    body.cliente .plato,
+    body.cliente .plato:nth-child(odd) {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    body.cliente .plato img {
+        width: 85%;
+    }
+
+    /* botón "Sobre nosotros" un poco más chico */
+    body.cliente .boton-nosotros {
+        top: 12px;
+        right: 12px;
+        padding: 7px 12px;
+        font-size: 12px;
+    }
+}

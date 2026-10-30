@@ -1,0 +1,26 @@
+/* ---------- FUENTES Y COLORES ---------- */
+
+@import url('https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;700;800&family=Oswald:wght@500&display=swap');
+
+:root {
+    --dorado:        #A0753A;   /* botones principales */
+    --dorado-oscuro: #87612E;   /* botón al pasar el mouse */
+    --dorado-texto:  #7A5A2E;   /* textos dorados sobre fondo claro */
+    --beige:         #BC9B70;   /* tarjetas de reservas y pedidos */
+    --beige-claro:   #F3E9DC;   /* fondos suaves, contadores */
+    --crema:         #FBF8F4;   /* fondo de las páginas anchas */
+    --borde-suave:   #EBD9C3;   /* bordes de tarjetas y paneles */
+    --marron:        #9A6243;   /* "PRESENCIAL", "DELIVERY" */
+    --gris-input:    #E6E6E6;   /* fondo de los campos */
+    --gris-texto:    #6B6B6B;   /* textos chicos y aclaraciones */
+    --negro:         #1A1A1A;
+    --blanco:        #FFFFFF;
+
+    --error:         #C0392B;
+    --ok:            #2E7D32;
+
+    --fuente:        'Lexend', system-ui, sans-serif;
+    --fuente-titulo: 'Oswald', 'Lexend', sans-serif;
+
+    --radio:         8px;       /* esquinas de botones e inputs */
+}

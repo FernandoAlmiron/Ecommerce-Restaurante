@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <title>Perfil - La Nona</title>
-    <link rel="stylesheet" th:href="@{/style.css}">
-    <script th:src="@{/tema.js}"></script>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <script th:src="@{/js/tema.js}"></script>
 </head>
 <body class="cliente con-nav">
 
@@ -37,6 +37,7 @@
     </form>
 </main>
 
+<footer th:replace="~{fragments/cliente/layout :: footer(true)}"></footer>
 <nav th:replace="~{fragments/cliente/layout :: nav('perfil')}"></nav>
 
 </body>

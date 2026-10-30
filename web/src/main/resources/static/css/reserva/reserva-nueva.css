@@ -1,0 +1,100 @@
+/* ===================================================================
+   REGISTRAR RESERVA                        cliente/reserva-nueva.html
+   Cada campo es una caja con borde: el nombre a la izquierda y el
+   valor a la derecha, separados por una línea (como en Figma).
+   ⚠️ ADAPTADO AL BACKEND: en Figma también estaban "Num Reserva",
+   "Cliente" y "Num Restaurante". No se piden: el número lo genera la
+   base, el cliente sale del login y el restaurante es uno solo.
+   =================================================================== */
+
+body.cliente .registrar-reserva {
+    width: 100%;
+    max-width: 260px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+body.cliente .registrar-reserva h1 {
+    margin: 48px 0 40px;
+    font-size: 30px;
+    font-weight: 400;
+    line-height: 1.6;
+    text-align: center;
+}
+
+body.cliente .registrar-reserva form {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* la caja del campo: nombre | valor */
+body.cliente .campo {
+    display: flex;
+    border: 1px solid var(--negro);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+body.cliente .campo span {
+    flex: 1;
+    padding: 8px 10px;
+    border-right: 1px solid var(--negro);
+    font-size: 12px;
+    font-weight: 400;
+}
+
+body.cliente .campo input,
+body.cliente .campo select {
+    flex: 1;
+    min-width: 0;
+    padding: 6px 8px;
+    border: none;
+    border-radius: 0;
+    background: var(--blanco);
+    font-size: 12px;
+}
+
+body.cliente .campo:focus-within {
+    border-color: var(--dorado);
+}
+
+/* ⚠️ ADAPTADO AL BACKEND: la seña no está en Figma. El backend no deja
+   reservar sin una seña con tarjeta vigente. Va en una caja beige
+   para que se note que es algo aparte. */
+body.cliente .senia {
+    margin: 4px 0;
+    padding: 12px;
+    border: none;
+    border-radius: 12px;
+    background: var(--beige-claro);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+body.cliente .senia legend {
+    float: left;
+    font-weight: 500;
+    font-size: 14px;
+}
+
+body.cliente .senia small {
+    color: var(--gris-texto);
+    font-size: 11px;
+}
+
+
+/* ---------- CELULAR ---------- */
+
+@media (max-width: 600px) {
+    body.cliente .registrar-reserva {
+        max-width: 100%;
+    }
+
+    body.cliente .registrar-reserva h1 {
+        margin: 16px 0 24px;
+    }
+}

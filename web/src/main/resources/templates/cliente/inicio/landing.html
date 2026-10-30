@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <title>La Nona - Pastas caseras</title>
-    <link rel="stylesheet" th:href="@{/style.css}">
-    <script th:src="@{/tema.js}"></script>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <script th:src="@{/js/tema.js}"></script>
 </head>
 <body class="cliente">
 
@@ -24,6 +24,8 @@
         </div>
     </article>
 </main>
+
+<footer th:replace="~{fragments/cliente/layout :: footer(false)}"></footer>
 
 <footer class="acciones">
     <a th:href="@{/login}" class="boton">Iniciar / Registrarme</a>

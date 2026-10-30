@@ -1,0 +1,311 @@
+/* ===================================================================
+   DELIVERY: CARTA                               cliente/delivery.html
+   Arriba la portada; abajo la grilla de platos (izquierda) y el panel
+   "Tu pedido" (derecha), que se queda quieto al bajar con el scroll.
+   =================================================================== */
+
+
+/* ---------- Portada beige con foto ---------- */
+
+body.cliente .hero {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto 28px;
+    display: grid;
+    grid-template-columns: 3fr 2fr;
+    border-radius: 16px;
+    overflow: hidden;
+    background: var(--beige-claro);
+}
+
+body.cliente .hero-texto {
+    padding: 32px;
+}
+
+body.cliente .hero-texto h1 {
+    margin: 14px 0 8px;
+    font-size: 34px;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+body.cliente .hero-texto p {
+    margin: 0 0 10px;
+    color: var(--gris-texto);
+}
+
+body.cliente .hero-texto .hero-datos {
+    color: var(--negro);
+}
+
+/* si no está la foto, queda el bloque beige.
+   ⚠️ La ruta de la imagen es relativa a la carpeta de este CSS. */
+body.cliente .hero-foto {
+    min-height: 200px;
+    background: var(--beige) url('../../img/fotoPedidos.png') center / cover no-repeat;
+}
+
+
+/* ---------- Las dos columnas ---------- */
+
+body.cliente .delivery {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    gap: 28px;
+    align-items: start;
+}
+
+body.cliente .buscador {
+    margin-bottom: 20px;
+    padding: 12px 16px;
+    border: 1px solid #E6DED3;
+    border-radius: 12px;
+    background: var(--blanco);
+}
+
+body.cliente .seccion {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 500;
+}
+
+body.cliente .sub {
+    margin: 2px 0 16px;
+    color: var(--gris-texto);
+    font-size: 14px;
+}
+
+
+/* ---------- Grilla de tarjetas de platos ---------- */
+
+body.cliente .grid-platos {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 18px;
+}
+
+body.cliente .card-plato {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--borde-suave);
+    border-radius: 14px;
+    background: var(--blanco);
+    overflow: hidden;
+}
+
+/* la foto entera, sin recortar el plato */
+body.cliente .card-plato img {
+    width: 100%;
+    aspect-ratio: 16 / 8;
+    object-fit: contain;
+    padding-top: 8px;
+    background: var(--blanco);
+}
+
+body.cliente .card-cuerpo {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 14px 16px;
+}
+
+body.cliente .card-cuerpo h3 {
+    margin: 0 0 6px;
+    font-size: 16px;
+    font-weight: 500;
+}
+
+body.cliente .card-cuerpo p {
+    flex: 1;
+    margin: 0 0 14px;
+    color: var(--gris-texto);
+    font-size: 13px;
+}
+
+body.cliente .card-pie {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+body.cliente .card-pie strong {
+    font-size: 17px;
+    font-weight: 500;
+}
+
+/* botón "+ Agregar" */
+body.cliente button.agregar {
+    width: auto;
+    padding: 6px 14px;
+    background: #FBF3E9;
+    color: var(--dorado-texto);
+    font-weight: 500;
+}
+
+body.cliente button.agregar:hover {
+    background: var(--beige-claro);
+}
+
+
+/* ---------- Panel "Tu pedido" (sticky: queda quieto arriba al bajar) ---------- */
+
+body.cliente .panel-pedido {
+    position: sticky;
+    top: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 20px;
+    border: 1px solid var(--borde-suave);
+    border-radius: 16px;
+    background: var(--blanco);
+}
+
+body.cliente .panel-titulo h2 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 500;
+}
+
+/* ⚠️ ADAPTADO AL BACKEND: en Figma se puede elegir "Retiro en local".
+   El backend solo hace envíos a domicilio: queda fijo "Delivery". */
+body.cliente .modo-entrega {
+    padding: 10px;
+    border-radius: 10px;
+    background: #F6F1EA;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+/* "Agregar una nota a la cocina" */
+body.cliente .nota summary {
+    color: var(--dorado-texto);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+body.cliente .nota textarea {
+    margin-top: 8px;
+    padding: 8px;
+    border: 1px solid #E6DED3;
+    border-radius: 8px;
+    background: var(--blanco);
+    font-size: 13px;
+    resize: vertical;
+}
+
+body.cliente .pie {
+    display: block;
+    width: 100%;
+    max-width: 1200px;
+    margin: 24px auto 0;
+    color: var(--gris-texto);
+    font-size: 12px;
+}
+
+
+/* ---------- TABLET: portada arriba, panel debajo de la carta ---------- */
+
+@media (max-width: 900px) {
+    body.cliente .hero,
+    body.cliente .delivery {
+        grid-template-columns: 1fr;
+    }
+
+    body.cliente .hero-foto {
+        min-height: 160px;
+    }
+
+    body.cliente .panel-pedido {
+        position: static;
+    }
+}
+
+
+/* ---------- CELULAR ---------- */
+
+@media (max-width: 600px) {
+    body.cliente .hero-texto {
+        padding: 22px;
+    }
+
+    body.cliente .hero-texto h1 {
+        font-size: 26px;
+    }
+
+    body.cliente .grid-platos {
+        grid-template-columns: 1fr;
+    }
+}
+/* ---------- Filtro por categoría ----------
+   Cada categoría es un <label> con un radio adentro. El radio no se ve
+   (opacity: 0): lo que se ve es el <span>, con forma de pastilla.
+   Al tocar la pastilla se marca el radio, y la elegida se pinta de dorado. */
+
+body.cliente .categorias {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: -8px 0 20px;
+}
+
+body.cliente .filtro {
+    position: relative;
+}
+
+/* esconde el circulito (y pisa el width: 100% de comun/campos.css) */
+body.cliente .filtro input {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    pointer-events: none;
+}
+
+body.cliente .filtro span {
+    display: inline-block;
+    padding: 6px 16px;
+    border: 1px solid var(--borde-suave);
+    border-radius: 999px;
+    background: var(--blanco);
+    color: var(--dorado-texto);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background .15s, border-color .15s;
+}
+
+body.cliente .filtro span:hover {
+    border-color: var(--dorado);
+}
+
+/* la categoría elegida */
+body.cliente .filtro input:checked + span {
+    background: var(--dorado);
+    border-color: var(--dorado);
+    color: var(--blanco);
+}
+
+/* si se navega con el teclado (Tab), se ve cuál tiene el foco */
+body.cliente .filtro input:focus-visible + span {
+    outline: 2px solid var(--dorado);
+    outline-offset: 2px;
+}
+
+/* "PASTAS" en chiquito arriba del nombre de cada plato */
+body.cliente .categoria-plato {
+    display: block;
+    margin-bottom: 2px;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--dorado-texto);
+}
+

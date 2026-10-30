@@ -19,6 +19,6 @@ public class ClientePerfilController {
     @GetMapping("/perfil")
     public String perfil(Authentication auth, Model model) {
         model.addAttribute("c", clienteService.buscarPorUsername(auth.getName()));
-        return "cliente/perfil";
+        return "cliente/cuenta/perfil";
     }
 }

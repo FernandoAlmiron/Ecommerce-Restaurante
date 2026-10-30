@@ -1,0 +1,58 @@
+/* ===================================================================
+   PERFIL                                          cliente/perfil.html
+   ⚠️ ADAPTADO AL BACKEND: en Figma hay una foto. El cliente no guarda
+   imagen: se muestran sus iniciales en un círculo.
+   =================================================================== */
+
+body.cliente .perfil {
+    width: 100%;
+    max-width: 280px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+body.cliente .perfil h1 {
+    margin: 0;
+    font-size: 36px;
+    font-weight: 800;
+}
+
+body.cliente .perfil > p {
+    margin: 0 0 8px;
+}
+
+/* el círculo con las iniciales */
+body.cliente .avatar {
+    width: 120px;
+    height: 120px;
+    margin-bottom: 16px;
+    border-radius: 50%;
+    border: 8px solid #FBF3E9;
+    background: var(--beige);
+    color: var(--blanco);
+    display: grid;
+    place-items: center;
+    font-size: 42px;
+    font-weight: 500;
+}
+
+body.cliente .perfil .fila {
+    width: 100%;
+}
+
+/* los datos son de solo lectura: se ven en gris y más chicos */
+body.cliente .perfil input[readonly] {
+    color: var(--gris-texto);
+    font-size: 12px;
+}
+
+
+/* ---------- CELULAR ---------- */
+
+@media (max-width: 600px) {
+    body.cliente .perfil h1 {
+        font-size: 30px;
+    }
+}

@@ -1,0 +1,18 @@
+/* ---------- LOGO ---------- */
+
+body.cliente .logo {
+    display: block;
+    width: 230px;
+    max-width: 70vw;
+    height: auto;
+    margin: 0 auto;
+}
+
+body.cliente.ancho > header {
+    text-align: center;
+    margin-bottom: 16px;
+}
+
+body.cliente.ancho > header .logo {
+    width: 150px;
+}

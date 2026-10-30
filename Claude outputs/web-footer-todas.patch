@@ -1,0 +1,204 @@
+diff --git a/web/src/main/resources/static/style.css b/web/src/main/resources/static/style.css
+index e0ade23..d2ce193 100644
+--- a/web/src/main/resources/static/style.css
++++ b/web/src/main/resources/static/style.css
+@@ -2158,4 +2158,33 @@ body.cliente .volver-atras {
+     body.cliente .equipo {
+         grid-template-columns: 1fr;
+     }
+-}
+\ No newline at end of file
++}
++
++/* ---------- PIE DE PÁGINA EN TODAS LAS PÁGINAS ----------
++   El footer va al final de cada página (fragmento "footer" de layout.html).
++   - margin-top: auto lo empuja hasta abajo de todo en las páginas cortas
++     (login, elegir...). El borde transparente de arriba deja 32px de aire
++     entre el contenido y el footer, sin pintarlos de beige.
++   - El body no deja espacio abajo: el espacio lo pone el footer, así queda
++     pegado al borde de la pantalla.
++   - Si la página tiene la barra de abajo (INICIO · PEDIDOS...) o el botón
++     fijo "Iniciar / Registrarme", el footer deja lugar para que no lo tapen. */
++
++body.cliente .footer {
++    margin-top: auto;
++    border-top: 32px solid transparent;
++    background-clip: padding-box;
++    padding-bottom: 24px;
++}
++
++body.cliente:has(> .footer) {
++    padding-bottom: 0;
++}
++
++body.cliente:has(> .nav-inferior) .footer {
++    padding-bottom: 96px;
++}
++
++body.cliente:has(> .acciones) .footer {
++    padding-bottom: 120px;
++}
+diff --git a/web/src/main/resources/templates/cliente/delivery-pago.html b/web/src/main/resources/templates/cliente/delivery-pago.html
+index aca4bed..ad47869 100644
+--- a/web/src/main/resources/templates/cliente/delivery-pago.html
++++ b/web/src/main/resources/templates/cliente/delivery-pago.html
+@@ -104,5 +104,7 @@
+     </section>
+ </form>
+ 
++<footer th:replace="~{fragments/cliente/layout :: footer}"></footer>
++
+ </body>
+ </html>
+diff --git a/web/src/main/resources/templates/cliente/delivery.html b/web/src/main/resources/templates/cliente/delivery.html
+index 0d62c4e..4181448 100644
+--- a/web/src/main/resources/templates/cliente/delivery.html
++++ b/web/src/main/resources/templates/cliente/delivery.html
+@@ -54,6 +54,8 @@
+ 
+ <small class="pie">Precios en pesos argentinos. Las imágenes son ilustrativas.</small>
+ 
++<footer th:replace="~{fragments/cliente/layout :: footer}"></footer>
++
+ <nav th:replace="~{fragments/cliente/layout :: nav('inicio')}"></nav>
+ 
+ </body>
+diff --git a/web/src/main/resources/templates/cliente/elegir.html b/web/src/main/resources/templates/cliente/elegir.html
+index c70697e..21b9c3f 100644
+--- a/web/src/main/resources/templates/cliente/elegir.html
++++ b/web/src/main/resources/templates/cliente/elegir.html
+@@ -27,5 +27,7 @@
+ 
+ <form th:action="@{/logout}" method="post" class="cerrar-sesion"><button type="submit">Cerrar sesión</button></form>
+ 
++<footer th:replace="~{fragments/cliente/layout :: footer}"></footer>
++
+ </body>
+ </html>
+diff --git a/web/src/main/resources/templates/cliente/inicio.html b/web/src/main/resources/templates/cliente/inicio.html
+index 60a4cee..6647f86 100644
+--- a/web/src/main/resources/templates/cliente/inicio.html
++++ b/web/src/main/resources/templates/cliente/inicio.html
+@@ -95,8 +95,6 @@
+ 
+ <nav th:replace="~{fragments/cliente/layout :: nav('inicio')}"></nav>
+ 
+-<nav th:replace="~{fragments/cliente/layout :: nav('inicio')}"></nav>
+-
+ <script>
+     // Evita que el form recargue la página, lo limpia y muestra el mensaje de gracias
+     document.getElementById('form-contacto').addEventListener('submit', e => {
+diff --git a/web/src/main/resources/templates/cliente/landing.html b/web/src/main/resources/templates/cliente/landing.html
+index 8997fc4..abd381d 100644
+--- a/web/src/main/resources/templates/cliente/landing.html
++++ b/web/src/main/resources/templates/cliente/landing.html
+@@ -25,6 +25,8 @@
+     </article>
+ </main>
+ 
++<footer th:replace="~{fragments/cliente/layout :: footer}"></footer>
++
+ <footer class="acciones">
+     <a th:href="@{/login}" class="boton">Iniciar / Registrarme</a>
+     <small>Registrese para reservar y/o delivery</small>
+diff --git a/web/src/main/resources/templates/cliente/login.html b/web/src/main/resources/templates/cliente/login.html
+index 0b41746..9fe987f 100644
+--- a/web/src/main/resources/templates/cliente/login.html
++++ b/web/src/main/resources/templates/cliente/login.html
+@@ -38,5 +38,7 @@
+     </div>
+ </main>
+ 
++<footer th:replace="~{fragments/cliente/layout :: footer}"></footer>
++
+ </body>
+ </html>
+diff --git a/web/src/main/resources/templates/cliente/nosotros.html b/web/src/main/resources/templates/cliente/nosotros.html
+index 7fd8ecc..e1c9187 100644
+--- a/web/src/main/resources/templates/cliente/nosotros.html
++++ b/web/src/main/resources/templates/cliente/nosotros.html
+@@ -35,5 +35,7 @@
+     <a href="javascript:history.back()" class="boton-borde volver-atras">← Volver</a>
+ </main>
+ 
++<footer th:replace="~{fragments/cliente/layout :: footer}"></footer>
++
+ </body>
+ </html>
+diff --git a/web/src/main/resources/templates/cliente/pedido.html b/web/src/main/resources/templates/cliente/pedido.html
+index 2d207bd..1cb0e0b 100644
+--- a/web/src/main/resources/templates/cliente/pedido.html
++++ b/web/src/main/resources/templates/cliente/pedido.html
+@@ -77,6 +77,8 @@
+     </section>
+ </div>
+ 
++<footer th:replace="~{fragments/cliente/layout :: footer}"></footer>
++
+ <nav th:replace="~{fragments/cliente/layout :: nav('pedidos')}"></nav>
+ 
+ </body>
+diff --git a/web/src/main/resources/templates/cliente/pedidos.html b/web/src/main/resources/templates/cliente/pedidos.html
+index b4ed67c..fb47855 100644
+--- a/web/src/main/resources/templates/cliente/pedidos.html
++++ b/web/src/main/resources/templates/cliente/pedidos.html
+@@ -52,6 +52,8 @@
+     <p th:if="${envios.isEmpty()}" class="vacio">Todavía no hiciste pedidos.</p>
+ </main>
+ 
++<footer th:replace="~{fragments/cliente/layout :: footer}"></footer>
++
+ <nav th:replace="~{fragments/cliente/layout :: nav('pedidos')}"></nav>
+ 
+ </body>
+diff --git a/web/src/main/resources/templates/cliente/perfil.html b/web/src/main/resources/templates/cliente/perfil.html
+index 26c4eca..99eb203 100644
+--- a/web/src/main/resources/templates/cliente/perfil.html
++++ b/web/src/main/resources/templates/cliente/perfil.html
+@@ -37,6 +37,8 @@
+     </form>
+ </main>
+ 
++<footer th:replace="~{fragments/cliente/layout :: footer}"></footer>
++
+ <nav th:replace="~{fragments/cliente/layout :: nav('perfil')}"></nav>
+ 
+ </body>
+diff --git a/web/src/main/resources/templates/cliente/registro.html b/web/src/main/resources/templates/cliente/registro.html
+index 450d57b..dda7086 100644
+--- a/web/src/main/resources/templates/cliente/registro.html
++++ b/web/src/main/resources/templates/cliente/registro.html
+@@ -36,5 +36,7 @@
+     <a th:href="@{/login}">Ya tengo cuenta</a>
+ </main>
+ 
++<footer th:replace="~{fragments/cliente/layout :: footer}"></footer>
++
+ </body>
+ </html>
+diff --git a/web/src/main/resources/templates/cliente/reserva-nueva.html b/web/src/main/resources/templates/cliente/reserva-nueva.html
+index 706ffc6..7cd8c8e 100644
+--- a/web/src/main/resources/templates/cliente/reserva-nueva.html
++++ b/web/src/main/resources/templates/cliente/reserva-nueva.html
+@@ -78,6 +78,8 @@
+     </form>
+ </main>
+ 
++<footer th:replace="~{fragments/cliente/layout :: footer}"></footer>
++
+ <!-- Genera los turnos de 15 min según la fecha elegida y el horario del restaurante -->
+ <script>
+     const PASO = 15;
+diff --git a/web/src/main/resources/templates/cliente/reservas.html b/web/src/main/resources/templates/cliente/reservas.html
+index a16926b..3f491ad 100644
+--- a/web/src/main/resources/templates/cliente/reservas.html
++++ b/web/src/main/resources/templates/cliente/reservas.html
+@@ -33,6 +33,8 @@
+     <p th:if="${reservas.isEmpty()}" class="vacio">Todavía no tenés reservas.</p>
+ </main>
+ 
++<footer th:replace="~{fragments/cliente/layout :: footer}"></footer>
++
+ <nav th:replace="~{fragments/cliente/layout :: nav('reservas')}"></nav>
+ 
+ </body>

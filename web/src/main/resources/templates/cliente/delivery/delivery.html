@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <title>Delivery - La Nona</title>
-    <link rel="stylesheet" th:href="@{/style.css}">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
     <script src="https://unpkg.com/htmx.org@2.0.4"></script>
-    <script th:src="@{/errores.js}" defer></script>
-    <script th:src="@{/tema.js}"></script>
+    <script th:src="@{/js/errores.js}" defer></script>
+    <script th:src="@{/js/tema.js}"></script>
 </head>
 <body class="cliente con-nav ancho">
 
@@ -33,15 +33,31 @@
 
 <div class="delivery">
     <main>
-        <!-- buscador en vivo, igual que el de Clientes en admin -->
-        <input type="search" name="q" class="buscador" placeholder="🔍  ¿Qué se te antoja hoy?"
-               hx-get="/delivery/buscar"
-               hx-trigger="input changed delay:300ms, search"
-               hx-target="#platos"
-               hx-swap="outerHTML">
+        <!-- buscador + filtro por categoría.
+     Están en el mismo <form>: cada vez que escribís o tocás una categoría,
+     HTMX manda los dos juntos (/delivery/buscar?q=...&categoria=PASTAS)
+     y reemplaza solo la grilla de platos (#platos). -->
+        <form class="filtros"
+              hx-get="/delivery/buscar"
+              hx-trigger="input delay:300ms, submit"
+              hx-target="#platos"
+              hx-swap="outerHTML">
 
-        <!-- ⚠️ ADAPTADO AL BACKEND: en Figma hay filtros (Pastas, Al horno, Postres,
-             Bebidas). Los platos (Menu) no tienen categoría, así que se usa el buscador. -->
+            <input type="search" name="q" class="buscador" placeholder="🔍  ¿Qué se te antoja hoy?">
+
+            <div class="categorias">
+                <!-- "Todo" manda categoria vacía: el controller la recibe como null -->
+                <label class="filtro">
+                    <input type="radio" name="categoria" value="" checked>
+                    <span>Todo</span>
+                </label>
+                <!-- un botón por cada valor del enum CategoriaMenu -->
+                <label class="filtro" th:each="c : ${categorias}">
+                    <input type="radio" name="categoria" th:value="${c.name()}">
+                    <span th:text="${c.nombre()}">Pastas</span>
+                </label>
+            </div>
+        </form>
 
         <h2 class="seccion">Los favoritos de la Nona</h2>
         <p class="sub">Porciones generosas, preparadas en el momento.</p>
@@ -54,6 +70,7 @@
 
 <small class="pie">Precios en pesos argentinos. Las imágenes son ilustrativas.</small>
 
+<footer th:replace="~{fragments/cliente/layout :: footer(true)}"></footer>
 <nav th:replace="~{fragments/cliente/layout :: nav('inicio')}"></nav>
 
 </body>
