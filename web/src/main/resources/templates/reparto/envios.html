@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Mis entregas - La Nona</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+    <script th:src="@{/js/errores.js}" defer></script>
+</head>
+<!-- sin carta, sin barra de cliente y sin footer: solo sus entregas -->
+<body class="cliente reparto">
+
+<header class="reparto-cabecera">
+    <img th:src="@{/img/logo.png}" alt="La Nona" class="reparto-logo">
+    <form th:action="@{/logout}" method="post">
+        <button type="submit" class="reparto-salir">Cerrar sesión</button>
+    </form>
+</header>
+
+<main class="reparto-lista">
+    <h1>Mis entregas</h1>
+    <p class="aclaracion" th:text="'Hola, ' + ${usuario} + '. Estos son los pedidos que tenés asignados.'"></p>
+
+    <!-- acá errores.js muestra los errores del back (ej: "todavía hay platos en la comanda") -->
+    <div id="mensaje-error" class="alerta error" hidden></div>
+
+    <th:block th:each="e : ${envios}">
+        <article th:replace="~{fragments/reparto/envio-card :: card}"></article>
+    </th:block>
+
+    <p th:if="${envios.isEmpty()}" class="vacio">No tenés pedidos para entregar.</p>
+
+    <!-- el restaurante le puede asignar envíos nuevos mientras está afuera -->
+    <a th:href="@{/reparto}" class="boton-borde">Actualizar</a>
+</main>
+
+</body>
+</html>

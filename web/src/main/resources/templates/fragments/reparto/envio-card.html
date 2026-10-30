@@ -1,0 +1,57 @@
+<!-- Tarjeta de un envío para el repartidor. La usa reparto/envios.html (una por envío)
+     y el RepartoController cuando cambia el estado: HTMX reemplaza solo esta tarjeta.
+     Necesita ${e} (el Envio). -->
+<article th:fragment="card" class="envio-reparto">
+
+    <div class="envio-cabecera">
+        <strong th:text="'Envío #' + ${e.idEnvio}">Envío #12</strong>
+        <th:block th:switch="${e.estado.name()}">
+            <span th:case="'PENDIENTE'" class="estado-envio pendiente">Para salir</span>
+            <span th:case="'EN_CAMINO'" class="estado-envio en-camino">En camino</span>
+            <span th:case="'ENTREGADO'" class="estado-envio entregado">Entregado ✓</span>
+            <span th:case="*"           class="estado-envio cancelado">Cancelado</span>
+        </th:block>
+    </div>
+
+    <!-- tocando la dirección se abre Google Maps en el celular -->
+    <a class="envio-direccion" target="_blank"
+       th:href="'https://www.google.com/maps/search/?api=1&query=' + ${#uris.escapeQueryParam(e.direccionEntrega)}"
+       th:text="'📍 ' + ${e.direccionEntrega}">📍 Av. Santa Fe 2450</a>
+
+    <p class="detalle" th:text="'Recibe: ' + ${e.nombreReceptor}">Recibe: María González</p>
+
+    <!-- tocando el número se llama al cliente -->
+    <a th:if="${e.cliente != null and e.cliente.celular != null}" class="detalle"
+       th:href="'tel:' + ${e.cliente.celular}"
+       th:text="'📞 ' + ${e.cliente.celular}">📞 1155550000</a>
+
+    <ul class="platos-envio">
+        <li th:each="p : ${e.ticket.pedidos}"
+            th:text="${p.cantidad} + ' × ' + ${p.menu.nombre}">2 × Ravioles</li>
+    </ul>
+
+    <!-- en efectivo el repartidor cobra en la puerta: se destaca el monto -->
+    <p class="cobro" th:classappend="${e.metodoPago != null and e.metodoPago.name() == 'EFECTIVO'} ? 'efectivo'"
+       th:text="'Total $' + ${#numbers.formatDecimal(e.ticket.calcularTotal(), 1, 'POINT', 0, 'COMMA')}
+                + ' · ' + (${e.metodoPago != null and e.metodoPago.name() == 'EFECTIVO'} ? 'cobrar en efectivo' : 'pagado con ' + ${e.metodoPago})">
+        Total $34.800 · cobrar en efectivo</p>
+
+    <!-- PENDIENTE: todavía está en el local -->
+    <button th:if="${e.estado.name() == 'PENDIENTE'}" type="button" class="boton-reparto"
+            th:hx-put="@{/reparto/{id}/salir(id=${e.idEnvio})}"
+            hx-target="closest article"
+            hx-swap="outerHTML">
+        Salí con el pedido
+    </button>
+
+    <!-- EN_CAMINO: en la puerta del cliente -->
+    <button th:if="${e.estado.name() == 'EN_CAMINO'}" type="button" class="boton-reparto entregar"
+            th:hx-put="@{/reparto/{id}/entregar(id=${e.idEnvio})}"
+            hx-target="closest article"
+            hx-swap="outerHTML"
+            hx-confirm="¿Confirmás que entregaste el pedido y lo cobraste?">
+        Entregado y cobrado
+    </button>
+
+    <p th:if="${e.estado.name() == 'ENTREGADO'}" class="aclaracion">Listo: quedó entregado y cobrado.</p>
+</article>

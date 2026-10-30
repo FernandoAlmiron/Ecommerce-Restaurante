@@ -43,5 +43,7 @@
 @import url("delivery/pago.css");
 @import url("delivery/confirmacion.css");
 @import url("delivery/mis-pedidos.css");
+/* REPARTO */
+@import url("reparto/reparto.css");
 /* ---------- SIEMPRE AL FINAL ---------- */
 @import url("comun/footer-ajustes.css");

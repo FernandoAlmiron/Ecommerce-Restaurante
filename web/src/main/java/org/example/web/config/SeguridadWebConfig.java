@@ -27,7 +27,9 @@ public class SeguridadWebConfig {
                         // páginas públicas: cualquiera, sin login
                         .requestMatchers("/", "/login", "/registro", "/nosotros", "/error").permitAll()
                         // archivos estáticos (static/css, static/js, static/img)
-                        .requestMatchers("/css/**", "/js/**", "/img/**").permitAll()
+                        .requestMatchers("/css/**", "/js/**", "/img/**", "/favicon.ico").permitAll()
+                        // el repartidor: solo su pantalla de entregas
+                        .requestMatchers("/reparto/**").hasRole("REPARTIDOR")
                         // todo lo demás: cliente logueado
                         .anyRequest().hasRole("CLIENTE")
                 )
@@ -36,8 +38,12 @@ public class SeguridadWebConfig {
                         .loginPage("/login")              // nuestra página, no la de Spring
                         .usernameParameter("email")       // el input se llama "email"
                         .failureUrl("/login?error")
-                        .defaultSuccessUrl("/inicio", true)   // después del login, siempre al inicio
-                        .permitAll()
+                        // según quién entra, a dónde lo mando
+                        .successHandler((request, response, auth) -> {
+                            boolean esRepartidor = auth.getAuthorities().stream()
+                                    .anyMatch(a -> a.getAuthority().equals("ROLE_REPARTIDOR"));
+                            response.sendRedirect(esRepartidor ? "/reparto" : "/inicio");
+                        })
                 )
 
                 .logout(logout -> logout

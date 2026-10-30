@@ -1,0 +1,148 @@
+/* =====================================================================
+   REPARTO                                          reparto/envios.html
+   La pantalla del repartidor. Pensada para el celular: una columna,
+   letra grande y botones anchos para tocar con el dedo.
+   ===================================================================== */
+
+body.cliente.reparto {
+    background: var(--crema);
+    padding: 16px 16px 40px;
+}
+
+/* ---------- Arriba: logo y "Cerrar sesión" ---------- */
+
+body.cliente .reparto-cabecera {
+    width: 100%;
+    max-width: 520px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+body.cliente .reparto-logo {
+    width: 110px;
+}
+
+body.cliente .reparto-salir {
+    width: auto;
+    padding: 6px 14px;
+    background: transparent;
+    border: 1px solid var(--borde-suave);
+    color: var(--dorado-texto);
+    font-size: 13px;
+}
+
+body.cliente .reparto-salir:hover {
+    background: var(--beige-claro);
+}
+
+/* ---------- La lista de envíos ---------- */
+
+body.cliente .reparto-lista {
+    width: 100%;
+    max-width: 520px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+body.cliente .reparto-lista h1 {
+    margin: 0;
+    font-size: 26px;
+    font-weight: 700;
+}
+
+body.cliente .reparto-lista > .aclaracion {
+    margin: -8px 0 4px;
+    text-align: left;
+}
+
+/* ---------- Una tarjeta (fragments/reparto/envio-card.html) ---------- */
+
+body.cliente .envio-reparto {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 18px;
+    border: 1px solid var(--borde-suave);
+    border-radius: 14px;
+    background: var(--blanco);
+}
+
+body.cliente .envio-cabecera {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 17px;
+}
+
+/* la etiqueta del estado, con color según en qué paso está */
+body.cliente .estado-envio {
+    padding: 3px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+body.cliente .estado-envio.pendiente { background: var(--beige-claro); color: var(--dorado-texto); }
+body.cliente .estado-envio.en-camino { background: #FFF1D6; color: #8A5A00; }
+body.cliente .estado-envio.entregado { background: #E8F5E9; color: var(--ok); }
+body.cliente .estado-envio.cancelado { background: #FDECEA; color: var(--error); }
+
+/* la dirección es lo más importante: grande, y abre el mapa */
+body.cliente .envio-direccion {
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+body.cliente .envio-reparto .detalle {
+    margin: 0;
+    font-size: 14px;
+    color: var(--gris-texto);
+}
+
+body.cliente .platos-envio {
+    margin: 4px 0;
+    padding: 10px 14px 10px 30px;
+    border-radius: 10px;
+    background: var(--crema);
+    font-size: 14px;
+}
+
+/* el total; si se cobra en efectivo se destaca */
+body.cliente .cobro {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 500;
+}
+
+body.cliente .cobro.efectivo {
+    padding: 10px 14px;
+    border-radius: 10px;
+    background: #FFF1D6;
+    color: #8A5A00;
+    font-weight: 600;
+}
+
+/* botones grandes, para usar con una mano */
+body.cliente .boton-reparto {
+    margin-top: 6px;
+    padding: 16px;
+    border-radius: 12px;
+    font-size: 17px;
+    font-weight: 600;
+}
+
+body.cliente .boton-reparto.entregar {
+    background: var(--ok);
+}
+
+body.cliente .boton-reparto.entregar:hover {
+    background: #25692A;
+}
+
+body.cliente .reparto-lista > .boton-borde {
+    text-align: center;
+}
