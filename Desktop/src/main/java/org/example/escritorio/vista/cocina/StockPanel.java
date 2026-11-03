@@ -7,6 +7,7 @@ import org.example.escritorio.vista.comun.Boton;
 import org.example.escritorio.vista.comun.Dialogos;
 import org.example.escritorio.vista.comun.Estilo;
 import org.example.escritorio.vista.comun.Icono;
+import org.example.escritorio.vista.comun.RecargaAutomatica;
 import org.example.escritorio.vista.comun.Tablas;
 
 import javax.swing.Box;
@@ -79,6 +80,7 @@ public class StockPanel extends JPanel {
             }
         });
         btnActualizar.addActionListener(e -> controlador.cargar());
+        RecargaAutomatica.instalar(this, controlador::cargar);   // además del botón, sola cada 10 segundos
         btnNuevo.addActionListener(e -> controlador.nuevo());
         btnModificar.addActionListener(e -> controlador.modificar());
         btnReponer.addActionListener(e -> controlador.reponer());
@@ -181,8 +183,10 @@ public class StockPanel extends JPanel {
     // ---------- lo que usa el controlador ----------
 
     public void mostrarInsumos(List<Stock> insumos) {
-        modelo.setFilas(insumos);
-        aplicarFiltro();
+        Tablas.conservarSeleccion(tabla, modelo, Stock::getIdStock, () -> {
+            modelo.setFilas(insumos);
+            aplicarFiltro();
+        });
     }
 
     public Optional<Stock> insumoSeleccionado() {

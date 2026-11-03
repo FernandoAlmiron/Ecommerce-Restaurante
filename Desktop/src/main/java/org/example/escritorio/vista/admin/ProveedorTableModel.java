@@ -1,5 +1,6 @@
 package org.example.escritorio.vista.admin;
 
+import org.example.Modelo.persona.Persona;
 import org.example.Modelo.inventario.Proveedores;
 import org.example.escritorio.vista.comun.ModeloTablaBase;
 
@@ -15,7 +16,7 @@ public class ProveedorTableModel extends ModeloTablaBase<Proveedores> {
         return switch (columna) {
             case 0 -> p.getRazonSocial();
             case 1 -> cuit(p.getCuit());
-            case 2 -> texto(p.getTelefono());
+            case 2 -> texto(Persona.formatearTelefono(p.getTelefono()));
             case 3 -> texto(p.getEmail());
             case 4 -> p.getCategoria() == null ? "" : p.getCategoria().getNombre();
             default -> null;

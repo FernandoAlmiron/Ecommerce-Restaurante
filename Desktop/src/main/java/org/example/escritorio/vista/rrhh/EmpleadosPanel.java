@@ -1,5 +1,6 @@
 package org.example.escritorio.vista.rrhh;
 
+import org.example.Modelo.persona.Persona;
 import org.example.Modelo.persona.Empleado;
 import org.example.escritorio.controlador.rrhh.EmpleadosControlador;
 import org.example.escritorio.vista.comun.Avatar;
@@ -8,6 +9,7 @@ import org.example.escritorio.vista.comun.Dialogos;
 import org.example.escritorio.vista.comun.Estilo;
 import org.example.escritorio.vista.comun.Formulario;
 import org.example.escritorio.vista.comun.Icono;
+import org.example.escritorio.vista.comun.RecargaAutomatica;
 import org.example.escritorio.vista.comun.Selector;
 import org.example.escritorio.vista.comun.Tablas;
 
@@ -154,6 +156,7 @@ public class EmpleadosPanel extends JPanel {
             }
         });
         btnActualizar.addActionListener(e -> controlador.cargar(null));
+        RecargaAutomatica.instalar(this, () -> controlador.cargar(null));   // además del botón, sola cada 10 segundos
         btnNuevo.addActionListener(e -> controlador.nuevo());
         btnModificar.addActionListener(e -> controlador.modificar());
         btnCambiarSector.addActionListener(e -> controlador.cambiarSector());
@@ -389,7 +392,7 @@ public class EmpleadosPanel extends JPanel {
         lblSector.setVisible(true);
         lblLegajo.setText("Legajo " + e.getLegajo());
         lblDni.setText(EmpleadoTableModel.dni(e.getDni()));
-        lblCelular.setText(e.getCelular() == null || e.getCelular().isBlank() ? "—" : e.getCelular());
+        lblCelular.setText(e.getCelular() == null || e.getCelular().isBlank() ? "—" : Persona.formatearTelefono(e.getCelular()));
         lblUsuario.setText(e.getUsername() == null ? "—" : e.getUsername());
         Tablas.Insignia insignia = EmpleadoTableModel.insigniaSector(sector);
         lblSectorFila.setText(insignia.texto());

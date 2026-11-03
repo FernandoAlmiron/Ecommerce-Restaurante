@@ -7,6 +7,7 @@ import org.example.escritorio.vista.comun.Dialogos;
 import org.example.escritorio.vista.comun.Estilo;
 import org.example.escritorio.vista.comun.Formulario;
 import org.example.escritorio.vista.comun.Icono;
+import org.example.escritorio.vista.comun.RecargaAutomatica;
 import org.example.escritorio.vista.comun.Tablas;
 
 import javax.swing.BorderFactory;
@@ -94,9 +95,6 @@ public class CierreCajaPanel extends JPanel {
     private boolean armandoMeses;
 
     private final CierreCajaControlador controlador;
-    /** Cada cuánto se vuelve a pedir lo cobrado (si en Cobros se cobra algo, aparece solo). */
-    private static final int REFRESCO_MS = 10_000;
-    private final javax.swing.Timer refresco;
 
     public CierreCajaPanel() {
         super(new BorderLayout(0, 26));
@@ -115,26 +113,10 @@ public class CierreCajaPanel extends JPanel {
         btnActualizar.addActionListener(e -> controlador.cargar());
         btnDetalle.addActionListener(e -> cierreSeleccionado().ifPresent(controlador::verDetalle));
 
-        // solo refresca si la solapa está a la vista; el timer se apaga al cerrar la ventana
-        refresco = new javax.swing.Timer(REFRESCO_MS, e -> {
-            if (isShowing()) {
-                controlador.cargar(false);
-            }
-        });
+        // se vuelve a pedir lo cobrado cada 10 segundos (si en Cobros se cobra algo, aparece solo)
+        RecargaAutomatica.instalar(this, () -> controlador.cargar(false));
 
         controlador.cargar();
-    }
-
-    @Override
-    public void addNotify() {
-        super.addNotify();
-        refresco.start();
-    }
-
-    @Override
-    public void removeNotify() {
-        refresco.stop();
-        super.removeNotify();
     }
 
     // ---------- armado ----------

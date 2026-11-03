@@ -121,7 +121,7 @@ public class WalkInDialog extends DialogoFormulario {
 
     @Override
     protected JComponent armarCuerpo() {
-        Formulario.estilizar(txtDni, "Sin puntos");
+        Formulario.dni(txtDni);   // solo números, hasta 8
         Formulario.estilizar(txtNombre, null);
         Formulario.estilizar(txtApellido, null);
         Formulario.celular(txtCelular);   // opcional; solo 10 números

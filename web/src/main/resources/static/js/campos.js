@@ -1,14 +1,18 @@
 // Campos comunes de los formularios del cliente (registro, perfil, contacto, pago).
 
 // Celular: solo números y como máximo 10 (código de área + número, ej. 1155551234).
-// Se aplica solo a los campos con class="celular" de la página.
-document.addEventListener('DOMContentLoaded', function () {
-    document.querySelectorAll('input.celular').forEach(function (campo) {
-        campo.addEventListener('input', function () {
-            const numeros = campo.value.replace(/\D/g, '').slice(0, 10);
-            if (numeros !== campo.value) campo.value = numeros;
-        });
+// DNI: solo números y como máximo 8, sin puntos.
+// Se aplica a los campos con class="celular" o class="dni" de la página.
+function soloNumerosHasta(campo, maximo) {
+    campo.addEventListener('input', function () {
+        const numeros = campo.value.replace(/\D/g, '').slice(0, maximo);
+        if (numeros !== campo.value) campo.value = numeros;
     });
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('input.celular').forEach(function (campo) { soloNumerosHasta(campo, 10); });
+    document.querySelectorAll('input.dni').forEach(function (campo) { soloNumerosHasta(campo, 8); });
 });
 
 // íconos del ojito para ver una contraseña (los mismos trazos que usan la mayoría de las páginas)

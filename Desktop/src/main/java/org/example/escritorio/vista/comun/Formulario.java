@@ -132,10 +132,28 @@ public final class Formulario {
         return combo;
     }
 
-    /** Campo de celular: solo números y como máximo 10 (código de área + número, como lo pide el backend). */
+    /** Campo de celular o teléfono: solo números y como máximo 10 (código de área + número). */
     public static JTextField celular(JTextField campo) {
         estilizar(campo, "10 números, ej. 1155551234");
-        ((javax.swing.text.AbstractDocument) campo.getDocument()).setDocumentFilter(new SoloNumeros(10));
+        return soloNumeros(campo, TELEFONO);
+    }
+
+    /** Campo de DNI: solo números y como máximo 8, sin puntos. */
+    public static JTextField dni(JTextField campo) {
+        estilizar(campo, "Sin puntos, hasta 8 números");
+        return soloNumeros(campo, DNI);
+    }
+
+    /** Números que tiene un teléfono (código de área + número) y como mucho un DNI. */
+    public static final int TELEFONO = 10;
+    public static final int DNI = 8;
+
+    /**
+     * Que el campo acepte solo números (al escribir o pegar) y como máximo esa cantidad, sin cambiarle el
+     * estilo: para los formularios que ya lo estilizan solos (por ejemplo, los de FormularioSimple).
+     */
+    public static JTextField soloNumeros(JTextField campo, int maximo) {
+        ((javax.swing.text.AbstractDocument) campo.getDocument()).setDocumentFilter(new SoloNumeros(maximo));
         return campo;
     }
 

@@ -80,7 +80,7 @@ public class EmpleadoDialog extends DialogoFormulario {
     protected JComponent armarCuerpo() {
         Formulario.estilizar(txtNombre, null);
         Formulario.estilizar(txtApellido, null);
-        Formulario.estilizar(txtDni, "Sin puntos");
+        Formulario.dni(txtDni);   // solo números, hasta 8
         Formulario.celular(txtCelular);   // opcional; solo 10 números
         Formulario.estilizar(txtUsuario, "Con este entra al sistema");
         Formulario.estilizar(txtClave, null);

@@ -32,6 +32,9 @@ public class ClienteService {
                 || cliente.getApellido() == null || cliente.getApellido().isBlank() || cliente.getDni() <= 0) {
             throw new IllegalArgumentException("Nombre, apellido y DNI son obligatorios");
         }
+        if (cliente.getDni() < 1_000_000 || cliente.getDni() > 99_999_999) {
+            throw new IllegalArgumentException("El DNI tiene que tener 7 u 8 números, sin puntos");
+        }
         cliente.setCelular(Persona.normalizarCelular(cliente.getCelular()));
         String usuario = cliente.getUsername();
         if (usuario == null || usuario.isBlank()) {

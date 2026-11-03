@@ -8,6 +8,7 @@ import org.example.escritorio.vista.comun.Dialogos;
 import org.example.escritorio.vista.comun.Estilo;
 import org.example.escritorio.vista.comun.Formatos;
 import org.example.escritorio.vista.comun.Icono;
+import org.example.escritorio.vista.comun.RecargaAutomatica;
 import org.example.escritorio.vista.comun.Selector;
 import org.example.escritorio.vista.comun.Tablas;
 
@@ -102,6 +103,7 @@ public class ReservasPanel extends JPanel {
             }
         });
         btnActualizar.addActionListener(e -> controlador.cargar());
+        RecargaAutomatica.instalar(this, controlador::cargar);   // además del botón, sola cada 10 segundos
         btnWalkIn.addActionListener(e -> controlador.nuevoWalkIn());
         btnConfirmar.addActionListener(e -> controlador.confirmar());
         btnCancelar.addActionListener(e -> controlador.cancelar());
@@ -244,8 +246,10 @@ public class ReservasPanel extends JPanel {
     }
 
     public void mostrarReservas(List<ReservaResponseDTO> reservas) {
-        modelo.setFilas(reservas);
-        aplicarFiltros();
+        Tablas.conservarSeleccion(tabla, modelo, ReservaResponseDTO::nroReserva, () -> {
+            modelo.setFilas(reservas);
+            aplicarFiltros();
+        });
     }
 
     public void actualizarReserva(ReservaResponseDTO reserva) {

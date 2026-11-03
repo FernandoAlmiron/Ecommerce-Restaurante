@@ -23,7 +23,7 @@
     <!-- tocando el número se llama al cliente -->
     <a th:if="${e.cliente != null and e.cliente.celular != null}" class="detalle"
        th:href="'tel:' + ${e.cliente.celular}"
-       th:text="'📞 ' + ${e.cliente.celular}">📞 1155550000</a>
+       th:text="'📞 ' + ${@telefonos.formato(e.cliente.celular)}">📞 1155550000</a>
 
     <ul class="platos-envio">
         <li th:each="p : ${e.ticket.pedidos}"

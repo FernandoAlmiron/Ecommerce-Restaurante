@@ -8,6 +8,7 @@ import org.example.escritorio.vista.comun.Dialogos;
 import org.example.escritorio.vista.comun.Estilo;
 import org.example.escritorio.vista.comun.Formatos;
 import org.example.escritorio.vista.comun.Icono;
+import org.example.escritorio.vista.comun.RecargaAutomatica;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -23,7 +24,6 @@ import javax.swing.JScrollPane;
 import javax.swing.ListCellRenderer;
 import javax.swing.ListSelectionModel;
 import javax.swing.ScrollPaneConstants;
-import javax.swing.Timer;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -58,8 +58,6 @@ public class ComandasPanel extends JPanel {
     /** Propiedad que avisa cuántas comandas hay (la usa la solapa para su contador). */
     public static final String PROP_CANTIDAD = "cantidadComandas";
 
-    private static final int REFRESCO_MS = 10_000;
-
     private final DefaultListModel<ComandaDTO> modeloComandas = new DefaultListModel<>();
     private final JList<ComandaDTO> listaComandas = new JList<>(modeloComandas) {
         @Override
@@ -92,7 +90,6 @@ public class ComandasPanel extends JPanel {
     private boolean recargandoLista;
 
     private final ComandasControlador controlador;
-    private final Timer refresco;
 
     public ComandasPanel() {
         super(new BorderLayout(0, 22));
@@ -130,27 +127,11 @@ public class ComandasPanel extends JPanel {
         btnActualizar.addActionListener(e -> controlador.cargar(true));
         btnComandaLista.addActionListener(e -> controlador.marcarLista());
 
-        // solo refresca si la solapa está a la vista; el timer se apaga al cerrar la ventana
-        refresco = new Timer(REFRESCO_MS, e -> {
-            if (isShowing()) {
-                controlador.cargar(false);
-            }
-        });
+        // las comandas nuevas aparecen solas cada 10 segundos
+        RecargaAutomatica.instalar(this, () -> controlador.cargar(false));
 
         limpiarDetalle();
         controlador.cargar(true);
-    }
-
-    @Override
-    public void addNotify() {
-        super.addNotify();
-        refresco.start();
-    }
-
-    @Override
-    public void removeNotify() {
-        refresco.stop();
-        super.removeNotify();
     }
 
     // ---------- armado ----------

@@ -60,7 +60,7 @@
                                      + ' a ' + ${#temporals.format(restaurante.horarioCierre, 'HH:mm')} + ' hs'"></p>
         <!-- la mitad de cada zona queda para los que llegan sin reserva (ReservaService.cupoParaReservas) -->
         <p class="aclaracion" th:text="'Por la web se reserva hasta la mitad de cada zona. Si necesitás más lugar, comunicate con el restaurante'
-                                     + (${restaurante.telefono} != null ? ' al ' + ${restaurante.telefono} : '') + '.'"></p>
+                                     + (${restaurante.telefono} != null ? ' al ' + ${@telefonos.formato(restaurante.telefono)} : '') + '.'"></p>
 
         <!-- ⚠️ ADAPTADO AL BACKEND: no está en Figma. El backend exige una seña con
              tarjeta vigente para reservar (se cobra solo si no venís). -->

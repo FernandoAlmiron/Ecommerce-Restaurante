@@ -265,6 +265,7 @@ public abstract class PanelAbm<T> extends JPanel {
         this.alEliminar = eliminar;
         this.alCambiarSeleccion = alCambiarSeleccion;
         btnActualizar.addActionListener(e -> cargar.run());
+        RecargaAutomatica.instalar(this, cargar);   // además del botón, sola cada 10 segundos
         btnNuevo.addActionListener(e -> nuevo.run());
         btnModificar.addActionListener(e -> modificar.run());
         btnEliminar.addActionListener(e -> eliminar.run());

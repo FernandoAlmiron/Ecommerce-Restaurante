@@ -8,6 +8,7 @@ import org.example.escritorio.vista.comun.Boton;
 import org.example.escritorio.vista.comun.Dialogos;
 import org.example.escritorio.vista.comun.Estilo;
 import org.example.escritorio.vista.comun.Icono;
+import org.example.escritorio.vista.comun.RecargaAutomatica;
 import org.example.escritorio.vista.comun.Selector;
 import org.example.escritorio.vista.comun.Tablas;
 import org.example.escritorio.vista.comun.TarjetaDato;
@@ -115,6 +116,7 @@ public class CobrosPanel extends JPanel {
             }
         });
         btnActualizar.addActionListener(e -> controlador.cargar(null));
+        RecargaAutomatica.instalar(this, () -> controlador.cargar(null));   // además del botón, sola cada 10 segundos
         btnFacturar.addActionListener(e -> controlador.facturar());
         btnRecalcular.addActionListener(e -> controlador.recalcular());
         btnConfirmarPago.addActionListener(e -> controlador.confirmarPago());

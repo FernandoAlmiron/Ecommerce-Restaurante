@@ -132,7 +132,7 @@ public class RestaurantePanel extends JPanel {
 
         Formulario.estilizar(txtNombre, null);
         Formulario.estilizar(txtDireccion, "Calle, número y localidad");
-        Formulario.estilizar(txtTelefono, null);
+        Formulario.celular(txtTelefono);   // 10 números (código de área + número), como los celulares
         Formulario.estilizar(txtEmail, null);
         txtDireccion.putClientProperty("JTextField.leadingIcon", new Icono(Icono.Tipo.UBICACION, 18, Estilo.TEXTO_SUAVE));
         txtTelefono.putClientProperty("JTextField.leadingIcon", new Icono(Icono.Tipo.TELEFONO, 18, Estilo.TEXTO_SUAVE));

@@ -1,5 +1,6 @@
 package org.example.escritorio.vista.reparto;
 
+import org.example.Modelo.persona.Persona;
 import org.example.Modelo.enums.EstadoEnvio;
 import org.example.dto.RemitoDTO;
 import org.example.escritorio.controlador.reparto.RepartoControlador;
@@ -10,6 +11,7 @@ import org.example.escritorio.vista.comun.Dialogos;
 import org.example.escritorio.vista.comun.Estilo;
 import org.example.escritorio.vista.comun.Formulario;
 import org.example.escritorio.vista.comun.Icono;
+import org.example.escritorio.vista.comun.RecargaAutomatica;
 import org.example.escritorio.vista.comun.Selector;
 import org.example.escritorio.vista.comun.Tablas;
 
@@ -108,6 +110,7 @@ public class RepartoPanel extends JPanel {
             }
         });
         btnActualizar.addActionListener(e -> controlador.cargar(null));
+        RecargaAutomatica.instalar(this, () -> controlador.cargar(null));   // además del botón, sola cada 10 segundos
         btnAsignar.addActionListener(e -> controlador.asignarRepartidor());
         btnRemito.addActionListener(e -> controlador.verRemito());
         btnEnCamino.addActionListener(e -> controlador.cambiarEstado(EstadoEnvio.EN_CAMINO));
@@ -315,7 +318,7 @@ public class RepartoPanel extends JPanel {
         lblNombre.setText(r.nombreReceptor() != null ? r.nombreReceptor() : r.cliente());
         lblDireccion.setText(r.direccionEntrega());
         lblDireccion.setIcon(new Icono(Icono.Tipo.UBICACION, 18, Estilo.TEXTO_SUAVE));
-        lblCelular.setText(r.celular() == null || r.celular().isBlank() ? "Sin celular" : r.celular());
+        lblCelular.setText(r.celular() == null || r.celular().isBlank() ? "Sin celular" : Persona.formatearTelefono(r.celular()));
         lblCelular.setVisible(true);
 
         boolean cancelado = r.estado() == EstadoEnvio.CANCELADO;

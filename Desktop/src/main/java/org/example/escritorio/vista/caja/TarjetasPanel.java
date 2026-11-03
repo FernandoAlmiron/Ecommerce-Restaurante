@@ -3,6 +3,7 @@ package org.example.escritorio.vista.caja;
 import org.example.Modelo.reserva.Tarjeta;
 import org.example.escritorio.controlador.caja.TarjetasControlador;
 import org.example.escritorio.vista.comun.Dialogos;
+import org.example.escritorio.vista.comun.RecargaAutomatica;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -68,6 +69,7 @@ public class TarjetasPanel extends JPanel {
 
         controlador = new TarjetasControlador(this);
         btnActualizar.addActionListener(e -> controlador.cargar());
+        RecargaAutomatica.instalar(this, controlador::cargar);   // además del botón, sola cada 10 segundos
         btnNueva.addActionListener(e -> controlador.nueva());
         txtBuscar.getDocument().addDocumentListener(new DocumentListener() {
             @Override public void insertUpdate(DocumentEvent e) { aplicarFiltro(); }

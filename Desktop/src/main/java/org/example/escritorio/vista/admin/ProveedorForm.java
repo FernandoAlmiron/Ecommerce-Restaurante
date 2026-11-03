@@ -2,6 +2,7 @@ package org.example.escritorio.vista.admin;
 
 import org.example.Modelo.inventario.Categoria;
 import org.example.Modelo.inventario.Proveedores;
+import org.example.escritorio.vista.comun.Formulario;
 import org.example.escritorio.vista.comun.FormularioSimple;
 
 import javax.swing.DefaultListCellRenderer;
@@ -40,6 +41,8 @@ public class ProveedorForm extends FormularioSimple {
 
         fila("Razón social", txtRazonSocial);
         fila("CUIT", txtCuit);
+        Formulario.soloNumeros(txtTelefono, Formulario.TELEFONO);   // 10 números (código de área + número)
+        txtTelefono.putClientProperty("JTextField.placeholderText", "10 números, ej. 1143001500");
         fila("Teléfono", txtTelefono);
         fila("Email", txtEmail);
         fila("Categoría", cmbCategoria);

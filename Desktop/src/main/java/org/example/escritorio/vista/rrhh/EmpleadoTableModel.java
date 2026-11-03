@@ -1,5 +1,6 @@
 package org.example.escritorio.vista.rrhh;
 
+import org.example.Modelo.persona.Persona;
 import org.example.Modelo.persona.Empleado;
 import org.example.escritorio.vista.comun.ModeloTablaBase;
 import org.example.escritorio.vista.comun.Tablas;
@@ -24,7 +25,7 @@ public class EmpleadoTableModel extends ModeloTablaBase<Empleado> {
             case 0 -> e.getLegajo();
             case 1 -> e.getApellido() + ", " + e.getNombre();
             case 2 -> e.getDni();
-            case 3 -> e.getCelular() == null ? "" : e.getCelular();
+            case 3 -> e.getCelular() == null ? "" : Persona.formatearTelefono(e.getCelular());
             case 4 -> e.getUsername();
             case 5 -> sector(e);
             default -> null;

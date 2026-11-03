@@ -7,6 +7,7 @@ import org.example.escritorio.vista.comun.Boton;
 import org.example.escritorio.vista.comun.Dialogos;
 import org.example.escritorio.vista.comun.Estilo;
 import org.example.escritorio.vista.comun.Icono;
+import org.example.escritorio.vista.comun.RecargaAutomatica;
 import org.example.escritorio.vista.comun.Tablas;
 
 import javax.swing.Box;
@@ -79,6 +80,7 @@ public class MenuPanel extends JPanel {
             }
         });
         btnActualizar.addActionListener(e -> controlador.cargar());
+        RecargaAutomatica.instalar(this, controlador::cargar);   // además del botón, sola cada 10 segundos
         btnNuevo.addActionListener(e -> controlador.nuevo());
         btnModificar.addActionListener(e -> controlador.modificar());
         btnReceta.addActionListener(e -> controlador.receta());
@@ -158,7 +160,7 @@ public class MenuPanel extends JPanel {
     // ---------- lo que usa el controlador ----------
 
     public void mostrarPlatos(List<Menu> platos) {
-        modelo.setFilas(platos);
+        Tablas.conservarSeleccion(tabla, modelo, Menu::getIdMenu, () -> modelo.setFilas(platos));
         long disponibles = platos.stream().filter(Menu::isDisponible).count();
         lblResumen.setText(platos.size() + (platos.size() == 1 ? " plato" : " platos"));
         lblResumenDetalle.setText(" · " + disponibles + (disponibles == 1 ? " disponible" : " disponibles"));

@@ -1,5 +1,6 @@
 package org.example.escritorio.vista.admin;
 
+import org.example.Modelo.persona.Persona;
 import org.example.Modelo.inventario.Categoria;
 import org.example.Modelo.inventario.Proveedores;
 import org.example.escritorio.controlador.admin.ProveedoresControlador;
@@ -268,7 +269,7 @@ public class ProveedoresPanel extends PanelAbm<Proveedores> {
         lblCategoria.setText(nombreCategoria(p) == null ? "Sin categoría" : nombreCategoria(p));
         lblCategoria.setVisible(true);
         lblCuit.setText(ProveedorTableModel.cuit(p.getCuit()));
-        lblTelefono.setText(vacio(p.getTelefono()) ? "—" : p.getTelefono());
+        lblTelefono.setText(vacio(p.getTelefono()) ? "—" : Persona.formatearTelefono(p.getTelefono()));
         lblEmail.setText(vacio(p.getEmail()) ? "—" : p.getEmail());
         btnCopiar.setEnabled(!vacio(p.getTelefono()));
         btnEmail.setEnabled(!vacio(p.getEmail()));
@@ -306,7 +307,7 @@ public class ProveedoresPanel extends PanelAbm<Proveedores> {
     private void copiarTelefono() {
         if (mostrado != null && !vacio(mostrado.getTelefono())) {
             Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(mostrado.getTelefono()), null);
-            Dialogos.info(this, "Se copió el teléfono " + mostrado.getTelefono() + ".");
+            Dialogos.info(this, "Se copió el teléfono " + Persona.formatearTelefono(mostrado.getTelefono()) + ".");
         }
     }
 

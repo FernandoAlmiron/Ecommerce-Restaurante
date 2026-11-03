@@ -1,5 +1,6 @@
 package org.example.service.reserva;
 
+import org.example.Modelo.persona.Persona;
 import org.example.Modelo.Restaurante;
 import org.example.Modelo.enums.EstadoReserva;
 import org.example.Modelo.persona.Cliente;
@@ -264,7 +265,7 @@ public class ReservaService {
         int cupo = cupoParaReservas(zona);
         String contacto = restaurante.getTelefono() == null || restaurante.getTelefono().isBlank()
                 ? "comunicate con el restaurante"
-                : "comunicate con el restaurante al " + restaurante.getTelefono();
+                : "comunicate con el restaurante al " + Persona.formatearTelefono(restaurante.getTelefono());
         if (comensales > cupo) {
             throw new IllegalStateException("Por la web se reservan hasta " + cupo + " lugares en " + zona.getNombre()
                     + ". Para un grupo mas grande, " + contacto);

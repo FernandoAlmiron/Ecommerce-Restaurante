@@ -29,6 +29,23 @@ public abstract class Persona {
         return numeros;
     }
 
+    /**
+     * Un teléfono de 10 números listo para mostrar: 11 4300-1100 (código de área 11) o 351 430-1100
+     * (código de área de 3). Se guarda sin espacios ni guiones; esto es solo para verlo.
+     * Si no tiene 10 números se devuelve como está.
+     */
+    public static String formatearTelefono(String telefono) {
+        if (telefono == null) {
+            return null;
+        }
+        String numeros = telefono.replaceAll("\\D", "");
+        if (numeros.length() != 10) {
+            return telefono;
+        }
+        int area = numeros.startsWith("11") ? 2 : 3;
+        return numeros.substring(0, area) + " " + numeros.substring(area, 6) + "-" + numeros.substring(6);
+    }
+
     public Persona(String nombre, String apellido, String celular, int dni){
         this.nombre= nombre;
         this.apellido=apellido;

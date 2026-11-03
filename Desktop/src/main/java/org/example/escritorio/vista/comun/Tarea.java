@@ -4,11 +4,17 @@ import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.transaction.CannotCreateTransactionException;
 
+import javax.swing.JViewport;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 import java.awt.Component;
+import java.awt.Container;
 import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.Point;
 import java.awt.Window;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
@@ -26,24 +32,66 @@ import java.util.function.Consumer;
  *
  * Mientras corre, el componente que lo disparó queda deshabilitado y el cursor en espera.
  * Si falla, por defecto se muestra el mensaje del error en un diálogo.
+ *
+ * Las tareas que arranca la recarga automática (ver RecargaAutomatica) corren "en silencio": no ocupan el
+ * botón ni ponen el cursor en espera, un error no abre diálogo y el scroll de la pantalla queda donde estaba.
  */
 public final class Tarea {
 
     private Tarea() {
     }
 
-    public static <T> void ejecutar(Component origen, Callable<T> trabajo, Consumer<T> alTerminar) {
-        ejecutar(origen, trabajo, alTerminar, mensaje -> Dialogos.error(origen, mensaje));
+    /** Una pantalla que se recarga sola, y cuántas de sus tareas siguen corriendo (para no encimarlas). */
+    static final class Recarga {
+        final Container pantalla;
+        int enCurso;
+
+        Recarga(Container pantalla) {
+            this.pantalla = pantalla;
+        }
     }
 
+    /** La recarga automática que está arrancando tareas en este momento, o null. Solo se usa en el hilo de Swing. */
+    private static Recarga recargaActual;
+
+    /** Corre el trabajo (que arranca tareas) como parte de esa recarga automática. */
+    static void enSilencio(Recarga recarga, Runnable trabajo) {
+        Recarga antes = recargaActual;
+        recargaActual = recarga;
+        try {
+            trabajo.run();
+        } finally {
+            recargaActual = antes;
+        }
+    }
+
+    public static <T> void ejecutar(Component origen, Callable<T> trabajo, Consumer<T> alTerminar) {
+        ejecutar(origen, trabajo, alTerminar, null);
+    }
+
+    /** @param alFallar qué hacer con el mensaje si falla; null para mostrarlo en un diálogo */
     public static <T> void ejecutar(Component origen, Callable<T> trabajo, Consumer<T> alTerminar,
                                     Consumer<String> alFallar) {
-        Window ventana = ventanaDe(origen);
-        if (origen != null && !(origen instanceof Window)) {
-            origen.setEnabled(false);
+        Recarga recarga = recargaActual;
+        Consumer<String> siFalla;
+        if (alFallar != null) {
+            siFalla = alFallar;
+        } else if (recarga != null) {
+            siFalla = mensaje -> { };   // en la recarga automática no se interrumpe: se reintenta en la próxima
+        } else {
+            siFalla = mensaje -> Dialogos.error(origen, mensaje);
+        }
+        // en la recarga automática, ni botón ocupado ni cursor en espera
+        Component boton = recarga == null ? origen : null;
+        Window ventana = ventanaDe(boton);
+        if (boton != null && !(boton instanceof Window)) {
+            boton.setEnabled(false);
         }
         if (ventana != null) {
             ventana.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+        }
+        if (recarga != null) {
+            recarga.enCurso++;
         }
 
         new SwingWorker<T, Void>() {
@@ -54,13 +102,26 @@ public final class Tarea {
 
             @Override
             protected void done() {
-                if (origen != null && !(origen instanceof Window)) {
-                    origen.setEnabled(true);
+                if (boton != null && !(boton instanceof Window)) {
+                    boton.setEnabled(true);
                 }
                 if (ventana != null) {
                     ventana.setCursor(Cursor.getDefaultCursor());
                 }
+                if (recarga == null) {
+                    terminar();
+                    return;
+                }
+                // lo que se arranque al terminar (por ejemplo, los pedidos de la fila elegida) también es parte
+                // de la recarga; y la pantalla no tiene que saltar hasta la fila elegida
+                recarga.enCurso--;
+                Map<JViewport, Point> scroll = posicionesDelScroll(recarga.pantalla);
+                enSilencio(recarga, this::terminar);
+                scroll.forEach(Tarea::volverA);
+                SwingUtilities.invokeLater(() -> scroll.forEach(Tarea::volverA));   // y después de reacomodarse
+            }
 
+            private void terminar() {
                 T resultado;
                 try {
                     resultado = get();
@@ -70,12 +131,41 @@ public final class Tarea {
                     Thread.currentThread().interrupt();
                     return;
                 } catch (ExecutionException e) {
-                    alFallar.accept(mensajePara(e.getCause()));
+                    siFalla.accept(mensajePara(e.getCause()));
                     return;
                 }
                 alTerminar.accept(resultado);
             }
         }.execute();
+    }
+
+    /** Dónde está parado cada scroll de la pantalla. */
+    private static Map<JViewport, Point> posicionesDelScroll(Container contenedor) {
+        Map<JViewport, Point> posiciones = new HashMap<>();
+        for (Component c : contenedor.getComponents()) {
+            if (c instanceof JViewport v && v.getView() != null) {
+                posiciones.put(v, v.getViewPosition());
+            }
+            if (c instanceof Container hijo) {
+                posiciones.putAll(posicionesDelScroll(hijo));
+            }
+        }
+        return posiciones;
+    }
+
+    /** Vuelve el scroll adonde estaba, sin pasarse si ahora hay menos filas. */
+    private static void volverA(JViewport viewport, Point antes) {
+        Component vista = viewport.getView();
+        if (vista == null) {
+            return;
+        }
+        Dimension tamanio = vista.getPreferredSize();
+        Dimension visible = viewport.getExtentSize();
+        Point nueva = new Point(Math.max(0, Math.min(antes.x, tamanio.width - visible.width)),
+                Math.max(0, Math.min(antes.y, tamanio.height - visible.height)));
+        if (!nueva.equals(viewport.getViewPosition())) {
+            viewport.setViewPosition(nueva);
+        }
     }
 
     /**

@@ -8,6 +8,7 @@ import org.example.escritorio.vista.comun.Formatos;
 import org.example.escritorio.vista.comun.Formulario;
 import org.example.escritorio.vista.comun.Icono;
 import org.example.escritorio.vista.comun.ModeloTablaBase;
+import org.example.escritorio.vista.comun.RecargaAutomatica;
 import org.example.escritorio.vista.comun.Selector;
 import org.example.escritorio.vista.comun.Tablas;
 import org.example.escritorio.vista.comun.TarjetaDato;
@@ -114,6 +115,7 @@ public class ReporteDeliveryPanel extends JPanel {
         btnSiguiente.addActionListener(e -> cambiarFecha(fecha.plusDays(1)));
         selDia.alElegir(i -> cambiarFecha(LocalDate.now().minusDays(i)));
         btnActualizar.addActionListener(e -> controlador.verReporte());
+        RecargaAutomatica.instalar(this, controlador::verReporte);   // además del botón, sola cada 10 segundos
 
         cambiarFecha(LocalDate.now());
     }

@@ -86,6 +86,27 @@ public final class Tablas {
         tabla.getColumnModel().getColumn(columna).setCellRenderer(renderer);
     }
 
+    /**
+     * Cambia lo que muestra la tabla (cambio) y vuelve a elegir la fila que estaba elegida, buscándola por su
+     * clave (el número de reserva, el id del plato...). Si ya no está, queda sin elegir. Sirve para las recargas:
+     * sin esto, cada vez que se actualiza la lista se pierde la selección.
+     */
+    public static <T> void conservarSeleccion(JTable tabla, ModeloTablaBase<T> modelo, Function<T, ?> clave,
+                                              Runnable cambio) {
+        int elegida = tabla.getSelectedRow();
+        Object antes = elegida < 0 ? null : clave.apply(modelo.getFila(tabla.convertRowIndexToModel(elegida)));
+        cambio.run();
+        if (antes == null) {
+            return;
+        }
+        for (int fila = 0; fila < tabla.getRowCount(); fila++) {
+            if (antes.equals(clave.apply(modelo.getFila(tabla.convertRowIndexToModel(fila))))) {
+                tabla.setRowSelectionInterval(fila, fila);
+                return;
+            }
+        }
+    }
+
     public static void anchos(JTable tabla, int... anchos) {
         for (int i = 0; i < anchos.length; i++) {
             tabla.getColumnModel().getColumn(i).setPreferredWidth(anchos[i]);
