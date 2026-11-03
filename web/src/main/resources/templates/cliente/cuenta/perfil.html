@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Perfil - La Nona</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
+    <!-- nombre y apellido solo con letras, igual que el titular de la tarjeta -->
+    <script th:src="@{/js/tarjeta.js}" defer></script>
+    <script th:src="@{/js/campos.js}" defer></script>
 
 </head>
 <body class="cliente con-nav">
@@ -23,15 +26,106 @@
          así que se muestran sus iniciales en un círculo. -->
     <div class="avatar" th:text="${#strings.substring(c.nombre, 0, 1) + #strings.substring(c.apellido, 0, 1)}"></div>
 
-    <div class="fila">
-        <input type="text" th:value="${c.nombre}" readonly>
-        <input type="text" th:value="${c.apellido}" readonly>
-    </div>
-    <input type="text" th:value="${c.email}" readonly>
-    <div class="fila">
-        <input type="text" th:value="${c.celular}" placeholder="Sin celular" readonly>
-        <input type="text" th:value="'DNI ' + ${c.dni}" readonly>
-    </div>
+    <p th:if="${param.guardado}" class="alerta ok">Tus datos se guardaron.</p>
+    <p th:if="${param.claveCambiada}" class="alerta ok">Tu contraseña se cambió.</p>
+    <p th:if="${error}" th:text="${error}" class="alerta error"></p>
+
+    <!-- tus datos: se pueden cambiar todos menos el DNI (con él te reconocemos en reservas y pedidos).
+         Si vuelve con un error, se muestra lo que habías escrito (param) en lugar de lo guardado -->
+    <form th:action="@{/perfil}" method="post" class="perfil-datos">
+        <div class="fila">
+            <label>Nombre
+                <input type="text" name="nombre" class="solo-letras" required
+                       th:value="${param.nombre != null ? param.nombre[0] : c.nombre}">
+            </label>
+            <label>Apellido
+                <input type="text" name="apellido" class="solo-letras" required
+                       th:value="${param.apellido != null ? param.apellido[0] : c.apellido}">
+            </label>
+        </div>
+        <label>Email <small>(con él iniciás sesión)</small>
+            <input type="email" name="email" required
+                   th:value="${param.email != null ? param.email[0] : c.email}">
+        </label>
+        <div class="fila">
+            <label>Celular
+                <input type="tel" name="celular" placeholder="Opcional" class="celular" inputmode="numeric" pattern="\d{10}" title="10 números, con el código de área (ej. 1155551234)"
+                       th:value="${param.celular != null ? param.celular[0] : c.celular}">
+            </label>
+            <label>DNI
+                <input type="text" th:value="${c.dni}" readonly title="El DNI no se puede cambiar">
+            </label>
+        </div>
+        <button type="submit">Guardar cambios</button>
+    </form>
+
+    <button type="button" class="boton-borde abrir-clave" id="abrir-clave">Cambiar contraseña</button>
+
+    <!-- modal para cambiar la contraseña. Si el servidor la rechazó, se vuelve a abrir solo con el mensaje
+         (data-abrir) -->
+    <dialog class="modal" id="modal-clave" th:attr="data-abrir=${errorClave != null}">
+        <form th:action="@{/perfil/clave}" method="post" id="form-clave">
+            <div class="modal-cabecera">
+                <div>
+                    <h2>Cambiar contraseña</h2>
+                    <p>Por seguridad, primero ingresá la que usás ahora.</p>
+                </div>
+                <button type="button" class="modal-cerrar" data-cerrar title="Cerrar" aria-label="Cerrar">✕</button>
+            </div>
+
+            <div class="modal-cuerpo">
+                <p class="alerta error" id="error-clave" th:text="${errorClave}" th:hidden="${errorClave == null}"></p>
+                <label>Contraseña actual
+                    <span class="con-ojo">
+                        <input type="password" name="claveActual" autocomplete="current-password" required data-ojo>
+                    </span>
+                </label>
+                <label>Contraseña nueva
+                    <span class="con-ojo">
+                        <input type="password" name="claveNueva" autocomplete="new-password" minlength="6" required data-ojo>
+                    </span>
+                    <small>Mínimo 6 caracteres.</small>
+                </label>
+                <label>Repetí la contraseña nueva
+                    <span class="con-ojo">
+                        <input type="password" name="claveNueva2" autocomplete="new-password" minlength="6" required data-ojo>
+                    </span>
+                </label>
+            </div>
+
+            <div class="modal-pie">
+                <button type="button" class="boton-borde" data-cerrar>Cancelar</button>
+                <button type="submit">Guardar contraseña</button>
+            </div>
+        </form>
+    </dialog>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('.solo-letras').forEach(function (campo) { soloLetras(campo); });
+
+            // ---------- modal de la contraseña ----------
+            const modal = document.getElementById('modal-clave');
+            const form = document.getElementById('form-clave');
+            const error = document.getElementById('error-clave');
+            const abrir = function () { modal.showModal(); form.claveActual.focus(); };
+            const cerrar = function () { modal.close(); form.reset(); error.hidden = true; };
+            document.getElementById('abrir-clave').addEventListener('click', abrir);
+            modal.querySelectorAll('[data-cerrar]').forEach(function (b) { b.addEventListener('click', cerrar); });
+            // tocando afuera del cuadro también se cierra (Esc lo cierra el navegador)
+            modal.addEventListener('click', function (e) { if (e.target === modal) cerrar(); });
+            // las dos nuevas tienen que coincidir antes de mandarlo
+            form.addEventListener('submit', function (e) {
+                if (form.claveNueva.value !== form.claveNueva2.value) {
+                    e.preventDefault();
+                    error.textContent = 'Las contraseñas nuevas no coinciden';
+                    error.hidden = false;
+                    form.claveNueva2.focus();
+                }
+            });
+            if (modal.dataset.abrir === 'true') abrir();
+        });
+    </script>
 
     <form th:action="@{/logout}" method="post" class="cerrar-sesion">
         <button type="submit">Cerrar sesión</button>

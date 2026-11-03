@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Crear cuenta - La Nona</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
+    <!-- el celular: solo 10 números -->
+    <script th:src="@{/js/campos.js}" defer></script>
 
 </head>
 <body class="cliente">
@@ -27,7 +29,8 @@
         <input type="email"    name="email"     placeholder="Correo electrónico" th:value="${param.email}" required>
         <input type="password" name="password"  placeholder="Contraseña (mínimo 6)" required>
         <input type="password" name="password2" placeholder="Reingresar contraseña" required>
-        <input type="text"     name="celular"   placeholder="Número de teléfono" th:value="${param.celular}">
+        <input type="tel"      name="celular"   placeholder="Celular (10 números, opcional)" th:value="${param.celular}"
+               class="celular" inputmode="numeric" pattern="\d{10}" title="10 números, con el código de área (ej. 1155551234)">
         <input type="number"   name="dni"       placeholder="DNI" th:value="${param.dni}" required>
 
         <small>Al continuar aceptás los Términos y la Política de Privacidad</small>

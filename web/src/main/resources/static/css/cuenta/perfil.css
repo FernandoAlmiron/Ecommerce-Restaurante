@@ -6,7 +6,7 @@
 
 body.cliente .perfil {
     width: 100%;
-    max-width: 280px;
+    max-width: 340px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -42,12 +42,144 @@ body.cliente .perfil .fila {
     width: 100%;
 }
 
-/* los datos son de solo lectura: se ven en gris y más chicos */
-body.cliente .perfil input[readonly] {
-    color: var(--gris-texto);
-    font-size: 12px;
+/* el formulario de los datos: cada campo con su nombre arriba */
+body.cliente .perfil-datos {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 }
 
+body.cliente .perfil-datos label {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    text-align: left;
+}
+
+body.cliente .perfil-datos label small {
+    color: var(--gris-texto);
+    font-weight: 400;
+}
+
+body.cliente .perfil .fila {
+    display: flex;
+    gap: 10px;
+}
+
+/* el DNI no se cambia: se ve en gris */
+body.cliente .perfil input[readonly] {
+    color: var(--gris-texto);
+    background: transparent;
+    border: 1px dashed var(--borde-suave);
+    box-shadow: none;
+    cursor: not-allowed;
+}
+
+/* botón que abre el modal de la contraseña */
+body.cliente .abrir-clave {
+    width: 100%;
+    background: transparent;
+    color: var(--dorado-texto);
+    font: inherit;
+    cursor: pointer;
+}
+
+/* ---------- modal "Cambiar contraseña" ---------- */
+body.cliente .modal {
+    width: min(420px, 92vw);
+    padding: 0;
+    border: none;
+    border-radius: 18px;
+    background: var(--blanco);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, .22);
+}
+
+body.cliente .modal::backdrop {
+    background: rgba(42, 36, 32, .55);
+}
+
+body.cliente .modal-cabecera {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 22px 24px 14px;
+    border-bottom: 1px solid var(--borde-suave);
+    text-align: left;
+}
+
+body.cliente .modal-cabecera h2 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+}
+
+body.cliente .modal-cabecera p {
+    margin: 4px 0 0;
+    color: var(--gris-texto);
+    font-size: 13px;
+}
+
+body.cliente .modal-cerrar {
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: var(--beige-claro);
+    color: var(--gris-texto);
+    font-size: 14px;
+}
+
+body.cliente .modal-cerrar:hover {
+    background: var(--borde-suave);
+}
+
+body.cliente .modal-cuerpo {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 18px 24px;
+    text-align: left;
+}
+
+body.cliente .modal-cuerpo label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+body.cliente .modal-cuerpo small {
+    color: var(--gris-texto);
+    font-weight: 400;
+}
+
+body.cliente .modal-cuerpo .alerta {
+    margin: 0;
+}
+
+body.cliente .modal-pie {
+    display: flex;
+    gap: 10px;
+    padding: 14px 24px 22px;
+}
+
+body.cliente .modal-pie button {
+    flex: 1;
+}
+
+body.cliente .modal-pie .boton-borde {
+    background: transparent;
+    color: var(--dorado-texto);
+    font: inherit;
+    cursor: pointer;
+}
 
 /* ---------- CELULAR ---------- */
 

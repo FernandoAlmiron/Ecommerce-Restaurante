@@ -156,6 +156,142 @@ body.cliente .datos-tarjeta .fila label {
     flex: 1;
 }
 
+/* el número de tarjeta se ve de 4 en 4 */
+body.cliente #tarjeta-numero {
+    letter-spacing: 1px;
+    font-variant-numeric: tabular-nums;
+}
+
+/* un dato mal cargado se marca en rojo (lo pone js/pago.js al pagar) */
+body.cliente .datos-tarjeta input.invalido {
+    border-color: #C0392B;
+}
+
+/* el código de seguridad con el ojito para verlo */
+body.cliente .con-ojo {
+    position: relative;
+    display: flex;
+}
+
+body.cliente .con-ojo input {
+    flex: 1;
+    padding-right: 44px;
+}
+
+body.cliente .con-ojo .ojo {
+    position: absolute;
+    top: 50%;
+    right: 6px;
+    transform: translateY(-50%);
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--gris-texto);
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+}
+
+body.cliente .con-ojo .ojo:hover {
+    color: var(--dorado-texto);
+}
+
+body.cliente .con-ojo .ojo.activo {
+    background: var(--beige-claro);
+}
+
+/* Mercado Pago y MODO: solo se ve el panel del medio elegido */
+body.cliente .datos-qr {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    text-align: center;
+}
+
+body.cliente .datos-qr p {
+    margin: 0;
+    color: var(--gris-texto);
+    font-size: 13px;
+}
+
+body.cliente .pago:has(input[data-medio="mercadopago"]:checked) .datos-qr[data-para="mercadopago"],
+body.cliente .pago:has(input[data-medio="modo"]:checked) .datos-qr[data-para="modo"] {
+    display: flex;
+}
+
+/* el QR de ejemplo lo dibuja js/pago.js (cuadraditos en una grilla) */
+body.cliente .qr {
+    width: 184px;
+    height: 184px;
+    padding: 12px;
+    border: 1px solid var(--borde-suave);
+    border-radius: 14px;
+    background: var(--blanco);
+}
+
+body.cliente .qr svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+/* pantalla de "te estamos llevando a Mercado Pago / MODO" */
+body.cliente .redireccion {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: grid;
+    place-items: center;
+    background: rgba(42, 36, 32, .55);
+}
+
+body.cliente .redireccion[hidden] {
+    display: none;
+}
+
+body.cliente .redireccion-caja {
+    width: min(360px, 88vw);
+    padding: 32px 28px;
+    border-radius: 18px;
+    background: var(--blanco);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    text-align: center;
+    box-shadow: 0 18px 40px rgba(0, 0, 0, .18);
+}
+
+body.cliente .redireccion-caja strong {
+    font-size: 18px;
+    font-weight: 600;
+}
+
+body.cliente .redireccion-caja p {
+    margin: 0;
+    color: var(--gris-texto);
+    font-size: 14px;
+}
+
+/* la ruedita que gira mientras "carga" */
+body.cliente .rueda {
+    width: 42px;
+    height: 42px;
+    margin-bottom: 6px;
+    border: 4px solid var(--beige-claro);
+    border-top-color: var(--dorado);
+    border-radius: 50%;
+    animation: girar .9s linear infinite;
+}
+
+@keyframes girar {
+    to { transform: rotate(360deg); }
+}
+
 
 /* ---------- Columna derecha: resumen ---------- */
 
@@ -213,3 +349,17 @@ body.cliente .nota-resumen {
     }
 }
 
+
+/* botón "Abrir Mercado Pago" / "Abrir MODO" */
+body.cliente .abrir-app {
+    padding: 10px 22px;
+    background: var(--blanco);
+    color: var(--dorado-texto);
+    font: inherit;
+    cursor: pointer;
+}
+
+body.cliente .abrir-app:disabled {
+    opacity: .6;
+    cursor: default;
+}

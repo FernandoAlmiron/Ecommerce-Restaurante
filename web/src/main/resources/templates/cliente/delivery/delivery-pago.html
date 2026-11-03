@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Finalizá tu pedido - La Nona</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
+    <!-- formato de los datos de la tarjeta y el QR simulado de Mercado Pago / MODO -->
+    <script th:src="@{/js/tarjeta.js}" defer></script>
+    <script th:src="@{/js/campos.js}" defer></script>
+    <script th:src="@{/js/pago.js}" defer></script>
 
 </head>
 <body class="cliente ancho sin-padding">
@@ -27,19 +31,19 @@
              EFECTIVO. Mercado Pago y MODO se pagan con QR. Se sumó Efectivo
              (el backend lo tiene y el repartidor sabe que tiene que cobrar). -->
         <label class="medio">
-            <input type="radio" name="metodoPago" value="TARJETA" checked>
+            <input type="radio" name="metodoPago" value="TARJETA" data-medio="tarjeta" checked>
             <span>💳</span><div><strong>Tarjeta de crédito o débito</strong><small>Visa, Mastercard y American Express</small></div>
         </label>
         <label class="medio">
-            <input type="radio" name="metodoPago" value="QR">
+            <input type="radio" name="metodoPago" value="QR" data-medio="mercadopago">
             <span>👛</span><div><strong>Mercado Pago</strong><small>Saldo en cuenta o tarjetas vinculadas</small></div>
         </label>
         <label class="medio">
-            <input type="radio" name="metodoPago" value="QR">
+            <input type="radio" name="metodoPago" value="QR" data-medio="modo">
             <span>📱</span><div><strong>MODO</strong><small>Pagá con la app de tu banco</small></div>
         </label>
         <label class="medio">
-            <input type="radio" name="metodoPago" value="EFECTIVO">
+            <input type="radio" name="metodoPago" value="EFECTIVO" data-medio="efectivo">
             <span>💵</span><div><strong>Efectivo</strong><small>Le pagás al repartidor</small></div>
         </label>
     </section>
@@ -64,16 +68,49 @@
 
         <!-- solo se ve si está elegida "Tarjeta" (lo hace el CSS con :has) -->
         <div class="datos-tarjeta">
-            <h3>Datos de la tarjeta <span class="visa">VISA</span></h3>
+            <h3>Datos de la tarjeta <span class="visa" id="marca-tarjeta"></span></h3>
             <!-- ⚠️ ADAPTADO AL BACKEND: el pago es SIMULADO. Estos datos no se envían
-                 ni se guardan (no tienen name): el backend no procesa cobros reales. -->
-            <label>Número de tarjeta <input type="text" placeholder="4242 4242 4242 4242" inputmode="numeric"></label>
-            <label>Nombre del titular <input type="text" placeholder="Como figura en la tarjeta"></label>
+                 ni se guardan (no tienen name): el backend no procesa cobros reales.
+                 El formato (16 números de 4 en 4, MM/AA, CVV de 3) lo pone js/pago.js -->
+            <p class="alerta error" id="error-tarjeta" hidden></p>
+            <label>Número de tarjeta
+                <input type="text" id="tarjeta-numero" placeholder="4242 4242 4242 4242"
+                       inputmode="numeric" autocomplete="cc-number" maxlength="19">
+            </label>
+            <label>Nombre del titular
+                <input type="text" id="tarjeta-titular" placeholder="Como figura en la tarjeta" autocomplete="cc-name">
+            </label>
             <div class="fila">
-                <label>Vencimiento <input type="text" placeholder="12 / 28"></label>
-                <label>Código <input type="password" placeholder="•••" maxlength="4"></label>
+                <label>Vencimiento
+                    <input type="text" id="tarjeta-vencimiento" placeholder="MM/AA"
+                           inputmode="numeric" autocomplete="cc-exp" maxlength="5">
+                </label>
+                <label>Código de seguridad
+                    <span class="con-ojo">
+                        <input type="password" id="tarjeta-cvv" placeholder="•••"
+                               inputmode="numeric" autocomplete="cc-csc" maxlength="3">
+                        <!-- tachado mientras el código está oculto; js/pago.js lo cambia al ojo abierto -->
+                        <button type="button" class="ojo" id="ver-cvv" title="Mostrar el código"
+                                aria-label="Mostrar el código"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg></button>
+                    </span>
+                </label>
             </div>
             <small class="aclaracion">Pago simulado: no se realiza ningún cargo.</small>
+        </div>
+
+        <!-- Mercado Pago y MODO: un QR para escanear y un botón que "manda" a la app y confirma el pedido
+             (js/pago.js). Solo se ve el del medio elegido (lo hace el CSS con :has) -->
+        <div class="datos-qr" data-para="mercadopago">
+            <h3>Pagá con Mercado Pago</h3>
+            <p>Escaneá el código con la app de Mercado Pago, o abrila desde acá.</p>
+            <div class="qr" aria-hidden="true"></div>
+            <button type="button" class="boton-borde abrir-app" data-app="Mercado Pago">Abrir Mercado Pago</button>
+        </div>
+        <div class="datos-qr" data-para="modo">
+            <h3>Pagá con MODO</h3>
+            <p>Escaneá el código con MODO o con la app de tu banco, o abrila desde acá.</p>
+            <div class="qr" aria-hidden="true"></div>
+            <button type="button" class="boton-borde abrir-app" data-app="MODO">Abrir MODO</button>
         </div>
     </section>
 
@@ -104,6 +141,15 @@
         <small class="aclaracion">🛡️ Pago seguro · Al pagar, aceptás los términos y condiciones.</small>
     </section>
 </form>
+
+<!-- pantalla de "te estamos llevando a Mercado Pago / MODO" (la muestra js/pago.js) -->
+<div class="redireccion" id="redireccion" hidden>
+    <div class="redireccion-caja">
+        <div class="rueda" aria-hidden="true"></div>
+        <strong id="redireccion-titulo"></strong>
+        <p id="redireccion-texto"></p>
+    </div>
+</div>
 
 </body>
 </html>

@@ -98,3 +98,21 @@ body.cliente .senia small {
         margin: 16px 0 24px;
     }
 }
+
+/* vencimiento de la seña mal cargado (lo marca js/tarjeta.js al confirmar) */
+body.cliente .senia input.invalido {
+    border-color: #C0392B;
+}
+
+/* "A las 12:00 ya no hay lugar en esa zona" (cuando el horario elegido se queda sin cupo) */
+body.cliente .aviso-hora {
+    display: block;
+    margin: -4px 4px 0;
+    color: #C0392B;
+    font-size: 13px;
+    text-align: left;
+}
+
+body.cliente .aviso-hora[hidden] {
+    display: none;
+}

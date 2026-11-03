@@ -124,7 +124,7 @@ public class WalkInDialog extends DialogoFormulario {
         Formulario.estilizar(txtDni, "Sin puntos");
         Formulario.estilizar(txtNombre, null);
         Formulario.estilizar(txtApellido, null);
-        Formulario.estilizar(txtCelular, "Opcional");
+        Formulario.celular(txtCelular);   // opcional; solo 10 números
         Formulario.estilizar(cmbZona);
         Formulario.estilizar(spnComensales);
         Formulario.estilizar(cmbHorario);

@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>La Nona</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
+    <!-- el celular: solo 10 números -->
+    <script th:src="@{/js/campos.js}" defer></script>
 
 </head>
 <body class="cliente">
@@ -41,7 +43,11 @@
     <section class="sobre">
         <div class="sobre-texto">
             <h2>Sobre La Nona</h2>
-            <p>[Historia del restaurante: cómo empezó, quién cocina y qué hace distinta a la casa.]</p>
+            <p>Todo empezó en la cocina de la Nona Rosa, que llegó de Calabria con un cuaderno de recetas
+                y la costumbre de juntar a toda la familia alrededor de la mesa cada domingo. Años después,
+                sus nietos abrieron La Nona en Corrientes para que esos domingos no fueran solo de la familia.
+                Hoy en la cocina está Marta, su hija, que sigue amasando a mano y probando cada salsa como
+                le enseñó su mamá: sin apuro y con la olla siempre a fuego lento.</p>
             <p>Amasamos la pasta todos los días y la servimos con las salsas de siempre:
                 fileto, bolognesa, crema y pesto.</p>
             <a href="#contacto" class="link-flecha">Escribinos →</a>
@@ -68,7 +74,7 @@
                 <dt>Dirección</dt> <dd>Av. Corrientes 1234, CABA</dd>
                 <dt>Teléfono</dt>  <dd>11 4555-1234</dd>
                 <dt>Horario</dt>   <dd>11:00 a 00:00</dd>
-                <dt>Email</dt>     <dd>[email de contacto]</dd>
+                <dt>Email</dt>     <dd>contacto@lanona.com.ar</dd>
             </dl>
         </div>
 
@@ -77,7 +83,7 @@
             <div class="fila-3">
                 <label>Nombre   <input type="text"  placeholder="Tu nombre" required></label>
                 <label>Email    <input type="email" placeholder="tu@email.com" required></label>
-                <label>Teléfono <input type="tel"   placeholder="11 5555-5555"></label>
+                <label>Teléfono <input type="tel"   placeholder="1155555555" class="celular" inputmode="numeric" pattern="\d{10}" title="10 números, con el código de área (ej. 1155551234)"></label>
             </div>
             <label>Mensaje
                 <textarea rows="4" placeholder="Contanos en qué te podemos ayudar" required></textarea>

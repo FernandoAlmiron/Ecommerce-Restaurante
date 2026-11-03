@@ -29,8 +29,11 @@ import java.util.List;
 public class ReservaService {
 
 
-    private static final int DURACION_RESERVA_HORAS = 2;
+    /** Cuánto ocupa una mesa una reserva: dos reservas se pisan si empiezan a menos de este tiempo. */
+    private static final int DURACION_RESERVA_MINUTOS = 90;
     private static final LocalTime FIN_DEL_DIA = LocalTime.of(23, 59, 59);
+    /** Parte de cada zona que se puede reservar con anticipación; el resto queda para los que llegan sin reserva. */
+    private static final int PORCENTAJE_PARA_RESERVAS = 50;
     @Value("${reservas.monto-senia:30000}")
     private BigDecimal montoSenia;
 
@@ -105,7 +108,10 @@ public class ReservaService {
         if (LocalDateTime.of(reserva.getFechaReserva(), reserva.getHoraReserva()).isBefore(LocalDateTime.now())) {
             throw new IllegalArgumentException("La fecha y hora de la reserva ya pasaron");
         }
+        // primero lo general (abierto a esa hora, zona activa, lugar en total) y después el cupo de reservas
         validarDisponibilidad(restaurante, zona, reserva.getCantComensales(),
+                reserva.getFechaReserva(), reserva.getHoraReserva());
+        validarCupoDeReservas(restaurante, zona, reserva.getCantComensales(),
                 reserva.getFechaReserva(), reserva.getHoraReserva());
         reserva.setNroReserva(0);
         reserva.setRestaurante(restaurante);
@@ -232,15 +238,85 @@ public class ReservaService {
     }
 
     /**
-     * Comensales que ocupan la zona a esa hora: las reservas de DURACION_RESERVA_HORAS antes y después,
+     * Comensales que ocupan la zona a esa hora: las reservas que empiezan a menos de DURACION_RESERVA_MINUTOS
+     * antes o después (con 1 h 30 min: una de las 11:30 ocupa hasta las 12:59; a las 13:00 ya está libre),
      * sin las canceladas, las ausentes ni las mesas ya cobradas. La ventana no pasa de un día al otro.
      */
     public long comensalesOcupados(int idZona, LocalDate fecha, LocalTime hora) {
-        LocalTime desde = hora.minusHours(DURACION_RESERVA_HORAS);
+        LocalTime[] ventana = ventana(hora);
+        return reservaRepository.sumarComensales(idZona, fecha, ventana[0], ventana[1], EstadoReserva.CANCELADA);
+    }
+
+    /** Cuántos lugares de la zona se pueden reservar con anticipación (la mitad; el resto es para walk-in). */
+    public static int cupoParaReservas(Zona zona) {
+        return zona.getCapacidadMaxima() * PORCENTAJE_PARA_RESERVAS / 100;
+    }
+
+    /**
+     * Una reserva con anticipación solo puede usar el cupo para reservas de la zona. Si no alcanza,
+     * se le pide que se comunique con el restaurante (los walk-in sí usan toda la capacidad).
+     */
+    private void validarCupoDeReservas(Restaurante restaurante, Zona zona, int comensales,
+                                       LocalDate fecha, LocalTime hora) {
+        if (fecha == null || hora == null) {
+            return;   // los datos que faltan los avisa crear()
+        }
+        int cupo = cupoParaReservas(zona);
+        String contacto = restaurante.getTelefono() == null || restaurante.getTelefono().isBlank()
+                ? "comunicate con el restaurante"
+                : "comunicate con el restaurante al " + restaurante.getTelefono();
+        if (comensales > cupo) {
+            throw new IllegalStateException("Por la web se reservan hasta " + cupo + " lugares en " + zona.getNombre()
+                    + ". Para un grupo mas grande, " + contacto);
+        }
+        LocalTime[] ventana = ventana(hora);
+        long reservados = reservaRepository.sumarComensalesReservados(zona.getIdZona(), fecha, ventana[0], ventana[1],
+                EstadoReserva.CANCELADA);
+        if (reservados + comensales > cupo) {
+            throw new IllegalStateException("Ya no quedan lugares para reservar en " + zona.getNombre()
+                    + " en ese horario. Si necesitas mas lugar, " + contacto);
+        }
+    }
+
+    /**
+     * Los horarios del día (cada 15 minutos) en los que ya no entra una reserva de esa cantidad de personas
+     * en la zona: con las mismas reglas que al guardarla (cupo para reservas y capacidad total).
+     * Lee las reservas del día una sola vez y cuenta en memoria, para no hacer una consulta por horario.
+     */
+    public List<LocalTime> horariosSinLugarParaReservar(int idZona, LocalDate fecha, int comensales) {
+        Zona zona = zonaRepository.findById(idZona)
+                .orElseThrow(() -> new IllegalArgumentException("Zona no encontrada"));
+        List<Reserva> delDia = reservaRepository.reservasQueOcupan(idZona, fecha, EstadoReserva.CANCELADA);
+        int cupo = cupoParaReservas(zona);
+        List<LocalTime> sinLugar = new java.util.ArrayList<>();
+        for (int minuto = 0; minuto < 24 * 60; minuto += 15) {
+            LocalTime hora = LocalTime.of(minuto / 60, minuto % 60);
+            LocalTime[] ventana = ventana(hora);
+            int total = 0;
+            int reservados = 0;
+            for (Reserva r : delDia) {
+                LocalTime h = r.getHoraReserva();
+                if (h != null && !h.isBefore(ventana[0]) && h.isBefore(ventana[1])) {
+                    total += r.getCantComensales();
+                    if (r.getSenia() != null) {   // los walk-in no tienen seña y no cuentan para el cupo
+                        reservados += r.getCantComensales();
+                    }
+                }
+            }
+            if (reservados + comensales > cupo || total + comensales > zona.getCapacidadMaxima()) {
+                sinLugar.add(hora);
+            }
+        }
+        return sinLugar;
+    }
+
+    /** Desde y hasta qué hora se cuentan las reservas que se cruzan con esa hora (sin pasar de un día al otro). */
+    private static LocalTime[] ventana(LocalTime hora) {
+        LocalTime desde = hora.minusMinutes(DURACION_RESERVA_MINUTOS);
         desde = desde.isAfter(hora) ? LocalTime.MIN : desde.plusMinutes(1);
-        LocalTime hasta = hora.plusHours(DURACION_RESERVA_HORAS);
+        LocalTime hasta = hora.plusMinutes(DURACION_RESERVA_MINUTOS);
         // LocalTime.MAX no sirve: MySQL lo guarda como 00:00:00 y la consulta no encontraba nada
         hasta = hasta.isBefore(hora) ? FIN_DEL_DIA : hasta;
-        return reservaRepository.sumarComensales(idZona, fecha, desde, hasta, EstadoReserva.CANCELADA);
+        return new LocalTime[]{desde, hasta};
     }
 }

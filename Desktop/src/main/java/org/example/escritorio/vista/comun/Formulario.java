@@ -132,4 +132,36 @@ public final class Formulario {
         return combo;
     }
 
+    /** Campo de celular: solo números y como máximo 10 (código de área + número, como lo pide el backend). */
+    public static JTextField celular(JTextField campo) {
+        estilizar(campo, "10 números, ej. 1155551234");
+        ((javax.swing.text.AbstractDocument) campo.getDocument()).setDocumentFilter(new SoloNumeros(10));
+        return campo;
+    }
+
+    /** Deja escribir (o pegar) solo números, hasta un máximo. */
+    private static class SoloNumeros extends javax.swing.text.DocumentFilter {
+        private final int maximo;
+
+        SoloNumeros(int maximo) {
+            this.maximo = maximo;
+        }
+
+        @Override
+        public void insertString(FilterBypass fb, int offset, String texto, javax.swing.text.AttributeSet attr)
+                throws javax.swing.text.BadLocationException {
+            replace(fb, offset, 0, texto, attr);
+        }
+
+        @Override
+        public void replace(FilterBypass fb, int offset, int largo, String texto, javax.swing.text.AttributeSet attr)
+                throws javax.swing.text.BadLocationException {
+            String numeros = texto == null ? "" : texto.replaceAll("\\D", "");
+            int lugar = maximo - (fb.getDocument().getLength() - largo);
+            if (numeros.length() > lugar) {
+                numeros = numeros.substring(0, Math.max(0, lugar));
+            }
+            super.replace(fb, offset, largo, numeros, attr);
+        }
+    }
 }

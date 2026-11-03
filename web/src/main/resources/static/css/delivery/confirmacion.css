@@ -128,6 +128,12 @@ body.cliente .punto {
     font-size: 16px;
 }
 
+/* los pasos hechos: el tilde en dorado, igual que "Pedido confirmado" */
+body.cliente .pasos li.hecho .punto {
+    color: var(--dorado-texto);
+    font-weight: 700;
+}
+
 /* el paso actual: círculo dorado y texto dorado */
 body.cliente .pasos li.actual .punto {
     background: var(--dorado);

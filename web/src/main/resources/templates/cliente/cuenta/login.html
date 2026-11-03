@@ -19,6 +19,7 @@
 
     <p th:if="${param.error}" class="alerta error">Email o contraseña incorrectos</p>
     <p th:if="${param.registrado}" class="alerta ok">¡Cuenta creada! Ya podés iniciar sesión.</p>
+    <p th:if="${param.emailCambiado}" class="alerta ok">Cambiaste tu email: iniciá sesión con el nuevo.</p>
 
     <form th:action="@{/login}" method="post">
         <input type="text"     name="email"    placeholder="correoelectronico@dominio.com" required>

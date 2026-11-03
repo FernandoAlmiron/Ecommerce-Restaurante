@@ -1,6 +1,7 @@
 package org.example.service.persona;
 
 import org.example.Modelo.persona.Empleado;
+import org.example.Modelo.persona.Persona;
 import org.example.Modelo.persona.Sector;
 import org.example.repository.persona.EmpleadoRepository;
 import org.example.repository.persona.SectorRepository;
@@ -41,6 +42,7 @@ public class EmpleadoService {
         exigirAdminSiEsAdministracion(sector, quienGuardaEsAdmin);
 
         empleado.setSector(sector);
+        empleado.setCelular(Persona.normalizarCelular(empleado.getCelular()));
         empleado.setPassword(passwordEncoder.encode(empleado.getPassword()));
         return empleadoRepository.save(empleado);
     }
@@ -81,7 +83,7 @@ public class EmpleadoService {
         }
         actual.setNombre(datos.getNombre());
         actual.setApellido(datos.getApellido());
-        actual.setCelular(datos.getCelular());
+        actual.setCelular(Persona.normalizarCelular(datos.getCelular()));
         actual.setDni(datos.getDni());
         actual.setUsername(datos.getUsername());
         return empleadoRepository.save(actual);

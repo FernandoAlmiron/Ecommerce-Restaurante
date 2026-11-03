@@ -62,13 +62,28 @@ public class ClienteReservaController {
     }
 
     // guardar la reserva
+    /**
+     * Para el formulario: los horarios en que ya no entra una reserva de esa cantidad en la zona
+     * (el script los muestra como "sin lugar" y no deja elegirlos). Ej: ["11:30","11:45"].
+     */
+    @GetMapping("/disponibilidad")
+    @ResponseBody
+    public java.util.Map<String, Object> disponibilidad(@RequestParam String fecha, @RequestParam int idZona,
+                                                        @RequestParam int comensales) {
+        java.util.List<String> sinLugar = reservaService
+                .horariosSinLugarParaReservar(idZona, LocalDate.parse(fecha), Math.max(1, comensales)).stream()
+                .map(h -> h.toString())
+                .toList();
+        return java.util.Map.of("sinLugar", sinLugar);
+    }
+
     @PostMapping("/nueva")
     public String crear(@RequestParam int cantComensales,
                         @RequestParam String fecha,          // "2026-10-25" (input type="date")
                         @RequestParam String hora,           // "21:30"      (input type="time")
                         @RequestParam int idZona,
                         @RequestParam String titular,
-                        @RequestParam String vencimiento,    // "2028-12"    (input type="month")
+                        @RequestParam String vencimiento,    // "2028-12"    (lo arma js/tarjeta.js desde el MM/AA)
                         Authentication auth, Model model) {
         try {
             Reserva reserva = new Reserva();
@@ -80,8 +95,12 @@ public class ClienteReservaController {
             zona.setIdZona(idZona);
             reserva.setZona(zona);
 
+            // el nombre del titular: solo letras (con tilde y ñ), espacios, ' . y - (lo mismo que js/tarjeta.js)
+            if (!titular.trim().matches("\\p{L}[\\p{L}\\s'.-]*")) {
+                throw new IllegalArgumentException("El titular de la tarjeta solo puede tener letras");
+            }
             Tarjeta tarjeta = new Tarjeta();
-            tarjeta.setTitular(titular);
+            tarjeta.setTitular(titular.trim());
             tarjeta.setVencimiento(YearMonth.parse(vencimiento));
             Senia senia = new Senia();
             senia.setTarjeta(tarjeta);
@@ -125,7 +144,5 @@ public class ClienteReservaController {
         model.addAttribute("montoSenia", montoSenia);
         model.addAttribute("hoy", LocalDate.now());                      // no deja elegir días pasados
         model.addAttribute("maxFecha", LocalDate.now().plusMonths(3));   // ni reservar a más de 3 meses
-        model.addAttribute("mesActual", YearMonth.now());                // ni tarjetas vencidas
-        model.addAttribute("maxMes", YearMonth.now().plusYears(15));     // ni vencimientos absurdos
     }
 }

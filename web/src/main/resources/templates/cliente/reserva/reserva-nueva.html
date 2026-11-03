@@ -22,7 +22,7 @@
 
         <label class="campo">
             <span>Cant Comensales</span>
-            <input type="number" name="cantComensales" min="1" th:value="${param.cantComensales}" required>
+            <input type="number" id="comensales" name="cantComensales" min="1" th:value="${param.cantComensales}" required>
         </label>
 
         <!-- Fecha: tocando cualquier parte del campo se abre el calendario -->
@@ -42,20 +42,25 @@
             </select>
             <input type="hidden" id="horaElegida" th:value="${param.hora}">
         </label>
+        <!-- debajo de la fila: "A las 11:30 ya no hay lugar..." (lo pone el script de abajo) -->
+        <p class="aviso-hora" id="aviso-hora" hidden></p>
 
         <label class="campo">
             <span>Zona</span>
-            <select name="idZona" required>
+            <select id="zona" name="idZona" required>
                 <option value="">Elegí</option>
                 <option th:each="z : ${zonas}"
                         th:value="${z.idZona}"
-                        th:text="${z.nombre + ' (hasta ' + z.capacidadMaxima + ')'}"
+                        th:text="${z.nombre + ' (reservas hasta ' + (z.capacidadMaxima / 2) + ' personas)'}"
                         th:selected="${param.idZona != null and param.idZona[0] == '' + z.idZona}"></option>
             </select>
         </label>
 
         <p class="aclaracion" th:text="'Abierto de ' + ${#temporals.format(restaurante.horarioApertura, 'HH:mm')}
                                      + ' a ' + ${#temporals.format(restaurante.horarioCierre, 'HH:mm')} + ' hs'"></p>
+        <!-- la mitad de cada zona queda para los que llegan sin reserva (ReservaService.cupoParaReservas) -->
+        <p class="aclaracion" th:text="'Por la web se reserva hasta la mitad de cada zona. Si necesitás más lugar, comunicate con el restaurante'
+                                     + (${restaurante.telefono} != null ? ' al ' + ${restaurante.telefono} : '') + '.'"></p>
 
         <!-- ⚠️ ADAPTADO AL BACKEND: no está en Figma. El backend exige una seña con
              tarjeta vigente para reservar (se cobra solo si no venís). -->
@@ -65,13 +70,19 @@
 
             <label class="campo">
                 <span>Titular tarjeta</span>
-                <input type="text" name="titular" th:value="${param.titular}" required>
+                <input type="text" id="titular" name="titular" th:value="${param.titular}"
+                       autocomplete="cc-name" placeholder="Como figura en la tarjeta" required>
             </label>
 
+            <!-- se escribe MM/AA como en el pago del delivery (js/tarjeta.js); al servidor le llega
+                 "2028-12" en el campo oculto, igual que antes con el input de mes -->
             <label class="campo">
                 <span>Vencimiento</span>
-                <input type="month" name="vencimiento" th:min="${mesActual}" th:max="${maxMes}" th:value="${param.vencimiento}" required>
+                <input type="text" id="vencimiento-visible" placeholder="MM/AA" inputmode="numeric"
+                       autocomplete="cc-exp" maxlength="5" required>
+                <input type="hidden" name="vencimiento" id="vencimiento" th:value="${param.vencimiento}">
             </label>
+            <p class="alerta error" id="error-vencimiento" hidden></p>
         </fieldset>
 
         <button type="submit">Confirmar</button>
@@ -80,6 +91,8 @@
 </main>
 
 <footer th:replace="~{fragments/cliente/layout :: footer(true)}"></footer>
+
+<script th:src="@{/js/tarjeta.js}"></script>
 
 <!-- Genera los turnos de 15 min según la fecha elegida y el horario del restaurante -->
 <script>
@@ -92,7 +105,13 @@
     let CIERRE = aMin(hora.dataset.cierre);
     if (CIERRE <= APERTURA) CIERRE += 24 * 60;   // 00:00 cuenta como fin del día
 
+    const comensales = document.getElementById('comensales');
+    const zona = document.getElementById('zona');
+    const avisoHora = document.getElementById('aviso-hora');
+    let sinLugar = [];   // horarios llenos para esa fecha, zona y cantidad (los pide al servidor)
+
     function cargarHoras() {
+        const antes = hora.value || document.getElementById('horaElegida').value;
         hora.innerHTML = '<option value="">Elegí</option>';
         if (!fecha.value) { hora.disabled = true; return; }
 
@@ -107,13 +126,75 @@
             const hh = String(Math.floor(m / 60) % 24).padStart(2, '0');
             const mm = String(m % 60).padStart(2, '0');
             const opcion = new Option(`${hh}:${mm}`, `${hh}:${mm}`);
-            if (opcion.value === document.getElementById('horaElegida').value) opcion.selected = true;            hora.add(opcion);
+            if (sinLugar.includes(opcion.value)) {
+                // sin cupo: se ve, pero no se puede elegir
+                opcion.disabled = true;
+                opcion.text += ' · sin lugar';
+            } else if (opcion.value === antes) {
+                opcion.selected = true;
+            }
+            hora.add(opcion);
         }
         hora.disabled = hora.options.length === 1;
+        // si el horario que estaba elegido se quedó sin lugar, se avisa
+        let aviso = '';
+        const libres = [...hora.options].filter(o => o.value && !o.disabled).length;
+        if (hora.options.length > 1 && libres === 0) {
+            // ningún horario sirve (por ejemplo, un grupo más grande que el cupo para reservas)
+            aviso = 'No hay horarios con lugar para esa cantidad en esa zona. Probá otra zona o fecha, '
+                  + 'o comunicate con el restaurante.';
+        } else if (antes && sinLugar.includes(antes)) {
+            aviso = 'A las ' + antes + ' ya no hay lugar en esa zona: elegí otro horario.';
+        }
+        avisoHora.textContent = aviso;
+        avisoHora.hidden = aviso === '';
     }
 
-    fecha.addEventListener('change', cargarHoras);
-    cargarHoras();   // por si la página vuelve con una fecha ya cargada (después de un error)
+    // pregunta qué horarios están llenos (hace falta la fecha, la zona y cuántos son) y rearma la lista
+    function actualizarDisponibilidad() {
+        if (!fecha.value || !zona.value || !(comensales.value > 0)) {
+            sinLugar = [];
+            cargarHoras();
+            return;
+        }
+        const url = `disponibilidad?fecha=${fecha.value}&idZona=${zona.value}&comensales=${comensales.value}`;
+        fetch(url)
+            .then(r => r.ok ? r.json() : { sinLugar: [] })
+            .then(datos => { sinLugar = datos.sinLugar || []; cargarHoras(); })
+            .catch(() => { sinLugar = []; cargarHoras(); });   // si falla, igual valida el servidor al confirmar
+    }
+
+    fecha.addEventListener('change', actualizarDisponibilidad);
+    zona.addEventListener('change', actualizarDisponibilidad);
+    comensales.addEventListener('change', actualizarDisponibilidad);
+    actualizarDisponibilidad();   // por si la página vuelve con datos ya cargados (después de un error)
+
+    // ---------- vencimiento de la tarjeta de la seña: MM/AA (js/tarjeta.js) ----------
+    const vencVisible = document.getElementById('vencimiento-visible');
+    const vencOculto = document.getElementById('vencimiento');
+    const errorVenc = document.getElementById('error-vencimiento');
+    const titular = document.getElementById('titular');
+    soloLetras(titular, function () { titular.classList.remove('invalido'); });   // solo letras (js/tarjeta.js)
+    vencVisible.value = vencimientoParaMostrar(vencOculto.value);   // si la página vuelve después de un error
+    formatoVencimiento(vencVisible, function () {
+        vencOculto.value = vencimientoParaEnviar(vencVisible.value);
+        vencVisible.classList.remove('invalido');
+        errorVenc.hidden = true;
+    });
+    vencVisible.form.addEventListener('submit', function (evento) {
+        const problemas = [];
+        const problemaTitular = revisarTitular(titular.value);
+        if (problemaTitular) problemas.push([titular, problemaTitular]);
+        const problemaVenc = revisarVencimiento(vencVisible.value);
+        if (problemaVenc) problemas.push([vencVisible, problemaVenc]);
+        if (problemas.length > 0) {
+            evento.preventDefault();
+            problemas.forEach(function (p) { p[0].classList.add('invalido'); });
+            errorVenc.textContent = 'Revisá la tarjeta: ' + problemas.map(function (p) { return p[1]; }).join(', ') + '.';
+            errorVenc.hidden = false;
+            problemas[0][0].focus();
+        }
+    });
 </script>
 
 </body>

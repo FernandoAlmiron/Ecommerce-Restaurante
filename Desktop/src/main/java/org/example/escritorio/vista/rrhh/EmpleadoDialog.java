@@ -81,7 +81,7 @@ public class EmpleadoDialog extends DialogoFormulario {
         Formulario.estilizar(txtNombre, null);
         Formulario.estilizar(txtApellido, null);
         Formulario.estilizar(txtDni, "Sin puntos");
-        Formulario.estilizar(txtCelular, "Opcional");
+        Formulario.celular(txtCelular);   // opcional; solo 10 números
         Formulario.estilizar(txtUsuario, "Con este entra al sistema");
         Formulario.estilizar(txtClave, null);
         Formulario.estilizar(txtRepetirClave, null);

@@ -2,6 +2,7 @@ package org.example.service.persona;
 
 import org.example.Modelo.Restaurante;
 import org.example.Modelo.persona.Cliente;
+import org.example.Modelo.persona.Persona;
 import org.example.repository.persona.ClienteRepository;
 import org.example.repository.persona.EmpleadoRepository;
 import org.springframework.stereotype.Service;
@@ -31,6 +32,7 @@ public class ClienteService {
                 || cliente.getApellido() == null || cliente.getApellido().isBlank() || cliente.getDni() <= 0) {
             throw new IllegalArgumentException("Nombre, apellido y DNI son obligatorios");
         }
+        cliente.setCelular(Persona.normalizarCelular(cliente.getCelular()));
         String usuario = cliente.getUsername();
         if (usuario == null || usuario.isBlank()) {
             cliente.setUsername(null);
@@ -78,7 +80,7 @@ public class ClienteService {
             Cliente nuevo = new Cliente();
             nuevo.setNombre(nombre);
             nuevo.setApellido(apellido);
-            nuevo.setCelular(celular);
+            nuevo.setCelular(Persona.normalizarCelular(celular));
             nuevo.setEmail(email);
             nuevo.setDni(dni);
             nuevo.setRestaurante(restaurante);
@@ -99,10 +101,70 @@ public class ClienteService {
         Cliente actual = buscarPorId(idCliente);
         actual.setNombre(datos.getNombre());
         actual.setApellido(datos.getApellido());
-        actual.setCelular(datos.getCelular());
+        actual.setCelular(Persona.normalizarCelular(datos.getCelular()));
         actual.setDni(datos.getDni());
         actual.setEmail(datos.getEmail());
         return clienteRepository.save(actual);
+    }
+
+    /**
+     * El cliente cambia sus propios datos desde el perfil de la web. El DNI no se cambia: con él se lo
+     * reconoce en las reservas y los pedidos. Si entra con su email (usuario = email), el usuario cambia
+     * junto con el email.
+     * @return el cliente actualizado (si cambió el usuario, tiene que volver a iniciar sesión)
+     */
+    @org.springframework.transaction.annotation.Transactional
+    public Cliente actualizarPerfil(String username, String nombre, String apellido, String email, String celular) {
+        Cliente actual = buscarPorUsername(username);
+        String nom = validarNombre(nombre, "nombre");
+        String ape = validarNombre(apellido, "apellido");
+        String mail = email == null ? "" : email.trim().toLowerCase();
+        if (!mail.matches("[^@\\s]+@[^@\\s]+\\.[^@\\s]+")) {
+            throw new IllegalArgumentException("El email no es válido");
+        }
+        String cel = Persona.normalizarCelular(celular);
+
+        boolean entraConEmail = actual.getUsername() != null && actual.getUsername().equalsIgnoreCase(actual.getEmail());
+        if (entraConEmail && !mail.equalsIgnoreCase(actual.getUsername())) {
+            // el email nuevo va a ser su usuario: no puede ser el de otra cuenta
+            boolean ocupado = clienteRepository.findByUsername(mail).filter(c -> c.getIdCliente() != actual.getIdCliente()).isPresent()
+                    || empleadoRepository.findByUsername(mail) != null;
+            if (ocupado) {
+                throw new IllegalStateException("Ese email ya tiene una cuenta");
+            }
+            actual.setUsername(mail);
+        }
+        actual.setNombre(nom);
+        actual.setApellido(ape);
+        actual.setEmail(mail);
+        actual.setCelular(cel);
+        return clienteRepository.save(actual);
+    }
+
+    /** El cliente cambia su contraseña: tiene que poner la actual. La nueva, de al menos 6 caracteres. */
+    @org.springframework.transaction.annotation.Transactional
+    public void cambiarClave(String username, String claveActual, String claveNueva) {
+        Cliente actual = buscarPorUsername(username);
+        if (claveActual == null || actual.getPassword() == null || !passwordEncoder.matches(claveActual, actual.getPassword())) {
+            throw new IllegalArgumentException("La contraseña actual no es correcta");
+        }
+        if (claveNueva == null || claveNueva.length() < 6) {
+            throw new IllegalArgumentException("La contraseña nueva debe tener al menos 6 caracteres");
+        }
+        actual.setPassword(passwordEncoder.encode(claveNueva));
+        clienteRepository.save(actual);
+    }
+
+    /** Nombre o apellido: obligatorio y solo letras (con tilde y ñ), espacios, ' . y - */
+    private static String validarNombre(String texto, String campo) {
+        String limpio = texto == null ? "" : texto.trim().replaceAll("\\s+", " ");
+        if (limpio.isEmpty()) {
+            throw new IllegalArgumentException("El " + campo + " es obligatorio");
+        }
+        if (!limpio.matches("\\p{L}[\\p{L}\\s'.-]*")) {
+            throw new IllegalArgumentException("El " + campo + " solo puede tener letras");
+        }
+        return limpio;
     }
 
     public void eliminar(int idCliente) {

@@ -18,6 +18,13 @@ body.cliente .footer .footer-contenido {
     gap: 12px;
 }
 
+/* sin la columna "Navegación" (antes de iniciar sesión) quedan dos: más angosto y centrado, así no
+   queda el hueco de la tercera a la derecha */
+body.cliente .footer .footer-contenido:not(:has(.footer-nav)) {
+    max-width: 520px;
+    grid-template-columns: repeat(2, 1fr);
+}
+
 body.cliente .footer .footer-marca { grid-column: 1 / -1; margin-bottom: 2px; }
 body.cliente .footer .footer-marca strong { display: block; font-size: 1.05rem; }
 body.cliente .footer .footer-marca p { color: #5e554d; font-size: .75rem; margin: 2px 0 0; }
