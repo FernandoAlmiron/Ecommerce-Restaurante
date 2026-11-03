@@ -63,6 +63,11 @@ public record CobroFila(
         return platosEnCocina > 0;
     }
 
+    /** Tiene propina aplicada (por porcentaje o por un monto fijo). */
+    public boolean conPropina() {
+        return propina != null && propina.signum() > 0;
+    }
+
     /**
      * Llamarlo dentro de Transaccion.leer(...): recorre los pedidos del ticket, que son lazy.
      * @param envio el envío del ticket si es delivery, o null

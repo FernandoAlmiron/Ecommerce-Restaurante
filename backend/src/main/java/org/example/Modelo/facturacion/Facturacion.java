@@ -39,11 +39,28 @@ public class Facturacion {
 
     public void aplicarPropina(int porcentaje) {
         exigirPendiente();
-        if (porcentaje != 5 && porcentaje != 10 && porcentaje != 15) {
-            throw new IllegalArgumentException("La propina solo puede ser 5%, 10% o 15%");
+        if (porcentaje != 5 && porcentaje != 10 && porcentaje != 15 && porcentaje != 20) {
+            throw new IllegalArgumentException("La propina solo puede ser 5%, 10%, 15% o 20%");
         }
         this.porcentajePropina = porcentaje;
         this.propina = calcularPropina(porcentaje);
+    }
+
+    // Propina de un monto fijo (lo que deja el cliente): no cambia si se recalcula el consumo
+    public void aplicarPropinaMonto(BigDecimal monto) {
+        exigirPendiente();
+        if (monto == null || monto.signum() <= 0) {
+            throw new IllegalArgumentException("El monto de la propina tiene que ser mayor a 0");
+        }
+        this.porcentajePropina = null;
+        this.propina = monto.setScale(2, RoundingMode.HALF_UP);
+    }
+
+    // Sin propina (por ejemplo, si se aplico una por error)
+    public void quitarPropina() {
+        exigirPendiente();
+        this.porcentajePropina = null;
+        this.propina = BigDecimal.ZERO;
     }
 
     public void confirmarPago() {

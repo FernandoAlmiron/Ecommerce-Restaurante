@@ -51,6 +51,16 @@ public class FacturacionController {
         return facturacionService.aplicarPropina(id, porcentaje);
     }
 
+    @PutMapping("/{id}/propina/monto")
+    public Facturacion aplicarPropinaMonto(@PathVariable int id, @RequestParam BigDecimal monto) {
+        return facturacionService.aplicarPropinaMonto(id, monto);
+    }
+
+    @DeleteMapping("/{id}/propina")
+    public Facturacion quitarPropina(@PathVariable int id) {
+        return facturacionService.quitarPropina(id);
+    }
+
     @PutMapping("/{id}/confirmar-pago")
     public Facturacion confirmarPago(@PathVariable int id) {
         return facturacionService.confirmarPago(id);

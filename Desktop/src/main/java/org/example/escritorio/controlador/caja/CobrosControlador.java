@@ -18,8 +18,9 @@ import org.example.service.facturacion.FacturacionService;
 import org.example.service.facturacion.TicketService;
 import org.example.service.reserva.EnvioService;
 
-import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -29,7 +30,7 @@ import java.util.stream.Collectors;
 
 /**
  * Lógica de cobros con FacturacionService (RF-40 a RF-45). Las reglas están en el backend:
- * una sola facturación por ticket, propina de 5, 10 o 15 %, una facturación pagada no se modifica.
+ * una sola facturación por ticket, propina de 5, 10, 15 o 20 % o de un monto fijo, una facturación pagada no se modifica.
  */
 public class CobrosControlador {
 
@@ -122,12 +123,31 @@ public class CobrosControlador {
                         }));
     }
 
-    /** RF-42. */
+    /** RF-42: 5, 10, 15 o 20 % del consumo. */
     public void aplicarPropina() {
         int porcentaje = vista.getPorcentajePropina();
         vista.cobroSeleccionado().filter(CobroFila::pendiente).ifPresent(cobro ->
                 ejecutar(vista.getBotonPropina(), cobro,
                         () -> facturacionService.aplicarPropina(cobro.nroFacturacion(), porcentaje)));
+    }
+
+    /** Propina de un monto fijo, el que escribió el cajero. */
+    public void aplicarPropinaMonto() {
+        BigDecimal monto = vista.getMontoPropina();
+        if (monto == null || monto.signum() <= 0) {
+            vista.mostrarError("Escribí el monto de la propina con números, por ejemplo 2000.");
+            return;
+        }
+        vista.cobroSeleccionado().filter(CobroFila::pendiente).ifPresent(cobro ->
+                ejecutar(vista.getBotonPropina(), cobro,
+                        () -> facturacionService.aplicarPropinaMonto(cobro.nroFacturacion(), monto)));
+    }
+
+    /** Al apagar el interruptor de propina: si tenía una aplicada, se saca. */
+    public void quitarPropina() {
+        vista.cobroSeleccionado().filter(CobroFila::pendiente).filter(CobroFila::conPropina).ifPresent(cobro ->
+                ejecutar(vista.getInterruptorPropina(), cobro,
+                        () -> facturacionService.quitarPropina(cobro.nroFacturacion())));
     }
 
     /** RF-43: vuelve a sumar los pedidos del ticket mientras la facturación esté pendiente. */
@@ -161,7 +181,7 @@ public class CobrosControlador {
     }
 
     /** Ejecuta una acción sobre la facturación y vuelve a cargar dejando el mismo ticket elegido. */
-    private void ejecutar(JButton origen, CobroFila cobro, Callable<?> accion) {
+    private void ejecutar(JComponent origen, CobroFila cobro, Callable<?> accion) {
         Tarea.ejecutar(origen, accion,
                 resultado -> cargar(cobro.nroTicket()),
                 mensaje -> {

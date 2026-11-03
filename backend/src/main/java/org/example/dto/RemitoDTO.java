@@ -21,7 +21,8 @@ public record RemitoDTO(
         MetodoPago metodoPago,
         String estadoPago,
         EstadoEnvio estado,
-        String repartidor
+        String repartidor,
+        int platosEnCocina   // mientras sea más que 0 el pedido no puede salir
 ) {
     public record Item(String plato, int cantidad, String observaciones) {}
 
@@ -47,7 +48,8 @@ public record RemitoDTO(
                 e.getEstado(),
                 e.getRepartidor() != null
                         ? e.getRepartidor().getNombre() + " " + e.getRepartidor().getApellido()
-                        : "Sin asignar"
+                        : "Sin asignar",
+                t.platosEnCocina()
         );
     }
 }

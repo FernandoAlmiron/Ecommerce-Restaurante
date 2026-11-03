@@ -391,6 +391,17 @@ public class RepartoPanel extends JPanel {
         btnEnCamino.setVisible(!entregado);
     }
 
+    /** Con platos en la comanda el pedido no puede salir: el botón lo dice (y se habilita solo al terminar). */
+    public void mostrarPlatosEnCocina(int platos) {
+        if (platos > 0) {
+            btnEnCamino.setText("Esperando a la cocina · " + platos + (platos == 1 ? " plato" : " platos"));
+            btnEnCamino.setToolTipText("El pedido sale cuando la cocina marque todos los platos como listos");
+        } else {
+            btnEnCamino.setText("Salió · en camino");
+            btnEnCamino.setToolTipText(null);
+        }
+    }
+
     public JButton getBotonActualizar() { return btnActualizar; }
     public JButton getBotonRemito() { return btnRemito; }
 

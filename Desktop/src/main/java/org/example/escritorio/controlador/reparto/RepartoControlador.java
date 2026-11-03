@@ -66,10 +66,13 @@ public class RepartoControlador {
         }
         boolean activo = r.estado() == EstadoEnvio.PENDIENTE || r.estado() == EstadoEnvio.EN_CAMINO;
         boolean conRepartidor = !"Sin asignar".equals(r.repartidor());
+        // sale recién cuando la cocina terminó; mientras tanto el botón dice cuántos platos faltan
+        boolean pendiente = r.estado() == EstadoEnvio.PENDIENTE;
+        vista.mostrarPlatosEnCocina(pendiente ? r.platosEnCocina() : 0);
         vista.habilitarAcciones(
                 activo,
                 true,
-                r.estado() == EstadoEnvio.PENDIENTE && conRepartidor,
+                pendiente && conRepartidor && r.platosEnCocina() == 0,
                 r.estado() == EstadoEnvio.EN_CAMINO,
                 activo);
     }

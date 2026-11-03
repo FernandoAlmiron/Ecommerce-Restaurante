@@ -51,8 +51,9 @@ public class ComprobanteDialog extends DialogoPapel {
         }
         linea(sb);
         columnas(sb, "Subtotal", Formatos.pesos(c.subtotal()));
-        if (c.porcentajePropina() != null) {
-            columnas(sb, "Propina " + c.porcentajePropina() + " %", Formatos.pesos(c.propina()));
+        if (c.propina() != null && c.propina().signum() > 0) {
+            columnas(sb, c.porcentajePropina() != null ? "Propina " + c.porcentajePropina() + " %" : "Propina",
+                    Formatos.pesos(c.propina()));
         }
         columnas(sb, "TOTAL", Formatos.pesos(c.total()));
         linea(sb);

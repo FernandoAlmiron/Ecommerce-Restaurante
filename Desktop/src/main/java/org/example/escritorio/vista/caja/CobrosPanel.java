@@ -7,7 +7,9 @@ import org.example.escritorio.controlador.caja.CobrosControlador;
 import org.example.escritorio.vista.comun.Boton;
 import org.example.escritorio.vista.comun.Dialogos;
 import org.example.escritorio.vista.comun.Estilo;
+import org.example.escritorio.vista.comun.Formulario;
 import org.example.escritorio.vista.comun.Icono;
+import org.example.escritorio.vista.comun.Interruptor;
 import org.example.escritorio.vista.comun.RecargaAutomatica;
 import org.example.escritorio.vista.comun.Selector;
 import org.example.escritorio.vista.comun.Tablas;
@@ -22,6 +24,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.RowFilter;
 import javax.swing.RowSorter;
@@ -55,7 +58,7 @@ public class CobrosPanel extends JPanel {
     public static final String PROP_POR_COBRAR = "ticketsPorCobrar";
 
     private static final int ALTO_FILA = 56;
-    private static final int[] PROPINAS = {5, 10, 15};
+    private static final int[] PROPINAS = {5, 10, 15, 20};
 
     private final CobroTableModel modelo = new CobroTableModel();
     private final JTable tabla = new JTable(modelo);
@@ -83,6 +86,15 @@ public class CobrosPanel extends JPanel {
     private final JLabel lblPropina = new JLabel("—");
     private final JLabel lblAPagar = new JLabel("—");
     private final ChipPropina[] chipsPropina = new ChipPropina[PROPINAS.length];
+    // propina: el interruptor la prende o la saca; prendido, se elige un porcentaje o se escribe un monto
+    private final Interruptor swPropina = new Interruptor(false);
+    private final JTextField txtPropina = Formulario.soloNumeros(new JTextField(6), 9);
+    private final ChipPropina chipMonto = new ChipPropina("Aplicar");
+    private final JPanel opcionesPropina = Estilo.transparente(new FlowLayout(FlowLayout.RIGHT, 6, 0));
+    /** El ticket al que se le prendió el interruptor sin elegir todavía la propina (no se apaga al recargar). */
+    private Integer ticketConPropinaAbierta;
+    /** El ticket que se está mostrando (el monto escrito se borra solo al cambiar de ticket). */
+    private Integer ticketMostrado;
     private final JPanel cuerpoDetalle = Estilo.transparente(new BorderLayout());
 
     private final JButton btnRecalcular = new Boton(null, new Icono(Icono.Tipo.ACTUALIZAR, 14, Estilo.TEXTO_SUAVE),
@@ -265,19 +277,52 @@ public class CobrosPanel extends JPanel {
         btnRecalcular.setBorder(Estilo.relleno(5, 5, 5, 5));
         ((Boton) btnRecalcular).conArco(10);
 
-        JPanel chips = Estilo.transparente(new FlowLayout(FlowLayout.RIGHT, 6, 0));
         for (int i = 0; i < PROPINAS.length; i++) {
             int porcentaje = PROPINAS[i];
             ChipPropina chip = new ChipPropina(porcentaje + "%");
-            chip.setToolTipText("Aplicar propina del " + porcentaje + " %");
+            chip.setToolTipText("Aplicar propina del " + porcentaje + " % del consumo");
             chip.addActionListener(e -> {
                 porcentajePropina = porcentaje;
                 botonPropina = chip;
                 controlador.aplicarPropina();
             });
             chipsPropina[i] = chip;
-            chips.add(chip);
+            opcionesPropina.add(chip);
         }
+        // o un monto a mano (Enter o "Aplicar")
+        JLabel lblO = new JLabel("o $");
+        lblO.setFont(Estilo.fuente(Font.PLAIN, 14f));
+        lblO.setForeground(Estilo.TEXTO_SUAVE);
+        lblO.setBorder(Estilo.relleno(0, 6, 0, 0));
+        txtPropina.setFont(Estilo.fuente(Font.PLAIN, 14f));
+        txtPropina.putClientProperty("JTextField.placeholderText", "Monto");
+        txtPropina.setToolTipText("Propina de un monto fijo, por ejemplo 2000");
+        chipMonto.setToolTipText("Aplicar el monto escrito como propina");
+        chipMonto.addActionListener(e -> {
+            botonPropina = chipMonto;
+            controlador.aplicarPropinaMonto();
+        });
+        txtPropina.addActionListener(e -> chipMonto.doClick());
+        opcionesPropina.add(lblO);
+        opcionesPropina.add(txtPropina);
+        opcionesPropina.add(chipMonto);
+        opcionesPropina.setVisible(false);
+
+        swPropina.setToolTipText("Prendido: el cliente deja propina. Apagado: sin propina");
+        swPropina.addActionListener(e -> {
+            Integer nro = cobroSeleccionado().map(CobroFila::nroTicket).orElse(null);
+            if (swPropina.isSelected()) {
+                ticketConPropinaAbierta = nro;
+                opcionesPropina.setVisible(true);
+            } else {
+                ticketConPropinaAbierta = null;
+                opcionesPropina.setVisible(false);
+                txtPropina.setText("");
+                controlador.quitarPropina();   // si tenía una aplicada, se saca
+            }
+        });
+        JPanel interruptor = Estilo.transparente(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        interruptor.add(swPropina);
 
         JPanel caja = new Estilo.Tarjeta(new GridBagLayout(), 18);
         caja.setBackground(Estilo.FILA_SELECCIONADA);
@@ -286,7 +331,15 @@ public class CobrosPanel extends JPanel {
         c.gridy = 0;
         filaTotal(caja, c, "Consumo", btnRecalcular, lblConsumo);
         c.gridy = 1;
-        filaTotal(caja, c, "Propina", chips, lblPropina);
+        filaTotal(caja, c, "Propina", interruptor, lblPropina);
+        // debajo, solo con el interruptor prendido: los porcentajes y el monto a mano
+        c.gridy = 2;
+        c.gridx = 0;
+        c.gridwidth = 3;
+        c.weightx = 1;
+        c.anchor = GridBagConstraints.EAST;
+        c.insets = new Insets(2, 0, 4, 0);
+        caja.add(opcionesPropina, c);
 
         c.gridy = 3;
         c.gridx = 0;
@@ -417,12 +470,9 @@ public class CobrosPanel extends JPanel {
         lblEstado.setVisible(true);
 
         lblConsumo.setText(Tablas.pesosCortos(c.consumo()));
-        lblPropina.setText(c.porcentajePropina() == null ? "Sin propina" : Tablas.pesosCortos(c.propina()));
+        lblPropina.setText(!c.conPropina() ? "Sin propina" : Tablas.pesosCortos(c.propina()));
         lblAPagar.setText(Tablas.pesosCortos(c.aPagar()));
-        for (int k = 0; k < PROPINAS.length; k++) {
-            chipsPropina[k].setElegido(c.porcentajePropina() != null && c.porcentajePropina() == PROPINAS[k]);
-            chipsPropina[k].setEnabled(c.pendiente());
-        }
+        mostrarPropina(c);
         btnConfirmarPago.setText(c.pendiente() ? "Confirmar pago · " + Tablas.pesosCortos(c.aPagar())
                 : "Confirmar pago");
 
@@ -460,13 +510,46 @@ public class CobrosPanel extends JPanel {
         btnRecalcular.setEnabled(false);
         btnConfirmarPago.setEnabled(false);
         btnComprobante.setEnabled(false);
-        for (ChipPropina chip : chipsPropina) {
-            chip.setElegido(false);
-            chip.setEnabled(false);
+        swPropina.setSelected(false);
+        swPropina.setEnabled(false);
+        opcionesPropina.setVisible(false);
+        ticketMostrado = null;
+    }
+
+    /**
+     * El interruptor está prendido si el ticket tiene propina (o si se acaba de prender para elegirla).
+     * Ya pagado, solo se ve el monto: no se puede cambiar.
+     */
+    private void mostrarPropina(CobroFila c) {
+        boolean cambioDeTicket = !Integer.valueOf(c.nroTicket()).equals(ticketMostrado);
+        ticketMostrado = c.nroTicket();
+        boolean porMonto = c.conPropina() && c.porcentajePropina() == null;
+        boolean prendido = c.conPropina() || Integer.valueOf(c.nroTicket()).equals(ticketConPropinaAbierta);
+        swPropina.setSelected(prendido);
+        swPropina.setEnabled(c.pendiente());
+        opcionesPropina.setVisible(prendido && c.pendiente());
+        for (int k = 0; k < PROPINAS.length; k++) {
+            chipsPropina[k].setElegido(c.porcentajePropina() != null && c.porcentajePropina() == PROPINAS[k]);
+            chipsPropina[k].setEnabled(c.pendiente());
+        }
+        chipMonto.setElegido(porMonto);
+        chipMonto.setEnabled(c.pendiente());
+        txtPropina.setEnabled(c.pendiente());
+        // lo que se está escribiendo no se pisa con la recarga automática: solo al cambiar de ticket o al aplicar
+        if (cambioDeTicket || !txtPropina.hasFocus()) {
+            txtPropina.setText(porMonto ? c.propina().setScale(0, java.math.RoundingMode.HALF_UP).toPlainString() : "");
         }
     }
 
     public int getPorcentajePropina() { return porcentajePropina; }
+
+    /** El monto escrito a mano, o null si no hay. */
+    public BigDecimal getMontoPropina() {
+        String texto = txtPropina.getText().trim();
+        return texto.isEmpty() ? null : new BigDecimal(texto);
+    }
+
+    public JComponent getInterruptorPropina() { return swPropina; }
 
     public JButton getBotonActualizar() { return btnActualizar; }
     public JButton getBotonFacturar() { return btnFacturar; }
@@ -596,7 +679,7 @@ public class CobrosPanel extends JPanel {
         }
     }
 
-    /** Botoncito redondo de propina (5 %, 10 %, 15 %): café cuando es la propina aplicada. */
+    /** Botoncito redondo de propina (5 %, 10 %, 15 %, 20 % o Aplicar el monto): café cuando es la propina aplicada. */
     private static class ChipPropina extends JButton {
         private boolean elegido;
 

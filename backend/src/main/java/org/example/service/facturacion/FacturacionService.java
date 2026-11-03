@@ -116,6 +116,20 @@ public class FacturacionService {
     }
 
     @Transactional
+    public Facturacion aplicarPropinaMonto(int nroFacturacion, BigDecimal monto) {
+        Facturacion facturacion = buscarPorId(nroFacturacion);
+        facturacion.aplicarPropinaMonto(monto);
+        return facturacionRepository.save(facturacion);
+    }
+
+    @Transactional
+    public Facturacion quitarPropina(int nroFacturacion) {
+        Facturacion facturacion = buscarPorId(nroFacturacion);
+        facturacion.quitarPropina();
+        return facturacionRepository.save(facturacion);
+    }
+
+    @Transactional
     public Facturacion confirmarPago(int nroFacturacion) {
         Facturacion facturacion = buscarPorId(nroFacturacion);
         facturacion.confirmarPago();

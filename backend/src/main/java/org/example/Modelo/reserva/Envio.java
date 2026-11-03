@@ -51,6 +51,12 @@ public class Envio {
         if (nuevo == EstadoEnvio.EN_CAMINO && repartidor == null) {
             throw new IllegalStateException("Hay que asignar un repartidor antes de despachar el envio");
         }
+        // el pedido sale del local recién cuando la cocina terminó todos los platos (las bebidas no pasan por ahí)
+        int enCocina = ticket == null ? 0 : ticket.platosEnCocina();
+        if (nuevo == EstadoEnvio.EN_CAMINO && enCocina > 0) {
+            throw new IllegalStateException("Todavia hay " + enCocina + (enCocina == 1 ? " plato" : " platos")
+                    + " en la comanda: el pedido sale cuando la cocina los termine");
+        }
         this.estado = nuevo;
     }
 
