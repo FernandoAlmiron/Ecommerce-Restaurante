@@ -4,9 +4,7 @@
    =================================================================== */
 
 
-/* ---------- LOGIN ----------
-   ⚠️ ADAPTADO AL BACKEND: en Figma solo está el email y "Continuar".
-   Se agregó la contraseña porque Spring Security valida los dos juntos. */
+/* ---------- LOGIN ---------- */
 
 body.cliente .auth {
     width: 100%;
@@ -43,10 +41,7 @@ body.cliente .auth > a {
 }
 
 
-/* ---------- "¿OLVIDASTE TU CONTRASEÑA?" + "CREAR CUENTA" ----------
-   Los dos links en la misma línea: uno a la izquierda y otro a la derecha.
-   El de olvidaste abre WhatsApp con un mensaje ya escrito, porque el
-   backend no manda mails: el admin resetea la contraseña a mano. */
+/* ---------- olvide contra y crear cuenta ---------- */
 
 .links-login {
     display: flex;
@@ -74,12 +69,7 @@ body.cliente .auth > a {
 }
 
 
-/* ---------- CREAR CUENTA ----------
-   Misma columna que el login, con logo chico y título grande.
-   (Se reconoce porque tiene el campo "password2").
-   ⚠️ ADAPTADO AL BACKEND: en Figma el último campo es "Fecha de
-   nacimiento". Se cambió por DNI: el cliente no guarda fecha de
-   nacimiento y el DNI es obligatorio. El email se usa como usuario. */
+/* ---------- CREAR CUENTA ---------- */
 
 body.cliente .auth:has(input[name="password2"]) .logo {
     width: 180px;
@@ -92,12 +82,13 @@ body.cliente .auth:has(input[name="password2"]) h1 {
     font-weight: 800;
 }
 
-/* separación extra antes de la contraseña, como en Figma */
+/* separación extra antes de la contraseña*/
+
 body.cliente .auth input[name="password"] {
     margin-top: 8px;
 }
 
-/* textito de términos y condiciones */
+/* texto de los terminos y condic. */
 body.cliente .auth small {
     margin-top: 14px;
     color: var(--gris-texto);
@@ -106,7 +97,7 @@ body.cliente .auth small {
 }
 
 
-/* ---------- CELULAR ---------- */
+/* ---------- adaptado a celu ---------- */
 
 @media (max-width: 600px) {
 

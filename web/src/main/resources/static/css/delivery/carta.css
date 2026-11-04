@@ -1,11 +1,10 @@
-/* ===================================================================
+/*
    DELIVERY: CARTA                               cliente/delivery.html
-   Arriba la portada; abajo la grilla de platos (izquierda) y el panel
-   "Tu pedido" (derecha), que se queda quieto al bajar con el scroll.
-   =================================================================== */
+
+   */
 
 
-/* ---------- Portada beige con foto ---------- */
+/* portada con foto */
 
 body.cliente .hero {
     width: 100%;
@@ -39,14 +38,14 @@ body.cliente .hero-texto .hero-datos {
 }
 
 /* si no está la foto, queda el bloque beige.
-   ⚠️ La ruta de la imagen es relativa a la carpeta de este CSS. */
+   la ruta de la img es relativa a la carpeta donde esta css. */
 body.cliente .hero-foto {
     min-height: 200px;
     background: var(--beige) url('../../img/fotoPedidos.png') center / cover no-repeat;
 }
 
 
-/* ---------- Las dos columnas ---------- */
+/*  Las dos columnas  */
 
 body.cliente .delivery {
     width: 100%;
@@ -79,7 +78,7 @@ body.cliente .sub {
 }
 
 
-/* ---------- Grilla de tarjetas de platos ---------- */
+/* Grilla de tarjetas de platos  */
 
 body.cliente .grid-platos {
     display: grid;
@@ -97,6 +96,7 @@ body.cliente .card-plato {
 }
 
 /* la foto entera, sin recortar el plato */
+
 body.cliente .card-plato img {
     width: 100%;
     aspect-ratio: 16 / 8;
@@ -136,7 +136,7 @@ body.cliente .card-pie strong {
     font-weight: 500;
 }
 
-/* botón "+ Agregar" */
+/* botón de "+ Agregar" */
 body.cliente button.agregar {
     width: auto;
     padding: 6px 14px;
@@ -150,7 +150,7 @@ body.cliente button.agregar:hover {
 }
 
 
-/* ---------- Panel "Tu pedido" (sticky: queda quieto arriba al bajar) ---------- */
+/* Panel "Tu pedido"  */
 
 body.cliente .panel-pedido {
     position: sticky;
@@ -170,8 +170,7 @@ body.cliente .panel-titulo h2 {
     font-weight: 500;
 }
 
-/* ⚠️ ADAPTADO AL BACKEND: en Figma se puede elegir "Retiro en local".
-   El backend solo hace envíos a domicilio: queda fijo "Delivery". */
+/* delivery */
 body.cliente .modo-entrega {
     padding: 10px;
     border-radius: 10px;
@@ -181,7 +180,8 @@ body.cliente .modo-entrega {
     font-weight: 500;
 }
 
-/* "Agregar una nota a la cocina" */
+/* agregar nota a cocina css */
+
 body.cliente .nota summary {
     color: var(--dorado-texto);
     font-size: 13px;
@@ -209,7 +209,7 @@ body.cliente .pie {
 }
 
 
-/* ---------- TABLET: portada arriba, panel debajo de la carta ---------- */
+/* adaptado a tablety*/
 
 @media (max-width: 900px) {
     body.cliente .hero,
@@ -227,7 +227,7 @@ body.cliente .pie {
 }
 
 
-/* ---------- CELULAR ---------- */
+/* adaptado a celyular */
 
 @media (max-width: 600px) {
     body.cliente .hero-texto {

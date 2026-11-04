@@ -1,8 +1,6 @@
-/* ===================================================================
+/*
    PERFIL                                          cliente/perfil.html
-   ⚠️ ADAPTADO AL BACKEND: en Figma hay una foto. El cliente no guarda
-   imagen: se muestran sus iniciales en un círculo.
-   =================================================================== */
+  */
 
 body.cliente .perfil {
     width: 100%;
@@ -23,7 +21,8 @@ body.cliente .perfil > p {
     margin: 0 0 8px;
 }
 
-/* el círculo con las iniciales */
+/* el círculo con las iniciales de cliente */
+
 body.cliente .avatar {
     width: 120px;
     height: 120px;
@@ -42,7 +41,8 @@ body.cliente .perfil .fila {
     width: 100%;
 }
 
-/* el formulario de los datos: cada campo con su nombre arriba */
+/* el formulario de los datos */
+
 body.cliente .perfil-datos {
     width: 100%;
     display: flex;
@@ -70,7 +70,8 @@ body.cliente .perfil .fila {
     gap: 10px;
 }
 
-/* el DNI no se cambia: se ve en gris */
+/* el DNI no se puede cambair: se ve en gris */
+
 body.cliente .perfil input[readonly] {
     color: var(--gris-texto);
     background: transparent;
@@ -80,6 +81,7 @@ body.cliente .perfil input[readonly] {
 }
 
 /* botón que abre el modal de la contraseña */
+
 body.cliente .abrir-clave {
     width: 100%;
     background: transparent;
@@ -88,7 +90,7 @@ body.cliente .abrir-clave {
     cursor: pointer;
 }
 
-/* ---------- modal "Cambiar contraseña" ---------- */
+/* cambiar contra css */
 body.cliente .modal {
     width: min(420px, 92vw);
     padding: 0;
@@ -181,7 +183,7 @@ body.cliente .modal-pie .boton-borde {
     cursor: pointer;
 }
 
-/* ---------- CELULAR ---------- */
+/* adaptado a celu */
 
 @media (max-width: 600px) {
     body.cliente .perfil h1 {

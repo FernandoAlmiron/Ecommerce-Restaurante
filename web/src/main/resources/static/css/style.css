@@ -1,7 +1,4 @@
-/* ███████████████████████████████████████████████████████████████████
-   LA NONA · CSS DEL CLIENTE
-
-   Este archivo no tiene estilos: solo carga las partes, en orden.
+/*  Este archivo no tiene estilos: solo carga las partes, en orden.
    Cada carpeta de static/css/ es un área, igual que los controllers:
 
    comun/      lo que usan todas las páginas (colores, botones, footer...)
@@ -10,9 +7,9 @@
    reserva/    ClienteReservaController
    delivery/   ClienteDeliveryController
 
-   ⚠️ El ORDEN importa: si dos reglas pisan la misma propiedad, gana la
+    El ORDEN importa: si dos reglas pisan la misma propiedad, gana la
    que se carga después.
-   ███████████████████████████████████████████████████████████████████ */
+  */
 /* COMÚN */
 @import url("comun/variables.css");
 @import url("comun/base.css");

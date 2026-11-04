@@ -1,9 +1,6 @@
 /* ===================================================================
    DELIVERY: CONFIRMACIÓN                          cliente/pedido.html
-   Izquierda: "¡Pedido confirmado!" + "Así va tu pedido".
-   Derecha: dirección y detalle.
-   ⚠️ ADAPTADO AL BACKEND: en Figma la entrega estimada es una hora
-   exacta. El envío no guarda la hora del pedido: va "30 – 45 min".
+
    =================================================================== */
 
 body.cliente .confirmacion {
@@ -59,7 +56,7 @@ body.cliente .entrega-estimada strong {
 }
 
 
-/* ---------- "Así va tu pedido": la línea de pasos ---------- */
+/* "Así va tu pedido": la línea de pasos */
 
 body.cliente .seguimiento {
     text-align: left;
@@ -89,6 +86,7 @@ body.cliente .pasos {
 }
 
 /* los pasos que todavía no llegaron se ven apagados */
+
 body.cliente .pasos li {
     position: relative;
     display: flex;
@@ -98,6 +96,7 @@ body.cliente .pasos li {
 }
 
 /* la rayita vertical que une los círculos */
+
 body.cliente .pasos li:not(:last-child)::after {
     content: "";
     position: absolute;
@@ -129,12 +128,14 @@ body.cliente .punto {
 }
 
 /* los pasos hechos: el tilde en dorado, igual que "Pedido confirmado" */
+
 body.cliente .pasos li.hecho .punto {
     color: var(--dorado-texto);
     font-weight: 700;
 }
 
 /* el paso actual: círculo dorado y texto dorado */
+
 body.cliente .pasos li.actual .punto {
     background: var(--dorado);
 }
@@ -159,7 +160,7 @@ body.cliente .pasos li small {
 }
 
 
-/* ---------- Columna derecha ---------- */
+/* Columna derecha  */
 
 body.cliente .confirmacion-detalle {
     display: flex;
@@ -198,7 +199,7 @@ body.cliente .confirmacion-detalle .boton-borde {
 }
 
 
-/* ---------- TABLET: una columna ---------- */
+/*TABLET */
 
 @media (max-width: 900px) {
     body.cliente .confirmacion {
@@ -208,7 +209,7 @@ body.cliente .confirmacion-detalle .boton-borde {
 }
 
 
-/* ---------- CELULAR ---------- */
+/*CELULAR*/
 
 @media (max-width: 600px) {
     body.cliente .confirmacion {

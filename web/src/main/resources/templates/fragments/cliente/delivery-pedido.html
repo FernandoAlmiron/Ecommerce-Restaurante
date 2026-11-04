@@ -10,8 +10,6 @@
         <span class="chip" th:text="${carrito.unidades} + ' platos'"></span>
     </div>
 
-    <!-- ⚠️ ADAPTADO AL BACKEND: en Figma se puede elegir "Retiro en local".
-         El backend solo crea envíos a domicilio (la dirección es obligatoria). -->
     <div class="modo-entrega">🛵 Delivery · Llega en 30–45 minutos</div>
 
     <p th:if="${carrito.vacio}" class="vacio">Todavía no agregaste platos.</p>
@@ -40,8 +38,7 @@
                   th:text="${carrito.nota}"></textarea>
     </details>
 
-    <!-- ⚠️ ADAPTADO AL BACKEND: en Figma hay "Envío $2.500". El backend no cobra
-         envío: el total es la suma de los platos, igual que lo calcula el ticket. -->
+
     <div class="total">
         <span>Total</span>
         <strong th:text="'$' + ${#numbers.formatDecimal(total, 1, 'POINT', 0, 'COMMA')}"></strong>

@@ -1,8 +1,6 @@
-/* ===================================================================
+/*
    LANDING                                        cliente/landing.html
-   La carta pública: platos en zigzag (los estilos de .plato están en la
-   PARTE 1 · GENERAL) y el botón "Iniciar / Registrarme" FIJO abajo.
-   =================================================================== */
+   */
 
 body.cliente .carta {
     width: 100%;
@@ -15,6 +13,7 @@ body.cliente .carta {
 /* --- "Iniciar / Registrarme" fijo abajo ---
    position: fixed lo deja pegado a la pantalla: cuando bajás con el
    scroll, los platos pasan por detrás y el botón queda siempre a mano. */
+
 body.cliente .acciones {
     position: fixed;
     left: 0;
@@ -26,7 +25,6 @@ body.cliente .acciones {
     align-items: center;
     gap: 6px;
     padding: 14px 16px 18px;
-    /* blanco semitransparente con desenfoque: se ve que hay contenido detrás */
     background: rgba(255, 255, 255, 0.92);
     backdrop-filter: blur(6px);
     border-top: 1px solid #F0EAE2;
@@ -44,12 +42,13 @@ body.cliente .acciones small {
 }
 
 /* lugar abajo para que el último plato no quede tapado por el botón */
+
 body.cliente:has(> .acciones) {
     padding-bottom: 130px;
 }
 
 
-/* ---------- CELULAR ---------- */
+/* CELULAR */
 
 @media (max-width: 600px) {
     body.cliente .acciones .boton {

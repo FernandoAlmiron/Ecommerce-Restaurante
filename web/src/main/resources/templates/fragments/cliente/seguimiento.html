@@ -1,9 +1,9 @@
-<!-- =========================================================
-     "Así va tu pedido". Mientras el pedido está en marcha, HTMX lo vuelve
+<!--
+     como va el pedido . Mientras el pedido está en marcha, HTMX lo vuelve
      a pedir cada 10 segundos (hx-trigger="every 10s") y lo reemplaza:
      cuando el admin marca "En camino", el cliente lo ve sin recargar.
      Cuando llega o se cancela, ya no se pone hx-get y deja de preguntar.
-     ========================================================= -->
+     -->
 <section th:fragment="seguimiento" id="seguimiento" class="seguimiento"
          th:with="activo=${paso >= 2 and paso <= 4}"
          th:hx-get="${activo} ? @{/pedidos/{id}/seguimiento(id=${e.idEnvio})}"

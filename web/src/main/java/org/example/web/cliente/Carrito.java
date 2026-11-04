@@ -7,8 +7,7 @@ import java.io.Serializable;
 import java.util.LinkedHashMap;
 import java.util.Map;
 @Component /** de esta clase encargate vos: creá el objeto y dáselo a quien lo necesite */
-@SessionScope /**  @SessionScope: Spring crea UN carrito por cada sesión (cada cliente logueado tiene el suyo) */
-/**  Lo que se guarda es el ticket en la bd luego de pagar */
+@SessionScope /**  @SessionScope: crea carrito para cada sesion, luego se guarda el ticket de compra */
 
 public class Carrito implements Serializable {
 

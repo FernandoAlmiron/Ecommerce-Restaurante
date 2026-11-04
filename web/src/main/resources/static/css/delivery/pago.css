@@ -1,9 +1,6 @@
 /* ===================================================================
    DELIVERY: PAGO                          cliente/delivery-pago.html
-   Tres columnas: medio de pago (beige) · entrega y tarjeta · resumen.
-   ⚠️ ADAPTADO AL BACKEND: el pago es SIMULADO. Los datos de la tarjeta
-   no se envían ni se guardan; el backend solo guarda el método
-   (TARJETA, QR o EFECTIVO). Mercado Pago y MODO van como QR.
+
    =================================================================== */
 
 body.cliente .pago {
@@ -28,7 +25,7 @@ body.cliente .pago h3 {
 }
 
 
-/* ---------- Columna izquierda: medio de pago ---------- */
+/* Columna izquierda: medio de pago  */
 
 body.cliente .pago-medios {
     background: #F6F1EA;
@@ -52,6 +49,7 @@ body.cliente .pago-medios p {
 }
 
 /* cada medio es una caja que se marca al elegirla */
+
 body.cliente .medio {
     display: flex;
     align-items: center;
@@ -83,14 +81,15 @@ body.cliente .medio small {
     font-size: 11px;
 }
 
-/* :has() = "la caja que TIENE adentro el circulito marcado" */
+/*la caja que TIENE adentro el circulito marcado*/
+
 body.cliente .medio:has(input:checked) {
     border: 2px solid var(--dorado);
     background: var(--beige-claro);
 }
 
 
-/* ---------- Columna del centro: entrega y tarjeta ---------- */
+/*  Columna del centro: entrega y tarjeta  */
 
 body.cliente .pago-datos {
     position: relative;
@@ -122,6 +121,7 @@ body.cliente .pago-datos input {
 }
 
 /* flechita "←" para volver a la carta */
+
 body.cliente .volver {
     position: absolute;
     top: 32px;
@@ -142,6 +142,7 @@ body.cliente .visa {
 }
 
 /* los datos de la tarjeta solo se ven si está elegida "Tarjeta" */
+
 body.cliente .datos-tarjeta {
     display: none;
     flex-direction: column;
@@ -157,17 +158,20 @@ body.cliente .datos-tarjeta .fila label {
 }
 
 /* el número de tarjeta se ve de 4 en 4 */
+
 body.cliente #tarjeta-numero {
     letter-spacing: 1px;
     font-variant-numeric: tabular-nums;
 }
 
 /* un dato mal cargado se marca en rojo (lo pone js/pago.js al pagar) */
+
 body.cliente .datos-tarjeta input.invalido {
     border-color: #C0392B;
 }
 
 /* el código de seguridad con el ojito para verlo */
+
 body.cliente .con-ojo {
     position: relative;
     display: flex;
@@ -204,6 +208,7 @@ body.cliente .con-ojo .ojo.activo {
 }
 
 /* Mercado Pago y MODO: solo se ve el panel del medio elegido */
+
 body.cliente .datos-qr {
     display: none;
     flex-direction: column;
@@ -224,6 +229,7 @@ body.cliente .pago:has(input[data-medio="modo"]:checked) .datos-qr[data-para="mo
 }
 
 /* el QR de ejemplo lo dibuja js/pago.js (cuadraditos en una grilla) */
+
 body.cliente .qr {
     width: 184px;
     height: 184px;
@@ -240,6 +246,7 @@ body.cliente .qr svg {
 }
 
 /* pantalla de "te estamos llevando a Mercado Pago / MODO" */
+
 body.cliente .redireccion {
     position: fixed;
     inset: 0;
@@ -278,6 +285,7 @@ body.cliente .redireccion-caja p {
 }
 
 /* la ruedita que gira mientras "carga" */
+
 body.cliente .rueda {
     width: 42px;
     height: 42px;
@@ -293,7 +301,8 @@ body.cliente .rueda {
 }
 
 
-/* ---------- Columna derecha: resumen ---------- */
+/*
+ Columna derecha: resumen */
 
 body.cliente .pago-resumen {
     border-left: 1px solid #EFE6DA;
@@ -318,7 +327,7 @@ body.cliente .nota-resumen {
 }
 
 
-/* ---------- TABLET: las tres columnas, una debajo de la otra ---------- */
+/*  TABLET*/
 
 @media (max-width: 900px) {
     body.cliente .pago {
@@ -332,7 +341,7 @@ body.cliente .nota-resumen {
 }
 
 
-/* ---------- CELULAR ---------- */
+/* - CELULAR  */
 
 @media (max-width: 600px) {
     body.cliente .pago > section {
@@ -351,6 +360,7 @@ body.cliente .nota-resumen {
 
 
 /* botón "Abrir Mercado Pago" / "Abrir MODO" */
+
 body.cliente .abrir-app {
     padding: 10px 22px;
     background: var(--blanco);
