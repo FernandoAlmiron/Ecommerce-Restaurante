@@ -143,6 +143,6 @@ public class ClienteReservaController {
         model.addAttribute("restaurante", restaurante);
         model.addAttribute("montoSenia", montoSenia);
         model.addAttribute("hoy", LocalDate.now());                      // no deja elegir días pasados
-        model.addAttribute("maxFecha", LocalDate.now().plusMonths(3));   // ni reservar a más de 3 meses
+        model.addAttribute("maxFecha", LocalDate.now().plusMonths(1));   // ni reservar a más de 3 meses
     }
 }
