@@ -68,6 +68,21 @@ body.cliente .auth > a {
     color: #9c7340;
 }
 
+/* el logo es un link a la portada: que no se le note (ni subrayado ni margen de más) */
+body.cliente .auth .logo-inicio {
+    display: block;
+    align-self: center;
+    margin: 0;
+}
+
+/* "← Volver al inicio": todo el ancho de la columna, fácil de tocar en el celu */
+body.cliente .auth .volver-inicio {
+    align-self: stretch;
+    margin-top: 28px;
+    padding: 10px 0;
+    font-size: 14px;
+}
+
 
 /* ---------- CREAR CUENTA ---------- */
 
