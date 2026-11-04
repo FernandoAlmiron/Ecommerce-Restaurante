@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Términos y condiciones - La Nona</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+
+</head>
+<body class="cliente">
+
+<header><a th:href="@{/}"><img th:src="@{/img/logo.png}" alt="La Nona - pastas caseras" class="logo"></a></header>
+
+<main class="legal">
+    <h1>Términos y condiciones</h1>
+    <p class="actualizado">Última actualización: noviembre de 2026</p>
+
+    <p class="intro">
+        Al crear una cuenta y usar la web de La Nona aceptás estas condiciones. Son pocas y están pensadas
+        para que las reservas y los pedidos funcionen bien para todos.
+    </p>
+
+    <section>
+        <h2>1. Tu cuenta</h2>
+        <ul>
+            <li>Los datos que cargás tienen que ser tuyos y estar al día.</li>
+            <li>La contraseña es personal: no la compartas. Lo que se haga con tu cuenta corre por tu cuenta.</li>
+        </ul>
+    </section>
+
+    <section>
+        <h2>2. Reservas</h2>
+        <ul>
+            <li>Cada reserva ocupa la mesa durante <strong>1 hora y media</strong>.</li>
+            <li>Por zona se reserva hasta la mitad de la capacidad: el resto queda para quien llega sin reserva.</li>
+            <li>Para reservar hace falta una tarjeta vigente como <strong>seña</strong>. No se cobra nada si venís.</li>
+            <li>Si no venís y no cancelaste, se cobra la seña por inasistencia.</li>
+            <li>Podés cancelar desde <strong>Reservas</strong> mientras la reserva esté pendiente o confirmada
+                y todavía no se haya abierto la mesa.</li>
+        </ul>
+    </section>
+
+    <section>
+        <h2>3. Pedidos y delivery</h2>
+        <ul>
+            <li>Los precios de la carta están en pesos argentinos y pueden cambiar sin aviso; vale el precio
+                que ves al confirmar el pedido.</li>
+            <li>El pedido sale del local cuando la cocina termina todos los platos. Los tiempos de entrega
+                son aproximados.</li>
+            <li>Revisá la dirección antes de confirmar: el repartidor lleva el pedido a la que cargaste.</li>
+            <li>Podés pagar con tarjeta, Mercado Pago, MODO o en efectivo al recibirlo.</li>
+        </ul>
+    </section>
+
+    <section>
+        <h2>4. Uso de la web</h2>
+        <p>
+            No se permite usar la web para hacer reservas o pedidos falsos, ni intentar entrar a cuentas
+            o datos de otras personas. Podemos suspender las cuentas que lo hagan.
+        </p>
+    </section>
+
+    <section>
+        <h2>5. Tus datos</h2>
+        <p>
+            Cómo usamos y cuidamos tu información está en la
+            <a th:href="@{/privacidad}">Política de privacidad</a>.
+        </p>
+    </section>
+
+    <section>
+        <h2>6. Proyecto académico</h2>
+        <p class="aclaracion">
+            La Nona es un proyecto de la materia Aplicaciones Interactivas (UADE). Los pagos online son
+            simulados: no se hace ningún cobro real.
+        </p>
+    </section>
+
+    <section>
+        <h2>7. Contacto</h2>
+        <p>
+            Por cualquier duda escribinos a <a href="mailto:contacto@lanona.com.ar">contacto@lanona.com.ar</a>
+            o llamanos al 11 4555-1234.
+        </p>
+    </section>
+
+    <a href="javascript:history.back()" class="boton-borde volver-atras">← Volver</a>
+</main>
+
+<footer th:replace="~{fragments/cliente/layout :: footer(false)}"></footer>
+
+</body>
+</html>

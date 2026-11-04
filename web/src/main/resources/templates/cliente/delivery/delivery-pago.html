@@ -136,7 +136,8 @@
         <button type="submit" class="boton-flecha">
             <span th:text="'Pagar $' + ${#numbers.formatDecimal(total, 1, 'POINT', 0, 'COMMA')}"></span> 🔒
         </button>
-        <small class="aclaracion">🛡️ Pago seguro · Al pagar, aceptás los términos y condiciones.</small>
+        <small class="aclaracion">🛡️ Pago seguro · Al pagar, aceptás los
+            <a th:href="@{/terminos}" target="_blank">términos y condiciones</a>.</small>
     </section>
 </form>
 
@@ -148,6 +149,8 @@
         <p id="redireccion-texto"></p>
     </div>
 </div>
+
+<footer th:replace="~{fragments/cliente/layout :: footer(true)}"></footer>
 
 </body>
 </html>

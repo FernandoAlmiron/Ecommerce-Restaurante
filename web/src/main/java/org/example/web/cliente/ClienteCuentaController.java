@@ -34,10 +34,14 @@ public class ClienteCuentaController {
                             @RequestParam String email, @RequestParam int dni,
                             @RequestParam(required = false) String celular,
                             @RequestParam String password, @RequestParam String password2,
+                            @RequestParam(defaultValue = "false") boolean acepto,
                             Model model) {
 
        // manejo de excepciones
         try {
+            if (!acepto) {
+                throw new IllegalArgumentException("Para crear la cuenta tenés que aceptar los términos y la política de privacidad");
+            }
             if (!password.equals(password2)) {
                 throw new IllegalArgumentException("Las contraseñas no coinciden");
             }

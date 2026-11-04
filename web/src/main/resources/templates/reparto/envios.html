@@ -8,7 +8,7 @@
     <script src="https://unpkg.com/htmx.org@2.0.4"></script>
     <script th:src="@{/js/errores.js}" defer></script>
 </head>
-<!-- sin carta, sin barra de cliente y sin footer: solo sus entregas -->
+<!-- sin carta, sin barra de cliente y sin footer: solo sus entregas (y abajo los links legales) -->
 <body class="cliente reparto">
 
 <header class="reparto-cabecera">
@@ -33,6 +33,8 @@
 
     <!-- el restaurante le puede asignar envíos nuevos mientras está afuera -->
     <a th:href="@{/reparto}" class="boton-borde">Actualizar</a>
+
+    <p th:replace="~{fragments/cliente/layout :: links-legales}"></p>
 </main>
 
 </body>

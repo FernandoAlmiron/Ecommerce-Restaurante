@@ -55,5 +55,16 @@
 
     </div>
 
-    <p class="footer-legal">© 2026 La Nona · Proyecto de Aplicaciones Interactivas (UADE)</p>
+    <!-- los links legales van en todas las páginas: son públicas, se abren con o sin sesión -->
+    <p class="footer-legal">
+        © 2026 La Nona · Proyecto de Aplicaciones Interactivas (UADE) ·
+        <a th:href="@{/privacidad}">Política de privacidad</a> ·
+        <a th:href="@{/terminos}">Términos y condiciones</a>
+    </p>
 </footer>
+
+<!-- solo los links legales, para las pantallas sin footer (la del repartidor) -->
+<p th:fragment="links-legales" class="links-legales">
+    <a th:href="@{/privacidad}">Política de privacidad</a> ·
+    <a th:href="@{/terminos}">Términos y condiciones</a>
+</p>

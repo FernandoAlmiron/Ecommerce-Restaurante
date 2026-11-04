@@ -34,12 +34,19 @@
         <input type="text"     name="dni"       placeholder="DNI (sin puntos)" th:value="${param.dni}" required
                class="dni" inputmode="numeric" pattern="\d{7,8}" title="7 u 8 números, sin puntos">
 
-        <small>Al continuar aceptás los Términos y la Política de Privacidad</small>
+        <!-- obligatoria: sin tildarla no se crea la cuenta (el controlador también lo revisa) -->
+        <label class="acepto">
+            <input type="checkbox" name="acepto" value="true" required th:checked="${param.acepto != null}">
+            <span>Leí y acepto los <a th:href="@{/terminos}" target="_blank">Términos y condiciones</a>
+                y la <a th:href="@{/privacidad}" target="_blank">Política de privacidad</a></span>
+        </label>
         <button type="submit">Registrarme</button>
     </form>
 
     <a th:href="@{/login}">Ya tengo cuenta</a>
 </main>
+
+<footer th:replace="~{fragments/cliente/layout :: footer(false)}"></footer>
 
 </body>
 </html>

@@ -1,0 +1,84 @@
+/*
+   PRIVACIDAD Y TÉRMINOS              cliente/legal/privacidad.html y terminos.html
+  */
+
+body.cliente .legal {
+    width: 100%;
+    max-width: 760px;
+    display: flex;
+    flex-direction: column;
+}
+
+body.cliente .legal h1 {
+    margin: 0 0 4px;
+    font-size: 36px;
+    font-weight: 800;
+    text-align: center;
+}
+
+body.cliente .legal .actualizado {
+    margin: 0 0 20px;
+    color: var(--gris-texto);
+    font-size: 12px;
+    text-align: center;
+}
+
+body.cliente .legal .intro {
+    margin: 0 0 24px;
+    color: var(--gris-texto);
+    text-align: center;
+}
+
+/* cada punto en una tarjeta beige, como las del resto de la web */
+body.cliente .legal section {
+    margin: 0 0 14px;
+    padding: 18px 22px;
+    border-radius: 20px;
+    background: var(--beige-claro);
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.06);
+}
+
+body.cliente .legal h2 {
+    margin: 0 0 8px;
+    font-size: 17px;
+    font-weight: 700;
+}
+
+body.cliente .legal p,
+body.cliente .legal li {
+    margin: 0 0 6px;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+body.cliente .legal ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
+/* las aclaraciones grises van alineadas como el resto del texto de la tarjeta */
+body.cliente .legal section .aclaracion {
+    text-align: left;
+}
+
+body.cliente .legal section a {
+    color: var(--dorado-texto);
+}
+
+body.cliente .legal .volver-atras {
+    align-self: center;
+    margin-top: 10px;
+}
+
+
+/* ---------- CELULAR ---------- */
+
+@media (max-width: 600px) {
+    body.cliente .legal h1 {
+        font-size: 28px;
+    }
+
+    body.cliente .legal section {
+        padding: 14px 16px;
+    }
+}

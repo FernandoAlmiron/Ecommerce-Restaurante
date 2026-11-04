@@ -27,7 +27,7 @@ public class SeguridadWebConfig {
 
                 .authorizeHttpRequests(auth -> auth
                         // páginas públicas: cualquiera, sin login
-                        .requestMatchers("/", "/login", "/registro", "/nosotros", "/error").permitAll()
+                        .requestMatchers("/", "/login", "/registro", "/nosotros", "/privacidad", "/terminos", "/error").permitAll()
                         // archivos estáticos (static/css, static/js, static/img)
                         .requestMatchers("/css/**", "/js/**", "/img/**", "/favicon.ico").permitAll()
                         // el repartidor: solo su pantalla de entregas

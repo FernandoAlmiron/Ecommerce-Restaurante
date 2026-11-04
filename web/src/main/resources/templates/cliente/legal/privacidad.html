@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Política de privacidad - La Nona</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+
+</head>
+<body class="cliente">
+
+<header><a th:href="@{/}"><img th:src="@{/img/logo.png}" alt="La Nona - pastas caseras" class="logo"></a></header>
+
+<main class="legal">
+    <h1>Política de privacidad</h1>
+    <p class="actualizado">Última actualización: noviembre de 2026</p>
+
+    <p class="intro">
+        En La Nona cuidamos los datos que nos dejás. Acá te contamos cuáles pedimos, para qué los usamos
+        y qué podés hacer con ellos, según la Ley 25.326 de Protección de Datos Personales.
+    </p>
+
+    <section>
+        <h2>1. Qué datos pedimos</h2>
+        <ul>
+            <li><strong>Al crear tu cuenta:</strong> nombre, apellido, DNI, correo electrónico, celular (opcional) y una contraseña.</li>
+            <li><strong>En un pedido de delivery:</strong> la dirección de entrega y el nombre de quien lo recibe.</li>
+            <li><strong>En una reserva:</strong> la fecha, la hora, la zona, la cantidad de personas y, para la seña,
+                el nombre del titular y el vencimiento de la tarjeta.</li>
+        </ul>
+    </section>
+
+    <section>
+        <h2>2. Para qué los usamos</h2>
+        <ul>
+            <li>Identificarte cuando iniciás sesión.</li>
+            <li>Preparar y llevarte los pedidos, y que el repartidor te pueda llamar si hace falta.</li>
+            <li>Guardarte la mesa y, si no venís sin haber cancelado, cobrar la seña.</li>
+        </ul>
+        <p>No usamos tus datos para publicidad ni los vendemos o compartimos con terceros.</p>
+    </section>
+
+    <section>
+        <h2>3. Tarjetas y pagos</h2>
+        <p>
+            De la tarjeta de la seña solo guardamos el titular y el vencimiento: <strong>nunca el número completo
+            ni el código de seguridad</strong>. Los pagos online del delivery (tarjeta, Mercado Pago y MODO) son
+            simulados en este proyecto: los datos de la tarjeta no salen de tu navegador.
+        </p>
+    </section>
+
+    <section>
+        <h2>4. Quién los ve y cómo los cuidamos</h2>
+        <p>
+            Solo el personal del restaurante que los necesita para su trabajo: la caja, el salón y el repartidor
+            que lleva tu pedido. Tu contraseña se guarda encriptada: ni nosotros podemos verla.
+        </p>
+    </section>
+
+    <section>
+        <h2>5. Tus derechos</h2>
+        <p>
+            Podés ver y corregir tus datos cuando quieras desde <strong>Perfil</strong>. Si querés que borremos
+            tu cuenta o pedirnos una copia de lo que tenemos, escribinos a
+            <a href="mailto:contacto@lanona.com.ar">contacto@lanona.com.ar</a> y te respondemos en un plazo de 10 días.
+        </p>
+        <p class="aclaracion">
+            La Agencia de Acceso a la Información Pública, como órgano de control de la Ley 25.326, atiende
+            las denuncias y reclamos de quienes vean afectados sus derechos sobre sus datos personales.
+        </p>
+    </section>
+
+    <section>
+        <h2>6. Cambios en esta política</h2>
+        <p>Si la cambiamos, vas a ver la fecha nueva arriba de todo.</p>
+    </section>
+
+    <a href="javascript:history.back()" class="boton-borde volver-atras">← Volver</a>
+</main>
+
+<footer th:replace="~{fragments/cliente/layout :: footer(false)}"></footer>
+
+</body>
+</html>

@@ -60,3 +60,19 @@ body.cliente .footer .footer-legal {
     color: #5e554d;
     text-align: center;
 }
+
+/* privacidad y términos: en la misma línea que el ©, no uno abajo del otro */
+body.cliente .footer .footer-legal a,
+body.cliente .links-legales a {
+    display: inline;
+    font-size: inherit;
+    color: #5e554d;
+    text-decoration: underline;
+}
+
+body.cliente .links-legales {
+    margin: 24px 0 0;
+    font-size: .7rem;
+    color: #5e554d;
+    text-align: center;
+}
